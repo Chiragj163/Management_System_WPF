@@ -1,0 +1,126 @@
+﻿<Page x:Class="Management_System_WPF.Views.InventoryPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="Transparent">
+
+    <Grid Margin="20">
+
+        <!-- MAIN WHITE PANEL -->
+        <Border Background="#EFFFFFFF"
+                CornerRadius="15"
+                Padding="20"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Width="900">
+
+            <StackPanel>
+
+                <!-- EXIT BUTTON -->
+                <Button Content="✖"
+                        Width="35"
+                        Height="35"
+                        Background="#FF3CB4A7"
+                        Foreground="White"
+                        HorizontalAlignment="Right"
+                        Margin="0,10,10,0"
+                        Click="ExitInventoryPage_Click"/>
+
+                <!-- TITLE -->
+                <TextBlock Text="ADD NEW ARTICLE"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"
+                           Foreground="Black"/>
+
+                <!-- FORM -->
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="150"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="200"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- LABELS -->
+                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                        <TextBlock Text="Article Name:" FontSize="18" Margin="0,0,0,10"/>
+                        <TextBlock Text="Article Price:" FontSize="18"/>
+                    </StackPanel>
+
+                    <!-- INPUTS -->
+                    <StackPanel Grid.Column="1" Margin="10,0">
+                        <TextBox x:Name="txtItemName"
+                                 Height="35"
+                                 FontSize="16"
+                                 Margin="0,0,0,10"/>
+
+                        <TextBox x:Name="txtItemPrice"
+                                 Height="35"
+                                 FontSize="16"/>
+                    </StackPanel>
+
+                    <!-- SAVE BUTTON (NOW HAS A NAME!) -->
+                    <StackPanel Grid.Column="2">
+                        <Button x:Name="btnSave"
+                                Content="Save Article"
+                                Width="150"
+                                Height="40"
+                                FontSize="16"
+                                Background="#FF3CB4A7"
+                                Foreground="White"
+                                Click="SaveItem_Click"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- INVENTORY TABLE -->
+                <Border Background="#F7F7F7"
+                        CornerRadius="10"
+                        Padding="10">
+
+                    <DataGrid x:Name="dgItems"
+                              AutoGenerateColumns="False"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"
+                              RowHeight="40"
+                              FontSize="16">
+
+                        <DataGrid.Columns>
+
+                            <DataGridTextColumn Header="Name"
+                                                Width="*"
+                                                Binding="{Binding Name}"/>
+
+                            <DataGridTextColumn Header="Price"
+                                                Width="150"
+                                                Binding="{Binding Price}"/>
+
+                            <!-- OPTIONS MENU BUTTON -->
+                            <DataGridTemplateColumn Width="60">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Width="35"
+                                                Height="30"
+                                                Background="#FF3CB4A7"
+                                                Click="Options_Click">
+                                            <Button.Content>
+                                                <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
+                                                      Fill="White"/>
+                                            </Button.Content>
+                                        </Button>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                        </DataGrid.Columns>
+
+                    </DataGrid>
+
+                </Border>
+
+            </StackPanel>
+
+        </Border>
+
+    </Grid>
+
+</Page>

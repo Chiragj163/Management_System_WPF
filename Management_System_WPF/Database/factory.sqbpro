@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="factory.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1468"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><table title="buyers" custom_title="0" dock_id="1" table="4,6:mainbuyers"/><dock_state state="000000ff00000000fd00000001000000020000000000000000fc0100000001fb000000160064006f0063006b00420072006f00770073006500310100000000ffffffff0000011700ffffff000000000000000000000004000000040000000800000008fc00000000"/><default_encoding codec=""/><browse_table_settings/></tab_browse><tab_sql><sql name="SQL 1*">CREATE TABLE IF NOT EXISTS buyers (
+    buyer_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    buyer_name TEXT NOT NULL,
+    phone TEXT,
+    address TEXT
+);
+
+CREATE TABLE IF NOT EXISTS items (
+    item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    item_name TEXT NOT NULL,
+    category TEXT,
+    quantity INTEGER DEFAULT 0,
+    price REAL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS sales (
+    sale_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    buyer_id INTEGER,
+    sale_date TEXT,
+    total_amount REAL,
+    FOREIGN KEY(buyer_id) REFERENCES buyers(buyer_id)
+);
+
+CREATE TABLE IF NOT EXISTS sale_items (
+    sale_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sale_id INTEGER,
+    item_id INTEGER,
+    qty INTEGER,
+    price REAL,
+    FOREIGN KEY(sale_id) REFERENCES sales(sale_id),
+    FOREIGN KEY(item_id) REFERENCES items(item_id)
+);
+</sql><current_tab id="0"/></tab_sql></sqlb_project>

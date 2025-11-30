@@ -1,0 +1,148 @@
+﻿<Window x:Class="Management_System_WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Factory Management System"
+        WindowState="Maximized"
+        WindowStyle="None"
+        Background="Transparent">
+
+    <Grid>
+
+        <!-- Background Image -->
+        <Grid.Background>
+            <ImageBrush ImageSource="Assets/bg.jpg" Stretch="UniformToFill"/>
+        </Grid.Background>
+        <!-- TOP BAR -->
+        <Grid Height="70" VerticalAlignment="Top" Background="#80000000">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="80" />
+            </Grid.ColumnDefinitions>
+
+            <!-- DATE -->
+            <TextBlock x:Name="txtDate"
+                       Margin="20,0,0,0"
+                       VerticalAlignment="Center"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       Foreground="White" />
+
+            <!-- TIME -->
+            <TextBlock x:Name="txtTime"
+                       Grid.Column="1"
+                       Margin="0,0,20,0"
+                       HorizontalAlignment="Right"
+                       VerticalAlignment="Center"
+                       FontSize="26"
+                       FontWeight="Bold"
+                       Foreground="White" />
+
+            <!-- EXIT BUTTON -->
+            <Button Grid.Column="2"
+                    Content="✖"
+                    Width="45"
+                    Height="40"
+                    FontSize="22"
+                    Foreground="White"
+                    Background="#55FF0000"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Click="Exit_Click"/>
+        </Grid>
+
+
+        <!-- SIDE MENU -->
+        <Border 
+                Width="400"
+                Margin="0,70,0,0"
+                Padding="20"
+                HorizontalAlignment="Left">
+
+            <StackPanel>
+
+                <!-- Menu Button Style -->
+                <StackPanel.Resources>
+                    <Style x:Key="MenuButton" TargetType="Button">
+                        <Setter Property="Height" Value="120"/>
+                       
+                        <Setter Property="Margin" Value="0,20,0,0"/>
+                        <Setter Property="FontSize" Value="25"/>
+                        
+                        <Setter Property="Background" Value="#FF3CB4A7"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                        <Setter Property="BorderThickness" Value="10"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            CornerRadius="10"
+                                            Padding="20,0">
+                                        <ContentPresenter VerticalAlignment="Center"
+                                                          HorizontalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+
+                                        <!-- Hover Animation -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+
+                                            <Trigger.EnterActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation 
+                                        Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleX)"
+                                        To="1.06" Duration="0:0:0.15"/>
+
+                                                        <DoubleAnimation 
+                                        Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleY)"
+                                        To="1.06" Duration="0:0:0.15"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.EnterActions>
+
+                                            <Trigger.ExitActions>
+                                                <BeginStoryboard>
+                                                    <Storyboard>
+                                                        <DoubleAnimation 
+                                        Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleX)"
+                                        To="1" Duration="0:0:0.15"/>
+
+                                                        <DoubleAnimation 
+                                        Storyboard.TargetProperty="(Border.RenderTransform).(ScaleTransform.ScaleY)"
+                                        To="1" Duration="0:0:0.15"/>
+                                                    </Storyboard>
+                                                </BeginStoryboard>
+                                            </Trigger.ExitActions>
+
+                                        </Trigger>
+
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </StackPanel.Resources>
+
+                <Button Content="Sales" Style="{StaticResource MenuButton}" Click="Sales_Click"/>
+                <Button Content="Inventory" Style="{StaticResource MenuButton}" Click="Inventory_Click"/>
+                <Button Content="Buyers" Style="{StaticResource MenuButton}" Click="Buyers_Click"/>
+                <Button Content="Reports" Style="{StaticResource MenuButton}" Click="Reports_Click"/>
+                <Button Content="All Sales" Style="{StaticResource MenuButton}" Click="AllSales_Click"/>
+
+            </StackPanel>
+
+        </Border>
+
+
+        <!-- MAIN CONTENT AREA -->
+        <Frame x:Name="MainFrame"
+               Margin="240,90,20,20"
+               NavigationUIVisibility="Hidden"/>
+
+    </Grid>
+
+</Window>
