@@ -26,6 +26,37 @@ namespace Management_System_WPF.Services
                 }
             }
         }
+        public static void UpdateBuyer(Buyer buyer)
+        {
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = "UPDATE buyers SET buyer_name=@name WHERE buyer_id=@id";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@name", buyer.Name);
+                    cmd.Parameters.AddWithValue("@id", buyer.BuyerId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static void DeleteBuyer(int id)
+        {
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+                string query = "DELETE FROM buyers WHERE buyer_id=@id";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
 
         public static List<Buyer> GetAllBuyers()
         {
