@@ -141,6 +141,35 @@
                                        FontSize="16"
                                        HorizontalAlignment="Center"
                                        Foreground="Black"/>
+                            <DataGrid x:Name="dgCart"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          HeadersVisibility="Column"
+          FontSize="16"
+          RowHeight="35"
+          Margin="10">
+
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*" />
+                                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80" />
+                                    <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80" />
+                                    <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="100" />
+
+                                    <!-- REMOVE BUTTON -->
+                                    <DataGridTemplateColumn Width="60">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Content="❌"
+                            Background="#FFB40000"
+                            Foreground="White"
+                            Click="RemoveCartItem_Click"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                </DataGrid.Columns>
+
+                            </DataGrid>
 
                         </StackPanel>
 

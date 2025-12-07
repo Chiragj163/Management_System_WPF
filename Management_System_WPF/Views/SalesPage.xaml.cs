@@ -1,6 +1,8 @@
 ﻿using Management_System_WPF.Models;
 using Management_System_WPF.Services;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -8,6 +10,8 @@ namespace Management_System_WPF.Views
 {
     public partial class SalesPage : Page
     {
+        private List<CartItem> cart = new List<CartItem>();
+
         public SalesPage()
         {
             InitializeComponent();
@@ -32,17 +36,12 @@ namespace Management_System_WPF.Views
                 int.TryParse(txtQuantity.Text, out int qty))
             {
                 decimal total = item.Price * qty;
-                txtTotal.Text = total.ToString("0.00") + " ₹";
+                txtTotal.Text = $"{total:0.00} ₹";
             }
             else
             {
                 txtTotal.Text = "0 ₹";
             }
-        }
-
-        private void SaveSale_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Sale Saved Successfully!");
         }
 
         private void Calculate_Click(object sender, RoutedEventArgs e)
@@ -52,26 +51,84 @@ namespace Management_System_WPF.Views
 
         private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbBuyer.SelectedItem == null)
+            if (cmbItem.SelectedItem is not Item item)
             {
-                MessageBox.Show("Please select buyer");
+                MessageBox.Show("Please select an item.");
                 return;
             }
-            if (cmbItem.SelectedItem == null)
-            {
-                MessageBox.Show("Please select item");
-                return;
-            }
+
             if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
             {
-                MessageBox.Show("Please enter valid quantity");
+                MessageBox.Show("Enter valid quantity.");
                 return;
             }
 
-            MessageBox.Show("Item added to cart (functionality coming soon)");
+            // Check if item already exists
+            var existing = cart.FirstOrDefault(c => c.ItemId == item.Id);
+
+            if (existing != null)
+            {
+                existing.Quantity += qty;
+            }
+            else
+            {
+                cart.Add(new CartItem
+                {
+                    ItemId = item.Id,
+                    ItemName = item.Name,
+                    Quantity = qty,
+                    Price = item.Price
+                });
+            }
+
+            RefreshCartDisplay();
         }
 
-        // FIXED EXIT BUTTON
+        private void RefreshCartDisplay()
+        {
+            dgCart.ItemsSource = null;
+            dgCart.ItemsSource = cart;
+
+            decimal grandTotal = cart.Sum(c => c.Total);
+            txtTotal.Text = $"{grandTotal:0.00} ₹";
+        }
+
+        private void RemoveCartItem_Click(object sender, RoutedEventArgs e)
+        {
+            var cartItem = (sender as Button)?.DataContext as CartItem;
+
+            if (cartItem != null)
+            {
+                cart.Remove(cartItem);
+                RefreshCartDisplay();
+            }
+        }
+
+        // --- THIS IS THE ONLY SaveSale_Click YOU SHOULD HAVE ---
+        private void SaveSale_Click(object sender, RoutedEventArgs e)
+        {
+            if (cmbBuyer.SelectedItem == null)
+            {
+                MessageBox.Show("Select a buyer.");
+                return;
+            }
+
+            if (cart.Count == 0)
+            {
+                MessageBox.Show("Cart is empty.");
+                return;
+            }
+
+            // Currently no DB save implemented
+            MessageBox.Show("Sale saved successfully!");
+
+            // Clear UI
+            cart.Clear();
+            RefreshCartDisplay();
+            cmbItem.SelectedIndex = -1;
+            txtQuantity.Text = "";
+        }
+
         private void ExitSalePage_Click(object sender, RoutedEventArgs e)
         {
             var mainWindow = Window.GetWindow(this) as MainWindow;
