@@ -107,9 +107,9 @@ namespace Management_System_WPF.Views
         // --- THIS IS THE ONLY SaveSale_Click YOU SHOULD HAVE ---
         private void SaveSale_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbBuyer.SelectedItem == null)
+            if (cmbBuyer.SelectedItem is not Buyer buyer)
             {
-                MessageBox.Show("Select a buyer.");
+                MessageBox.Show("Please select a buyer.");
                 return;
             }
 
@@ -119,15 +119,21 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Currently no DB save implemented
-            MessageBox.Show("Sale saved successfully!");
+            decimal totalAmount = cart.Sum(i => i.Total);
 
-            // Clear UI
+            int saleId = SalesService.CreateSale(buyer.BuyerId, DateTime.Now, totalAmount);
+
+            foreach (var c in cart)
+            {
+                SalesService.AddSaleItem(saleId, c.ItemId, c.Quantity, c.Price);
+            }
+
+            MessageBox.Show("Sale Saved Successfully!");
+
             cart.Clear();
             RefreshCartDisplay();
-            cmbItem.SelectedIndex = -1;
-            txtQuantity.Text = "";
         }
+
 
         private void ExitSalePage_Click(object sender, RoutedEventArgs e)
         {

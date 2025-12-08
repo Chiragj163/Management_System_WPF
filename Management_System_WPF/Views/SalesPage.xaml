@@ -4,15 +4,17 @@
       Background="Transparent">
 
     <Grid Margin="20">
-        
+
 
         <!-- MAIN WHITE PANEL -->
-        <Border Background="#F9FFFFFF"
-                CornerRadius="20"
-                Padding="20"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Width="900">
+        <Border HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        MaxWidth="900"
+        Background="#F9FFFFFF"
+        CornerRadius="20"
+        Padding="20"
+        Margin="0,20,20,20">
+
 
             <StackPanel>
                 <Button Content="✖"
@@ -147,7 +149,7 @@
           HeadersVisibility="Column"
           FontSize="16"
           RowHeight="35"
-          Margin="10">
+          Margin="10" Width="215">
 
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*" />

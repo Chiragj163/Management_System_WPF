@@ -107,5 +107,6 @@ namespace Management_System_WPF.Views
             LoadBuyers();
             Keyboard.ClearFocus();
         }
+
     }
 }

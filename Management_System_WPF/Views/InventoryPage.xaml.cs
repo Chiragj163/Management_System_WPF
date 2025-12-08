@@ -127,5 +127,6 @@ namespace Management_System_WPF.Views
                 mainWindow.MainFrame.Content = null;
             }
         }
+
     }
 }

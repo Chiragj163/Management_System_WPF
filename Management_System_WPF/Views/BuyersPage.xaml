@@ -6,13 +6,14 @@
     <Grid Margin="20">
 
         <!-- MAIN WHITE PANEL -->
-        <Border 
-            Background="#EFFFFFFF" 
-            CornerRadius="15"
-            Padding="20"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Top"
-            Width="850">
+        <Border HorizontalAlignment="Stretch"
+        VerticalAlignment="Stretch"
+        MaxWidth="900"
+        Background="#F9FFFFFF"
+        CornerRadius="20"
+        Padding="20"
+        Margin="0,20,20,20">
+
 
             <StackPanel>
 

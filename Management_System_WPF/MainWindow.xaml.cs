@@ -1,23 +1,11 @@
-﻿using Management_System_WPF.Views;
+﻿using Management_System.Views;
+using Management_System_WPF.Views;
 using System;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-
 
 namespace Management_System_WPF
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
@@ -25,6 +13,7 @@ namespace Management_System_WPF
             InitializeComponent();
             StartClock();
         }
+
         private void StartClock()
         {
             DispatcherTimer timer = new DispatcherTimer();
@@ -37,57 +26,69 @@ namespace Management_System_WPF
             timer.Start();
         }
 
+        // ------------------ PAGE NAVIGATION ------------------
+
         private void Sales_Click(object sender, RoutedEventArgs e)
         {
+            ResetLayoutBeforeNavigation();
             MainFrame.Navigate(new SalesPage());
         }
 
-
         private void Inventory_Click(object sender, RoutedEventArgs e)
         {
+            ResetLayoutBeforeNavigation();
             MainFrame.Navigate(new InventoryPage());
         }
 
-
         private void Buyers_Click(object sender, RoutedEventArgs e)
         {
-            MainFrame.Navigate(new Management_System_WPF.Views.BuyersPage());
+            ResetLayoutBeforeNavigation();
+            MainFrame.Navigate(new BuyersPage());
         }
-
 
         private void Reports_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate to Reports page
+            ResetLayoutBeforeNavigation();
+            MainFrame.Navigate(new ReportsPage()); // later
         }
 
         private void AllSales_Click(object sender, RoutedEventArgs e)
         {
-            // Navigate to All Sales page
+            ShowFullScreenPage();
+            MainFrame.Navigate(new AllSalesPage());
         }
+
+        // ------------------ LAYOUT CONTROL ------------------
+
+        public void ResetLayoutBeforeNavigation()
+        {
+            SideMenu.Visibility = Visibility.Visible;
+            MainLayout.ColumnDefinitions[0].Width = new GridLength(400);
+
+            MainFrame.Margin = new Thickness(240, 90, 20, 20);
+        }
+
+        public void ShowFullScreenPage()
+        {
+            SideMenu.Visibility = Visibility.Collapsed;
+            MainLayout.ColumnDefinitions[0].Width = new GridLength(0);
+
+            MainFrame.Margin = new Thickness(0, 90, 0, 20);
+        }
+
+        public void RestoreHomeLayout()
+        {
+            SideMenu.Visibility = Visibility.Visible;
+            MainLayout.ColumnDefinitions[0].Width = new GridLength(400);
+
+            MainFrame.Margin = new Thickness(240, 90, 20, 20);
+
+            MainFrame.Content = null;   // Clears page
+        }
+
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
-       
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
