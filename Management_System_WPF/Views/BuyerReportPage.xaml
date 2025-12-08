@@ -30,7 +30,7 @@
         Background="#3CB4A7"
         Foreground="White"
         Margin="0,10"
-        HorizontalAlignment="Left"               
+        HorizontalAlignment="Right"               
         Click="PrevMonth_Click"/>
 
                 <TextBlock x:Name="txtBuyerName"
@@ -41,12 +41,7 @@
 
 
                 <!-- Title -->
-                <TextBlock Text="Buyer Sale History"
-                           FontSize="32"
-                           FontWeight="Bold"
-                           Foreground="Black"
-                           HorizontalAlignment="Center"
-                           Margin="0,10"/>
+               
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
                     
 

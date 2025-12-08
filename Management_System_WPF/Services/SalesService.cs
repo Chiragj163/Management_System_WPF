@@ -214,5 +214,74 @@ namespace Management_System_WPF.Services
             cmd2.Parameters.AddWithValue("@id", saleId);
             cmd2.ExecuteNonQuery();
         }
+        public static List<(string Date, string Article, double Total)> GetArticleSales()
+        {
+            List<(string, string, double)> list = new();
+
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+
+            string query = @"
+        SELECT 
+            s.sale_date,
+            i.item_name,
+            (si.qty * si.price) AS total
+        FROM sales s
+        JOIN sale_items si ON s.sale_id = si.sale_id
+        JOIN items i ON si.item_id = i.item_id
+        ORDER BY s.sale_date;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            using var reader = cmd.ExecuteReader();
+
+            while (reader.Read())
+            {
+                list.Add((
+                    reader["sale_date"].ToString(),
+                    reader["item_name"].ToString(),
+                    Convert.ToDouble(reader["total"])
+                ));
+            }
+
+            return list;
+        }
+        public static List<(string Date, string Article, double Total)> GetArticleSalesPreviousMonth()
+        {
+            List<(string, string, double)> list = new();
+
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT 
+                s.sale_date,
+                i.item_name,
+                (si.qty * si.price) AS total
+            FROM sales s
+            JOIN sale_items si ON s.sale_id = si.sale_id
+            JOIN items i ON si.item_id = i.item_id
+            WHERE strftime('%Y-%m', s.sale_date) = strftime('%Y-%m', 'now', '-1 month')
+            ORDER BY s.sale_date ASC;
+        ";
+
+                using var cmd = new SQLiteCommand(query, conn);
+                using var reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    list.Add((
+                        reader["sale_date"].ToString()!,
+                        reader["item_name"].ToString()!,
+                        Convert.ToDouble(reader["total"])
+                    ));
+                }
+            }
+
+            return list;
+        }
+
+
     }
 }

@@ -15,7 +15,7 @@ namespace Management_System_WPF.Views
             buyerId = id;
 
             if (!string.IsNullOrEmpty(buyerName))
-                txtBuyerName.Text = $"Sale History of {buyerName}";
+                txtBuyerName.Text = $"{buyerName}";
 
             LoadBuyerData();
         }

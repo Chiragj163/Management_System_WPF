@@ -38,8 +38,9 @@ namespace Management_System_WPF.Views
 
         private void SalesByArticles_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Reports by Articles coming soon!");
+            NavigationService.Navigate(new ArticleReportPage());
         }
+
 
         private void SalesByBuyer_Click(object sender, RoutedEventArgs e)
         {

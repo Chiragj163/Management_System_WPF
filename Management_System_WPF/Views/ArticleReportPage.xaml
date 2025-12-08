@@ -1,0 +1,57 @@
+﻿<Page x:Class="Management_System_WPF.Views.ArticleReportPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      Background="White">
+
+
+    <Grid Margin="20">
+        <StackPanel>
+
+            
+            <TextBlock Text="Sale By Article"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       HorizontalAlignment="Center"
+                       Margin="0,10"/>
+
+            <DataGrid x:Name="dgArticles"
+                      AutoGenerateColumns="False"
+                      FrozenColumnCount="1"
+                      RowHeight="32"
+                      FontSize="16"/>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,10">
+                <!-- Back -->
+                <Button Content="⟵ Back"
+            Width="100" Height="35"
+            Background="#3CB4A7"
+            Foreground="White"
+            Click="Back_Click"
+            Margin="0,0,10,0"/>
+
+                <!-- Previous Month -->
+                <Button Content="Show Previous Month Sales"
+            Width="220" Height="35"
+            Background="#3CB4A7"
+            Foreground="White"
+            Click="PrevMonth_Click"
+            Margin="0,0,10,0"/>
+
+                <!-- Export PDF -->
+                <Button Content="Export PDF"
+            Width="140" Height="35"
+            Background="#3CB4A7"
+            Foreground="White"
+            Click="ExportPDF_Click"
+            Margin="0,0,10,0"/>
+
+                <!-- Export Excel -->
+                <Button Content="Export Excel"
+            Width="140" Height="35"
+            Background="#3CB4A7"
+            Foreground="White"
+            Click="ExportExcel_Click"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+</Page>
