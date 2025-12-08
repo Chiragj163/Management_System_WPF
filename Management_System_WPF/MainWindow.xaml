@@ -79,6 +79,18 @@
                             <Setter Property="Cursor" Value="Hand"/>
                             <Setter Property="BorderThickness" Value="0"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                                CornerRadius="10"
+                                                Padding="20,0">
+                                        <ContentPresenter HorizontalAlignment="Center"
+                                                              VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                            </Setter>
                         </Style>
                     </StackPanel.Resources>
 

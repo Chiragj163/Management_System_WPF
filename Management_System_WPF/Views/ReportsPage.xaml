@@ -1,14 +1,100 @@
-﻿<Page x:Class="Management_System.Views.ReportsPage"
+﻿<Page x:Class="Management_System_WPF.Views.ReportsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-      xmlns:local="clr-namespace:Management_System.Views"
-      mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800"
-      Title="ReportsPage">
+      Background="Transparent">
 
-    <Grid>
-        
+    <Grid HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
+
+        <!-- BACKGROUND IMAGE -->
+        <Grid.Background>
+            <ImageBrush ImageSource="/Assets/bg.jpg" Stretch="UniformToFill"/>
+        </Grid.Background>
+
+        <!-- CENTER PANEL -->
+        <Border Background="#F7FFFFFF"
+                CornerRadius="20"
+                Padding="30"
+                Margin="80"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+
+            <StackPanel Width="450">
+
+                <!-- TITLE -->
+                <TextBlock Text="Sale Reports"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"/>
+
+                <!-- INNER PANEL -->
+                <Border Background="#E0F0FF"
+                        CornerRadius="10"
+                        Padding="20">
+
+                    <StackPanel>
+
+                        <!-- SUBTITLE -->
+                        <TextBlock Text="Sale By Buyer"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,15"/>
+
+                        <!-- LABEL -->
+                        <TextBlock Text="Select a Buyer"
+                                   FontSize="14"
+                                   Margin="0,0,0,5"
+                                   HorizontalAlignment="Center"/>
+
+                        <!-- COMBOBOX -->
+                        <ComboBox x:Name="cmbBuyer"
+                                  Width="200"
+                                  Height="30"
+                                  HorizontalAlignment="Center"
+                                  FontSize="14"
+                                  Margin="0,0,0,15"/>
+
+                        <!-- BUTTONS -->
+                        <Button Content="All Sales"
+                                Width="200"
+                                Height="35"
+                                Margin="0,5"
+                                Background="#3CB4A7"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center"
+                                Click="AllSales_Click"/>
+
+                        <Button Content="Sales By Articles"
+                                Width="200"
+                                Height="35"
+                                Margin="0,5"
+                                Background="#3CB4A7"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center"
+                                Click="SalesByArticles_Click"/>
+
+                        <Button Content="Sales By Buyer"
+                                Width="200"
+                                Height="35"
+                                Margin="0,5"
+                                Background="#3CB4A7"
+                                Foreground="White"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center"
+                                Click="SalesByBuyer_Click"/>
+
+                    </StackPanel>
+
+                </Border>
+
+            </StackPanel>
+
+        </Border>
+
     </Grid>
+
 </Page>

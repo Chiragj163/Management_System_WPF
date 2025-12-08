@@ -119,10 +119,19 @@ namespace Management_System_WPF.Views
                 return;
             }
 
+            if (dpSaleDate.SelectedDate == null)
+            {
+                MessageBox.Show("Please select a sale date.");
+                return;
+            }
+
+            DateTime selectedDate = dpSaleDate.SelectedDate.Value;   // ✅ FIXED
             decimal totalAmount = cart.Sum(i => i.Total);
 
-            int saleId = SalesService.CreateSale(buyer.BuyerId, DateTime.Now, totalAmount);
+            // SAVE SALE WITH THE SELECTED DATE
+            int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, totalAmount);   // ⬅️ FIXED
 
+            // SAVE SALE ITEMS
             foreach (var c in cart)
             {
                 SalesService.AddSaleItem(saleId, c.ItemId, c.Quantity, c.Price);

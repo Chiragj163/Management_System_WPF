@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Data.SQLite;
 using Management_System_WPF.Models;
-using System.Windows;
-
 
 namespace Management_System_WPF.Services
 {
@@ -21,9 +19,9 @@ namespace Management_System_WPF.Services
             conn.Open();
 
             string query = @"
-        INSERT INTO sales (buyer_id, sale_date, total_amount)
-        VALUES (@buyer, @date, @amount);
-        SELECT last_insert_rowid();";
+                INSERT INTO sales (buyer_id, sale_date, total_amount)
+                VALUES (@buyer, @date, @amount);
+                SELECT last_insert_rowid();";
 
             using var cmd = new SQLiteCommand(query, conn);
             cmd.Parameters.AddWithValue("@buyer", buyerId);
@@ -32,7 +30,6 @@ namespace Management_System_WPF.Services
 
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
-
 
         // =================================
         // 2️⃣ ADD SALE ITEM
@@ -55,7 +52,7 @@ namespace Management_System_WPF.Services
         }
 
         // =================================
-        // 3️⃣ GET ALL SALES (JOIN TABLES)
+        // 3️⃣ GET ALL SALES RECORDS (JOIN)
         // =================================
         public static List<SaleRecord> GetAllSaleRecords()
         {
@@ -65,19 +62,18 @@ namespace Management_System_WPF.Services
             conn.Open();
 
             string query = @"
-SELECT 
-    s.sale_id,
-    b.buyer_name,
-    i.item_name,
-    si.qty,
-    (si.qty * si.price) AS amount,
-    s.sale_date
-FROM sale_items si
-JOIN sales s ON si.sale_id = s.sale_id
-JOIN buyers b ON s.buyer_id = b.buyer_id
-JOIN items i ON si.item_id = i.item_id
-ORDER BY s.sale_id DESC;";
-
+                SELECT 
+                    s.sale_id,
+                    b.buyer_name,
+                    i.item_name,
+                    si.qty,
+                    (si.qty * si.price) AS amount,
+                    s.sale_date
+                FROM sale_items si
+                JOIN sales s ON si.sale_id = s.sale_id
+                JOIN buyers b ON s.buyer_id = b.buyer_id
+                JOIN items i ON si.item_id = i.item_id
+                ORDER BY s.sale_id DESC;";
 
             using var cmd = new SQLiteCommand(query, conn);
             using var reader = cmd.ExecuteReader();
@@ -99,7 +95,94 @@ ORDER BY s.sale_id DESC;";
         }
 
         // =================================
-        // 4️⃣ DELETE A SALE ITEM
+        // 4️⃣ GET SALES BY BUYER (for report)
+        // =================================
+        public static List<BuyerSaleRecord> GetSalesByBuyer(int buyerId)
+        {
+            List<BuyerSaleRecord> list = new List<BuyerSaleRecord>();
+
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT 
+                s.sale_date,
+                i.item_name,
+                si.qty,
+                si.price,
+                (si.qty * si.price) AS total
+            FROM sales s
+            INNER JOIN sale_items si ON s.sale_id = si.sale_id
+            INNER JOIN items i ON si.item_id = i.item_id
+            WHERE s.buyer_id = @buyerId
+            ORDER BY s.sale_date ASC;
+        ";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@buyerId", buyerId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new BuyerSaleRecord()
+                            {
+                                SaleDate = reader["sale_date"].ToString(),
+                                ItemName = reader["item_name"].ToString(),
+                                Quantity = Convert.ToInt32(reader["qty"]),
+                                Price = Convert.ToDouble(reader["price"]),
+                                Total = Convert.ToDouble(reader["total"])
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+        public static List<BuyerSaleRecord> GetPreviousMonthSales(int buyerId)
+        {
+            List<BuyerSaleRecord> list = new List<BuyerSaleRecord>();
+
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT s.sale_date, i.item_name, si.qty, si.price, (si.qty * si.price) AS total
+            FROM sales s
+            JOIN sale_items si ON s.sale_id = si.sale_id
+            JOIN items i ON si.item_id = i.item_id
+            WHERE s.buyer_id = @buyerId
+              AND strftime('%Y-%m', s.sale_date) = strftime('%Y-%m', 'now', '-1 month')
+            ORDER BY s.sale_date;";
+
+                using var cmd = new SQLiteCommand(query, conn);
+                cmd.Parameters.AddWithValue("@buyerId", buyerId);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    list.Add(new BuyerSaleRecord()
+                    {
+                        SaleDate = reader["sale_date"].ToString(),
+                        ItemName = reader["item_name"].ToString(),
+                        Quantity = Convert.ToInt32(reader["qty"]),
+                        Price = Convert.ToDouble(reader["price"]),
+                        Total = Convert.ToDouble(reader["total"])
+                    });
+                }
+            }
+
+            return list;
+        }
+    
+
+
+        // =================================
+        // 5️⃣ DELETE SALE ITEM
         // =================================
         public static void DeleteSaleItem(int saleItemId)
         {
@@ -114,31 +197,22 @@ ORDER BY s.sale_id DESC;";
         }
 
         // =================================
-        // 5️⃣ DELETE WHOLE SALE (and its items)
+        // 6️⃣ DELETE COMPLETE SALE
         // =================================
-
         public static void DeleteSale(int saleId)
         {
             using var conn = new SQLiteConnection(connectionString);
             conn.Open();
 
             // Delete sale items
-            using (var cmd1 = new SQLiteCommand("DELETE FROM sale_items WHERE sale_id = @id", conn))
-            {
-                cmd1.Parameters.AddWithValue("@id", saleId);
-                cmd1.ExecuteNonQuery();
-            }
+            using var cmd1 = new SQLiteCommand("DELETE FROM sale_items WHERE sale_id = @id", conn);
+            cmd1.Parameters.AddWithValue("@id", saleId);
+            cmd1.ExecuteNonQuery();
 
             // Delete sale record
-            using (var cmd2 = new SQLiteCommand("DELETE FROM sales WHERE sale_id = @id", conn))
-            {
-                cmd2.Parameters.AddWithValue("@id", saleId);
-                cmd2.ExecuteNonQuery();
-            }
+            using var cmd2 = new SQLiteCommand("DELETE FROM sales WHERE sale_id = @id", conn);
+            cmd2.Parameters.AddWithValue("@id", saleId);
+            cmd2.ExecuteNonQuery();
         }
-
-       
-
-
     }
 }

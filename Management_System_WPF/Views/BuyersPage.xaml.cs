@@ -8,7 +8,7 @@ namespace Management_System_WPF.Views
 {
     public partial class BuyersPage : Page
     {
-        private Buyer? selectedBuyer = null;  // For edit mode
+        private Buyer? selectedBuyer = null;
 
         public BuyersPage()
         {
@@ -16,30 +16,38 @@ namespace Management_System_WPF.Views
             LoadBuyers();
         }
 
+        // ------------------- LOAD BUYERS -------------------
         private void LoadBuyers()
         {
             var buyers = BuyersService.GetAllBuyers();
 
+            if (buyers == null)
+                return;
+
             int count = 1;
-            foreach (var b in buyers)
+            foreach (var buyer in buyers)
             {
-                b.SerialNumber = count++;
+                buyer.SerialNumber = count++;
             }
 
             dgBuyers.ItemsSource = buyers;
         }
 
-        // EXIT PAGE
+        // ------------------- EXIT PAGE -------------------
         private void ExitBuyerPage_Click(object sender, RoutedEventArgs e)
         {
-            ((MainWindow)Application.Current.MainWindow).MainFrame.Content = null;
+            if (Application.Current.MainWindow is MainWindow main)
+                main.MainFrame.Content = null;
         }
 
-        // OPTIONS MENU (EDIT / DELETE)
+        // ------------------- OPTIONS: EDIT / DELETE -------------------
         private void Options_Click(object sender, RoutedEventArgs e)
         {
-            Button button = sender as Button;
-            Buyer buyer = button.DataContext as Buyer;
+            if (sender is not Button button)
+                return;
+
+            if (button.DataContext is not Buyer buyer)
+                return;
 
             ContextMenu menu = new ContextMenu();
 
@@ -55,31 +63,42 @@ namespace Management_System_WPF.Views
             menu.IsOpen = true;
         }
 
-        // EDIT BUYER
+        // ------------------- EDIT BUYER -------------------
         private void EditBuyer(Buyer buyer)
         {
+            if (buyer == null)
+                return;
+
             selectedBuyer = buyer;
 
             txtBuyerName.Text = buyer.Name;
             btnSave.Content = "Update Buyer";
         }
 
-        // DELETE BUYER
+        // ------------------- DELETE BUYER -------------------
         private void DeleteBuyer(Buyer buyer)
         {
-            if (MessageBox.Show($"Delete buyer '{buyer.Name}'?",
-                                "Confirm Delete", MessageBoxButton.YesNo)
-                == MessageBoxResult.Yes)
+            if (buyer == null)
+                return;
+
+            if (MessageBox.Show(
+                    $"Delete buyer '{buyer.Name}'?",
+                    "Confirm Delete",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning
+                ) == MessageBoxResult.Yes)
             {
                 BuyersService.DeleteBuyer(buyer.BuyerId);
                 LoadBuyers();
             }
         }
 
-        // SAVE + UPDATE BUYER
+        // ------------------- SAVE / UPDATE BUYER -------------------
         private void SaveBuyer_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtBuyerName.Text))
+            string name = txtBuyerName.Text.Trim();
+
+            if (string.IsNullOrWhiteSpace(name))
             {
                 MessageBox.Show("Please enter buyer name.");
                 return;
@@ -87,26 +106,25 @@ namespace Management_System_WPF.Views
 
             if (selectedBuyer == null)
             {
-                // Add new buyer
+                // ADD NEW BUYER
                 BuyersService.AddBuyer(new Buyer
                 {
-                    Name = txtBuyerName.Text
+                    Name = name
                 });
             }
             else
             {
-                // Update existing buyer
-                selectedBuyer.Name = txtBuyerName.Text;
+                // UPDATE EXISTING BUYER
+                selectedBuyer.Name = name;
                 BuyersService.UpdateBuyer(selectedBuyer);
 
                 selectedBuyer = null;
-                btnSave.Content = "Save Buyer";  // Reset button text
+                btnSave.Content = "Save Buyer"; // Reset UI
             }
 
             txtBuyerName.Text = "";
             LoadBuyers();
             Keyboard.ClearFocus();
         }
-
     }
 }

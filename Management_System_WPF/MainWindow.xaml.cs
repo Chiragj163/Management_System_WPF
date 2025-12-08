@@ -1,5 +1,4 @@
-﻿using Management_System.Views;
-using Management_System_WPF.Views;
+﻿using Management_System_WPF.Views;
 using System;
 using System.Windows;
 using System.Windows.Threading;
@@ -26,6 +25,7 @@ namespace Management_System_WPF
             timer.Start();
         }
 
+
         // ------------------ PAGE NAVIGATION ------------------
 
         private void Sales_Click(object sender, RoutedEventArgs e)
@@ -49,7 +49,7 @@ namespace Management_System_WPF
         private void Reports_Click(object sender, RoutedEventArgs e)
         {
             ResetLayoutBeforeNavigation();
-            MainFrame.Navigate(new ReportsPage()); // later
+            MainFrame.Navigate(new ReportsPage());
         }
 
         private void AllSales_Click(object sender, RoutedEventArgs e)
@@ -58,13 +58,14 @@ namespace Management_System_WPF
             MainFrame.Navigate(new AllSalesPage());
         }
 
+
+
         // ------------------ LAYOUT CONTROL ------------------
 
         public void ResetLayoutBeforeNavigation()
         {
             SideMenu.Visibility = Visibility.Visible;
             MainLayout.ColumnDefinitions[0].Width = new GridLength(400);
-
             MainFrame.Margin = new Thickness(240, 90, 20, 20);
         }
 
@@ -72,7 +73,6 @@ namespace Management_System_WPF
         {
             SideMenu.Visibility = Visibility.Collapsed;
             MainLayout.ColumnDefinitions[0].Width = new GridLength(0);
-
             MainFrame.Margin = new Thickness(0, 90, 0, 20);
         }
 
@@ -80,15 +80,16 @@ namespace Management_System_WPF
         {
             SideMenu.Visibility = Visibility.Visible;
             MainLayout.ColumnDefinitions[0].Width = new GridLength(400);
-
             MainFrame.Margin = new Thickness(240, 90, 20, 20);
-
-            MainFrame.Content = null;   // Clears page
+            MainFrame.Content = null;
         }
+
+
 
         private void Exit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
         }
+
     }
 }
