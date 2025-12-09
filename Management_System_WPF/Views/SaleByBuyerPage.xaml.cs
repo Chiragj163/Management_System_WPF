@@ -5,99 +5,177 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
+using Microsoft.Win32;
+using System.IO;
 
 namespace Management_System_WPF.Views
 {
     public partial class SaleByBuyerPage : Page
     {
-        private int _year;
-        private int _month;
-
         public SaleByBuyerPage()
         {
             InitializeComponent();
-
-            var today = DateTime.Today;
-            _year = today.Year;
-            _month = today.Month;
-
-            LoadBuyerMatrix();
+            LoadReport(DateTime.Now);
         }
 
-        private void LoadBuyerMatrix()
+        // ==========================================
+        // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
+        // ==========================================
+        private void LoadReport(DateTime month)
         {
-            var data = SalesService.GetBuyerMatrix(_year, _month);
+            var allSales = SalesService.GetSales(); // ALL rows from DB
 
-            if (data.Count == 0)
+            // Filter by selected month
+            var sales = allSales
+                .Where(s => s.SaleDate.Month == month.Month && s.SaleDate.Year == month.Year)
+                .ToList();
+
+            if (sales.Count == 0)
             {
-                txtTitle.Text = $"{new DateTime(_year, _month, 1):MMMM yyyy} - No Records";
+                MessageBox.Show("No records found for this month");
                 dgBuyerSales.ItemsSource = null;
-                dgBuyerSales.Columns.Clear();
                 return;
             }
 
-            txtTitle.Text = $"{new DateTime(_year, _month, 1):MMMM yyyy}";
+            // Set title “November 2025”
+            txtTitle.Text = month.ToString("MMMM yyyy");
 
-            // Collect all unique buyer names from dictionary keys
-            var buyers = data
-                .SelectMany(r => r.BuyerValues.Keys)
-                .Distinct()
-                .OrderBy(n => n)
-                .ToList();
+            // Collect all unique buyers
+            var buyers = sales.Select(s => s.BuyerName).Distinct().ToList();
+
+            // Collect all dates
+            var dates = sales.Select(s => s.SaleDate.Date)
+                             .Distinct()
+                             .OrderBy(d => d)
+                             .ToList();
+
+            var rows = new List<SaleByBuyerRow>();
+
+            foreach (var date in dates)
+            {
+                var row = new SaleByBuyerRow();
+                row.Date = date;
+
+                foreach (var buyer in buyers)
+                {
+                    double total = sales
+                        .Where(x => x.BuyerName == buyer && x.SaleDate.Date == date)
+                        .Sum(x => x.TotalAmount);
+
+                    row.BuyerValues[buyer] = total;
+                }
+
+                rows.Add(row);
+            }
 
             BuildDynamicColumns(buyers);
-            dgBuyerSales.ItemsSource = data;
+            dgBuyerSales.ItemsSource = rows;
         }
 
+        // ==========================================
+        // BUILD TABLE COLUMNS
+        // ==========================================
         private void BuildDynamicColumns(List<string> buyers)
         {
             dgBuyerSales.Columns.Clear();
 
-            // Date column
+            // DATE column
             dgBuyerSales.Columns.Add(new DataGridTextColumn
             {
-                Header = "Date",
-                Binding = new Binding("Date") { StringFormat = "dd-MMM-yyyy" },
-                Width = 100
+                Header = "Dates",
+                Binding = new System.Windows.Data.Binding("Date") { StringFormat = "dd-MMM-yyyy" },
+                Width = 150
             });
 
-            // One column per buyer
-            foreach (var b in buyers)
+            // Dynamic Buyer Columns
+            foreach (var buyer in buyers)
             {
                 dgBuyerSales.Columns.Add(new DataGridTextColumn
                 {
-                    Header = b,
-                    Binding = new Binding($"BuyerValues[{b}]")
-                    {
-                        StringFormat = "₹0.##"
-                    },
-                    Width = 110
+                    Header = buyer,
+                    Binding = new System.Windows.Data.Binding($"BuyerValues[{buyer}]"),
+                    Width = 150
                 });
+            }
+        }
+
+        // ==========================================
+        // BUTTON: PREVIOUS MONTH
+        // ==========================================
+        private void PrevMonth_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime previous = DateTime.Now.AddMonths(-1);
+            LoadReport(previous);
+        }
+
+        // ==========================================
+        // BUTTON: EXPORT TO EXCEL (CSV format)
+        // ==========================================
+        private void ExportExcel_Click(object sender, RoutedEventArgs e)
+        {
+            if (dgBuyerSales.ItemsSource == null)
+            {
+                MessageBox.Show("Nothing to export!");
+                return;
+            }
+
+            SaveFileDialog dialog = new SaveFileDialog
+            {
+                Filter = "Excel CSV (*.csv)|*.csv",
+                FileName = "SalesByBuyer_Report.csv"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                using (StreamWriter writer = new StreamWriter(dialog.FileName))
+                {
+                    // Write header
+                    var headers = dgBuyerSales.Columns.Select(c => c.Header.ToString());
+                    writer.WriteLine(string.Join(",", headers));
+
+                    // Write all rows
+                    foreach (var item in dgBuyerSales.Items)
+                    {
+                        if (item is SaleByBuyerRow row)
+                        {
+                            List<string> cells = new List<string>();
+
+                            cells.Add(row.Date.ToString("dd-MMM-yyyy"));
+
+                            foreach (var col in dgBuyerSales.Columns.Skip(1))
+                            {
+                                string buyer = col.Header.ToString();
+                                double val = row.BuyerValues.ContainsKey(buyer)
+                                    ? row.BuyerValues[buyer]
+                                    : 0;
+
+                                cells.Add(val.ToString());
+                            }
+
+                            writer.WriteLine(string.Join(",", cells));
+                        }
+                    }
+                }
+
+                MessageBox.Show("Excel file exported successfully!");
+            }
+        }
+
+        // ==========================================
+        // BUTTON: PRINT
+        // ==========================================
+        private void Print_Click(object sender, RoutedEventArgs e)
+        {
+            PrintDialog print = new PrintDialog();
+            if (print.ShowDialog() == true)
+            {
+                print.PrintVisual(dgBuyerSales, "Sales Report");
             }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             NavigationService?.GoBack();
-        }
-
-        private void PrevMonth_Click(object sender, RoutedEventArgs e)
-        {
-            var dt = new DateTime(_year, _month, 1).AddMonths(-1);
-            _year = dt.Year;
-            _month = dt.Month;
-            LoadBuyerMatrix();
-        }
-
-        private void Print_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Print feature coming soon.");
-        }
-
-        private void ExportExcel_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Excel export feature coming soon.");
         }
     }
 }
