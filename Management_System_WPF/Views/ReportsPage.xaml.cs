@@ -21,6 +21,9 @@ namespace Management_System_WPF.Views
             cmbBuyer.SelectedValuePath = "BuyerId";
         }
 
+        // ===========================
+        // 1️⃣ ALL SALES → SELECT BUYER REQUIRED
+        // ===========================
         private void AllSales_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem == null)
@@ -31,27 +34,25 @@ namespace Management_System_WPF.Views
 
             var buyer = (Buyer)cmbBuyer.SelectedItem;
 
-            
             NavigationService.Navigate(new BuyerReportPage(buyer.BuyerId, buyer.Name));
         }
 
-
+        // ===========================
+        // 2️⃣ SALES BY ARTICLES → NO BUYER NEEDED
+        // ===========================
         private void SalesByArticles_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new ArticleReportPage());
         }
 
-
+        // ===========================
+        // 3️⃣ SALE BY BUYER (MATRIX REPORT) → NO BUYER SELECTION REQUIRED
+        // ===========================
         private void SalesByBuyer_Click(object sender, RoutedEventArgs e)
         {
-            if (cmbBuyer.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a buyer!");
-                return;
-            }
-
-            var buyer = (Buyer)cmbBuyer.SelectedItem;
-            MessageBox.Show($"Showing sales for {buyer.Name}. Feature coming soon!");
+            // ❌ Remove buyer selection requirement
+            // ✔️ Load matrix report for ALL buyers
+            NavigationService.Navigate(new SaleByBuyerPage());
         }
 
         private void AllSalesReport_Click(object sender, RoutedEventArgs e)
