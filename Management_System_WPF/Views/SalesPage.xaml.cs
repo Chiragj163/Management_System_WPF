@@ -16,13 +16,13 @@ namespace Management_System_WPF.Views
         {
             InitializeComponent();
 
-            // Load Buyers
             cmbBuyer.ItemsSource = BuyersService.GetAllBuyers();
             cmbBuyer.DisplayMemberPath = "Name";
 
-            // Load Items
             cmbItem.ItemsSource = ItemsService.GetAllItems();
             cmbItem.DisplayMemberPath = "Name";
+
+            dpSaleDate.SelectedDate = DateTime.Now;
         }
 
         private void txtQuantity_TextChanged(object sender, TextChangedEventArgs e)
@@ -35,20 +35,16 @@ namespace Management_System_WPF.Views
             if (cmbItem.SelectedItem is Item item &&
                 int.TryParse(txtQuantity.Text, out int qty))
             {
-                decimal total = item.Price * qty;
-                txtTotal.Text = $"{total:0.00} ₹";
+                txtTotal.Text = $"{(item.Price * qty):0.00} ₹";
             }
             else
             {
-                txtTotal.Text = "0 ₹";
+                txtTotal.Text = "0.00 ₹";
             }
         }
+        private void Calculate_Click(object sender, RoutedEventArgs e) { CalculateTotal(); }
 
-        private void Calculate_Click(object sender, RoutedEventArgs e)
-        {
-            CalculateTotal();
-        }
-
+        // 🟩 ADD TO CART WORKS INDEPENDENTLY
         private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
             if (cmbItem.SelectedItem is not Item item)
@@ -63,7 +59,6 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Check if item already exists
             var existing = cart.FirstOrDefault(c => c.ItemId == item.Id);
 
             if (existing != null)
@@ -89,22 +84,19 @@ namespace Management_System_WPF.Views
             dgCart.ItemsSource = null;
             dgCart.ItemsSource = cart;
 
-            decimal grandTotal = cart.Sum(c => c.Total);
-            txtTotal.Text = $"{grandTotal:0.00} ₹";
+            txtTotal.Text = $"{cart.Sum(c => c.Total):0.00} ₹";
         }
 
         private void RemoveCartItem_Click(object sender, RoutedEventArgs e)
         {
-            var cartItem = (sender as Button)?.DataContext as CartItem;
-
-            if (cartItem != null)
+            if ((sender as Button)?.DataContext is CartItem item)
             {
-                cart.Remove(cartItem);
+                cart.Remove(item);
                 RefreshCartDisplay();
             }
         }
 
-        // --- THIS IS THE ONLY SaveSale_Click YOU SHOULD HAVE ---
+        // 🟩 SAVE SALE WITHOUT CART (DIRECT SALE)
         private void SaveSale_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem is not Buyer buyer)
@@ -113,44 +105,57 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            if (cart.Count == 0)
+            if (cmbItem.SelectedItem is not Item item)
             {
-                MessageBox.Show("Cart is empty.");
+                MessageBox.Show("Please select an item.");
+                return;
+            }
+
+            if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
+            {
+                MessageBox.Show("Enter valid quantity.");
                 return;
             }
 
             if (dpSaleDate.SelectedDate == null)
             {
-                MessageBox.Show("Please select a sale date.");
+                MessageBox.Show("Select sale date.");
                 return;
             }
 
-            DateTime selectedDate = dpSaleDate.SelectedDate.Value;   // ✅ FIXED
-            decimal totalAmount = cart.Sum(i => i.Total);
+            DateTime selectedDate = dpSaleDate.SelectedDate.Value;
+            decimal amount = item.Price * qty;
 
-            // SAVE SALE WITH THE SELECTED DATE
-            int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, totalAmount);   // ⬅️ FIXED
+            // 1️⃣ Create Sale
+            int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, amount);
 
-            // SAVE SALE ITEMS
-            foreach (var c in cart)
-            {
-                SalesService.AddSaleItem(saleId, c.ItemId, c.Quantity, c.Price);
-            }
+            // 2️⃣ Save Item
+            SalesService.AddSaleItem(saleId, item.Id, qty, item.Price);
 
             MessageBox.Show("Sale Saved Successfully!");
+
+            ResetForm();
+        }
+
+        // 🟩 RESET ENTIRE PAGE
+        private void ResetForm()
+        {
+            cmbBuyer.SelectedIndex = -1;
+            cmbItem.SelectedIndex = -1;
+
+            txtQuantity.Text = "";
+            txtTotal.Text = "0.00 ₹";
+
+            dpSaleDate.SelectedDate = DateTime.Now;
 
             cart.Clear();
             RefreshCartDisplay();
         }
 
-
         private void ExitSalePage_Click(object sender, RoutedEventArgs e)
         {
-            var mainWindow = Window.GetWindow(this) as MainWindow;
-            if (mainWindow != null)
-            {
-                mainWindow.MainFrame.Content = null;
-            }
+            var main = Window.GetWindow(this) as MainWindow;
+            main.MainFrame.Content = null;
         }
     }
 }

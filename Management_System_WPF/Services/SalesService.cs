@@ -65,19 +65,20 @@ namespace Management_System_WPF.Services
             conn.Open();
 
             string query = @"
-                SELECT 
-                    s.sale_id,
-                    b.name AS buyer_name,
-                    i.item_name,
-                    si.qty,
-                    (si.qty * si.price) AS amount,
-                    s.sale_date
-                FROM sale_items si
-                JOIN sales s ON si.sale_id = s.sale_id
-                JOIN buyers b ON s.buyer_id = b.buyer_id
-                JOIN items i ON si.item_id = i.item_id
-                ORDER BY s.sale_id DESC;
-            ";
+    SELECT 
+        s.sale_id,
+        b.buyer_name AS buyer_name,
+        i.item_name,
+        si.qty,
+        (si.qty * si.price) AS amount,
+        s.sale_date
+    FROM sale_items si
+    JOIN sales s ON si.sale_id = s.sale_id
+    JOIN buyers b ON s.buyer_id = b.buyer_id
+    JOIN items i ON si.item_id = i.item_id
+    ORDER BY s.sale_id DESC;
+";
+
 
             using var cmd = new SQLiteCommand(query, conn);
             using var reader = cmd.ExecuteReader();
@@ -109,21 +110,22 @@ namespace Management_System_WPF.Services
             conn.Open();
 
             string query = @"
-        SELECT 
-            s.sale_id,
-            s.buyer_id,
-            b.buyer_name AS buyer_name,
-            s.sale_date,
-            s.total_amount,
-            si.item_id,
-            i.item_name,
-            si.qty,
-            si.price
-        FROM sales s
-        LEFT JOIN sale_items si ON s.sale_id = si.sale_id
-        LEFT JOIN items i ON si.item_id = i.item_id
-        LEFT JOIN buyers b ON s.buyer_id = b.buyer_id;
-    ";
+    SELECT 
+        s.sale_id,
+        s.buyer_id,
+        b.buyer_name AS buyer_name,
+        s.sale_date,
+        s.total_amount,
+        si.item_id,
+        i.item_name,
+        si.qty,
+        si.price
+    FROM sales s
+    LEFT JOIN sale_items si ON s.sale_id = si.sale_id
+    LEFT JOIN items i ON si.item_id = i.item_id
+    LEFT JOIN buyers b ON s.buyer_id = b.buyer_id;
+";
+
 
             using var cmd = new SQLiteCommand(query, conn);
             using var reader = cmd.ExecuteReader();

@@ -105,9 +105,12 @@
 
             <!-- PAGE FRAME -->
             <Frame x:Name="MainFrame"
-                   Grid.Column="1"
-                   Margin="240,90,20,20"
-                   NavigationUIVisibility="Hidden"/>
+       Grid.Column="1"
+       Margin="0,70,20,20"
+       NavigationUIVisibility="Hidden"/>
+
+
+
         </Grid>
 
     </Grid>

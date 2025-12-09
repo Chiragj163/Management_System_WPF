@@ -3,121 +3,183 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="Transparent">
 
-    <Grid x:Name="MainContainer" Margin="40">
+    <Grid HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch">
 
-
+        <!-- MAIN WHITE PANEL (FULL AREA IN FRAME) -->
         <Border Background="#F8FFFFFF"
-                CornerRadius="20"
+                CornerRadius="0"
                 Padding="30"
+                Margin="0"
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
 
-            <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <!-- Top buttons row -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Title (buyer name) -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Data grid -->
+                    <RowDefinition Height="*"/>
+                    <!-- Grand total -->
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <!-- Back Button -->
-                <Button Content="⟵ Back"
-                        Width="120"
-                        Height="38"
-                        Background="#3CB4A7"
-                        Foreground="White"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        HorizontalAlignment="Left"
-                        Click="Back_Click"/>
-                <Button Content="Previous Month Sales"
-        Width="200"
-        Height="40"
-        Background="#3CB4A7"
-        Foreground="White"
-        Margin="0,10"
-        HorizontalAlignment="Right"               
-        Click="PrevMonth_Click"/>
+                <!-- 🔹 TOP BUTTON BAR -->
+                <Grid Grid.Row="0"
+                      Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="txtBuyerName"
-           FontSize="26"
-           FontWeight="Bold"
-           HorizontalAlignment="Center"
-           Margin="0,10"/>
+                    <!-- Back -->
+                    <Button Grid.Column="1"
+                            Content="⟵ Back"
+                            Width="140"
+                            Height="38"
+                            Background="#3CB4A7"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="16"
+                            Click="Back_Click"
+                            Margin="0,0,10,0"/>
 
+                    <!-- Previous month -->
+                    <Button Grid.Column="2"
+                            Content="Show Previous Month Sales"
+                            Width="230"
+                            Height="38"
+                            Background="#3CB4A7"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="16"
+                            Click="PrevMonth_Click"
+                            Margin="0,0,10,0"/>
 
-                <!-- Title -->
-               
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
-                    
+                    <!-- Print -->
+                    <Button Grid.Column="3"
+                            Content="🖨Print"
+                            Width="120"
+                            Height="38"
+                            Background="#3CB4A7"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="16"
+                            Click="Print_Click"
+                            Margin="0,0,10,0"/>
 
-                    <Button Content="🖨 Print"
-            Width="120"
-            Height="40"
-            Background="#3CB4A7"
-            Foreground="White"
-            Click="Print_Click"/>
-                </StackPanel>
+                    <!-- Export Excel -->
+                    <Button Grid.Column="4"
+                            Content="Export Excel"
+                            Width="140"
+                            Height="38"
+                            Background="#3CB4A7"
+                            Foreground="White"
+                            BorderThickness="0"
+                            FontSize="16"
+                            Click="ExportExcel_Click"/>
+                </Grid>
 
+                <!-- 🔹 TITLE (BUYER NAME OR MONTH) -->
+                <TextBlock Grid.Row="1"
+                           x:Name="txtBuyerName"
+                           Text="Buyer Name"
+                           FontSize="32"
+                           FontWeight="Bold"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,20"/>
 
-                <!-- === STYLED DATAGRID === -->
-                <DataGrid x:Name="dgBuyerReport"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          HeadersVisibility="Column"
-          RowHeight="40"
-          FontSize="18"
-          AlternationCount="2"
-          Background="White"
-          BorderBrush="#DDD"
-          BorderThickness="1"
-          Margin="0,20,0,0">
+                <!-- 🔹 DATA GRID -->
+                <DataGrid Grid.Row="2"
+                          x:Name="dgBuyerReport"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          HeadersVisibility="Column"
+                          RowHeight="40"
+                          FontSize="18"
+                          ColumnHeaderHeight="40"
+                          AlternationCount="2"
+                          Background="White"
+                          BorderBrush="#DDD"
+                          BorderThickness="1"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          Margin="0,10,0,10">
 
-                    <!-- HEADER STYLE -->
+                    <!-- Header style (teal bar) -->
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="#3CB4A7"/>
                             <Setter Property="Foreground" Value="White"/>
                             <Setter Property="FontSize" Value="18"/>
                             <Setter Property="FontWeight" Value="SemiBold"/>
-                            <Setter Property="Height" Value="45"/>
+                            <Setter Property="Height" Value="40"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
 
-                    <!-- ROW STYLE -->
+                    <!-- Row style (alternate + hover) -->
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
                             <Setter Property="FontSize" Value="18"/>
                             <Setter Property="VerticalAlignment" Value="Center"/>
 
                             <Style.Triggers>
-
-                                <!-- Alternate Row Coloring -->
+                                <!-- alternate row color -->
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                     <Setter Property="Background" Value="#F3F9F9"/>
                                 </Trigger>
 
-                                <!-- Hover -->
+                                <!-- hover highlight -->
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" Value="#D7EFEA"/>
                                 </Trigger>
-
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
 
                     <!-- COLUMNS -->
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Date" Binding="{Binding SaleDate}" Width="*" />
-                        <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="1.5*" />
-                        <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80" />
-                        <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="120" />
-                        <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="120" />
+                        <DataGridTextColumn Header="Date"
+                                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}"
+                                            Width="*" />
+                        <DataGridTextColumn Header="Item"
+                                            Binding="{Binding ItemName}"
+                                            Width="1.5*" />
+                        <DataGridTextColumn Header="Qty"
+                                            Binding="{Binding Quantity}"
+                                            Width="100" />
+                        <DataGridTextColumn Header="Price"
+                                            Binding="{Binding Price}"
+                                            Width="120" />
+                        <DataGridTextColumn Header="Total"
+                                            Binding="{Binding Total}"
+                                            Width="120" />
                     </DataGrid.Columns>
-
                 </DataGrid>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10">
-                    <TextBlock Text="Grand Total: " FontSize="20" FontWeight="Bold"/>
-                    <TextBlock x:Name="txtGrandTotal" FontSize="20" FontWeight="Bold" Foreground="#3CB4A7"/>
+
+                <!-- 🔹 GRAND TOTAL (BOTTOM RIGHT) -->
+                <StackPanel Grid.Row="3"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,10,0,0">
+                    <TextBlock Text="Grand Total: "
+                               FontSize="20"
+                               FontWeight="Bold"/>
+                    <TextBlock x:Name="txtGrandTotal"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#3CB4A7"/>
                 </StackPanel>
 
-
-
-            </StackPanel>
+            </Grid>
         </Border>
     </Grid>
 </Page>

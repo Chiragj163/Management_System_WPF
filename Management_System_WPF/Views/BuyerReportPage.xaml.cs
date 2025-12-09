@@ -1,6 +1,7 @@
 ﻿using Management_System_WPF.Services;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Management_System_WPF.Views
 {
@@ -12,6 +13,9 @@ namespace Management_System_WPF.Views
         {
             InitializeComponent();
 
+            // 🔥 Make buyer report fullscreen
+            ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
+
             buyerId = id;
 
             if (!string.IsNullOrEmpty(buyerName))
@@ -19,6 +23,7 @@ namespace Management_System_WPF.Views
 
             LoadBuyerData();
         }
+
 
         private void LoadBuyerData()
         {
@@ -48,16 +53,27 @@ namespace Management_System_WPF.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
+            // 🔥 Restore normal layout (show side menu, add margins)
+            var main = (MainWindow)Application.Current.MainWindow;
+            main.ResetLayoutBeforeNavigation();
+
+            // Go back to ReportsPage
             NavigationService.GoBack();
         }
+
 
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog pd = new PrintDialog();
             if (pd.ShowDialog() == true)
             {
-                pd.PrintVisual(MainContainer, "Buyer Report Print");
+                pd.PrintVisual(this.Content as Visual, "Buyer Report Print");
             }
         }
+        private void ExportExcel_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Export to Excel feature coming soon!");
+        }
+
     }
 }

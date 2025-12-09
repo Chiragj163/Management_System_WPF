@@ -80,6 +80,9 @@
                               AutoGenerateColumns="False"
                               HeadersVisibility="Column"
                               CanUserAddRows="False"
+                              Height="500"
+                              VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               FontSize="16">
 
                         <DataGrid.Columns>

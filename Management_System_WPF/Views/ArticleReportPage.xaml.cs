@@ -19,6 +19,7 @@ namespace Management_System_WPF.Views
         public ArticleReportPage()
         {
             InitializeComponent();
+            ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
             txtTitle.Text = DateTime.Now.ToString("MMMM yyyy");
             LoadArticleReport();
         }
@@ -78,8 +79,14 @@ namespace Management_System_WPF.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            NavigationService?.GoBack();
+            // 🔥 Restore normal layout (show side menu, add margins)
+            var main = (MainWindow)Application.Current.MainWindow;
+            main.ResetLayoutBeforeNavigation();
+
+            // Go back to ReportsPage
+            NavigationService.GoBack();
         }
+
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var raw = SalesService.GetArticleSalesPreviousMonth();

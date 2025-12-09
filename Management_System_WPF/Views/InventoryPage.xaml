@@ -77,15 +77,21 @@
                 <Border Background="#F7F7F7"
                         CornerRadius="10"
                         Padding="10">
-
+                    
                     <DataGrid x:Name="dgItems"
                               AutoGenerateColumns="False"
+                              Height="400"
+                              VerticalScrollBarVisibility="Auto"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto"
                               CanUserAddRows="False"
                               HeadersVisibility="Column"
                               RowHeight="40"
                               FontSize="16">
+                       
+    
 
-                        <DataGrid.Columns>
+
+                            <DataGrid.Columns>
 
                             <DataGridTextColumn Header="Name"
                                                 Width="*"

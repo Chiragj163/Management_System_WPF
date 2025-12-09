@@ -21,9 +21,7 @@ namespace Management_System_WPF.Views
             cmbBuyer.SelectedValuePath = "BuyerId";
         }
 
-        // ===========================
-        // 1️⃣ ALL SALES → SELECT BUYER REQUIRED
-        // ===========================
+        // 1️⃣ ALL SALES → OPEN BuyerReportPage IN FULL SCREEN
         private void AllSales_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem == null)
@@ -34,24 +32,29 @@ namespace Management_System_WPF.Views
 
             var buyer = (Buyer)cmbBuyer.SelectedItem;
 
+            // 🔥 Make layout fullscreen (hide side menu, remove margin)
+            var main = (MainWindow)Application.Current.MainWindow;
+            main.ShowFullScreenPage();
+
+            // Navigate to BuyerReportPage
             NavigationService.Navigate(new BuyerReportPage(buyer.BuyerId, buyer.Name));
         }
 
-        // ===========================
-        // 2️⃣ SALES BY ARTICLES → NO BUYER NEEDED
-        // ===========================
+        // 2️⃣ SALES BY ARTICLES – (decide if you want fullscreen here or not)
         private void SalesByArticles_Click(object sender, RoutedEventArgs e)
         {
+            // If you want ArticleReport full-screen too, uncomment:
+            // ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
+
             NavigationService.Navigate(new ArticleReportPage());
         }
 
-        // ===========================
-        // 3️⃣ SALE BY BUYER (MATRIX REPORT) → NO BUYER SELECTION REQUIRED
-        // ===========================
+        // 3️⃣ SALES BY BUYER (matrix) – same note as above
         private void SalesByBuyer_Click(object sender, RoutedEventArgs e)
         {
-            // ❌ Remove buyer selection requirement
-            // ✔️ Load matrix report for ALL buyers
+            // If you want matrix report full-screen:
+            // ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
+
             NavigationService.Navigate(new SaleByBuyerPage());
         }
 
