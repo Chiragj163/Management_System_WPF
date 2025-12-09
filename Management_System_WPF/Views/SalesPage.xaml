@@ -9,7 +9,7 @@
         <!-- MAIN WHITE PANEL -->
         <Border HorizontalAlignment="Stretch"
         VerticalAlignment="Stretch"
-        MaxWidth="900"
+        MaxWidth="4000"
         Background="#F9FFFFFF"
         CornerRadius="20"
         Padding="20"
@@ -127,9 +127,10 @@
                     <!-- CART SECTION -->
                     <Border Grid.Column="1"
                             Background="#E8F1F7"
+                            MaxWidth="800"
                             CornerRadius="10"
-                            Padding="20"
-                            Margin="20,0,0,0">
+                            Padding="5"
+                            Margin="5,0,0,0">
 
                         <StackPanel>
                             <TextBlock Text="CART"

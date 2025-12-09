@@ -3,55 +3,95 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="White">
 
-
     <Grid Margin="20">
-        <StackPanel>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Buttons -->
+            <RowDefinition Height="Auto"/>
+            <!-- Month-Year Title -->
+            <RowDefinition Height="*"/>
+            <!-- DataGrid -->
+        </Grid.RowDefinitions>
 
-            
-            <TextBlock Text="Sale By Article"
-                       FontSize="28"
-                       FontWeight="Bold"
-                       HorizontalAlignment="Center"
-                       Margin="0,10"/>
+        <!-- 🔷 TOP BUTTON ROW -->
+        <StackPanel Grid.Row="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center"
+                    Margin="0,0,0,15">
 
-            <DataGrid x:Name="dgArticles"
-                      AutoGenerateColumns="False"
-                      FrozenColumnCount="1"
-                      RowHeight="32"
-                      FontSize="16"/>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,10">
-                <!-- Back -->
-                <Button Content="⟵ Back"
-            Width="100" Height="35"
-            Background="#3CB4A7"
-            Foreground="White"
-            Click="Back_Click"
-            Margin="0,0,10,0"/>
+            <Button Content="⟵ Back"
+                    Width="100" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    Margin="5"
+                    Click="Back_Click"/>
 
-                <!-- Previous Month -->
-                <Button Content="Show Previous Month Sales"
-            Width="220" Height="35"
-            Background="#3CB4A7"
-            Foreground="White"
-            Click="PrevMonth_Click"
-            Margin="0,0,10,0"/>
+            <Button Content="Show Previous Month Sales"
+                    Width="220" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    Margin="5"
+                    Click="PrevMonth_Click"/>
 
-                <!-- Export PDF -->
-                <Button Content="Export PDF"
-            Width="140" Height="35"
-            Background="#3CB4A7"
-            Foreground="White"
-            Click="ExportPDF_Click"
-            Margin="0,0,10,0"/>
+            <Button Content="Print"
+                    Width="120" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    Margin="5"
+                    Click="Print_Click"/>
 
-                <!-- Export Excel -->
-                <Button Content="Export Excel"
-            Width="140" Height="35"
-            Background="#3CB4A7"
-            Foreground="White"
-            Click="ExportExcel_Click"/>
-            </StackPanel>
-
+            <Button Content="Export Excel"
+                    Width="140" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    Margin="5"
+                    Click="ExportExcel_Click"/>
         </StackPanel>
+
+        <!-- 🔷 MONTH - YEAR TITLE -->
+        <TextBlock Grid.Row="1"
+                   x:Name="txtTitle"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   Margin="0,0,0,25"/>
+
+        <!-- 🔷 DATA GRID WITH PDF-STYLE COLUMN DESIGN -->
+        <DataGrid Grid.Row="2"
+                  x:Name="dgArticles"
+                  AutoGenerateColumns="False"
+                  FrozenColumnCount="1"
+                  RowHeight="32"
+                  FontSize="16"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="All"
+                  BorderThickness="1"
+                  BorderBrush="Gray"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch">
+
+            <!-- COLUMN HEADER STYLE LIKE PDF -->
+            <DataGrid.ColumnHeaderStyle>
+                <Style TargetType="DataGridColumnHeader">
+                    <Setter Property="Background" Value="#3CB4A7"/>
+                    <Setter Property="Foreground" Value="White"/>
+                    <Setter Property="FontWeight" Value="Bold"/>
+                    <Setter Property="FontSize" Value="16"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    <Setter Property="Padding" Value="10"/>
+                </Style>
+            </DataGrid.ColumnHeaderStyle>
+
+            <!-- CELL STYLE -->
+            <DataGrid.CellStyle>
+                <Style TargetType="DataGridCell">
+                    <Setter Property="BorderBrush" Value="Gray"/>
+                    <Setter Property="BorderThickness" Value="0.5"/>
+                    <Setter Property="Padding" Value="8"/>
+                </Style>
+            </DataGrid.CellStyle>
+
+        </DataGrid>
+
     </Grid>
 </Page>

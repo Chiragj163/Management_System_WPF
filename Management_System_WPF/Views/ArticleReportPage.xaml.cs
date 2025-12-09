@@ -19,6 +19,7 @@ namespace Management_System_WPF.Views
         public ArticleReportPage()
         {
             InitializeComponent();
+            txtTitle.Text = DateTime.Now.ToString("MMMM yyyy");
             LoadArticleReport();
         }
 
@@ -151,10 +152,16 @@ namespace Management_System_WPF.Views
                 MessageBox.Show($"Excel Exported Successfully!\n{filePath}");
             }
         }
-        private void ExportPDF_Click(object sender, RoutedEventArgs e)
+        private void Print_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("PDF Export feature not added yet!");
+            PrintDialog printDlg = new PrintDialog();
+            if (printDlg.ShowDialog() == true)
+            {
+                dgArticles.Margin = new Thickness(20);
+                printDlg.PrintVisual(dgArticles, "Sale By Article Report");
+            }
         }
+
 
 
 
