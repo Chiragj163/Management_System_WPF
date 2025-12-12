@@ -3,16 +3,11 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="Transparent">
 
-    <!-- MAIN FULL PAGE GRID -->
-    <Grid HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch">
+    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
 
-        <!-- MAIN WHITE PANEL (FULL SIZE LIKE OTHER PAGES) -->
         <Border Background="#F9FFFFFF"
                 CornerRadius="20"
-                Padding="30"
-                HorizontalAlignment="Stretch"
-                VerticalAlignment="Stretch">
+                Padding="30">
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -23,14 +18,11 @@
 
                 <!-- BACK BUTTON -->
                 <Button Content="⟵ Back"
-                        Width="120"
-                        Height="40"
-                        Background="#3CB4A7"
-                        Foreground="White"
-                        FontSize="18"
+                        Width="120" Height="40"
                         HorizontalAlignment="Left"
-                        Click="Back_Click"
-                        Margin="0,0,0,10"/>
+                        Background="#3CB4A7" Foreground="White"
+                        FontSize="18"
+                        Click="Back_Click"/>
 
                 <!-- TITLE -->
                 <TextBlock Grid.Row="1"
@@ -42,86 +34,85 @@
 
                 <!-- SALES GRID -->
                 <DataGrid x:Name="dgSales"
-          Grid.Row="2"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          HeadersVisibility="Column"
-          RowHeight="40"
-          FontSize="18"
-          ColumnHeaderHeight="40"
-          VerticalScrollBarVisibility="Auto"
-          ScrollViewer.VerticalScrollBarVisibility="Auto"
-          AlternationCount="2"
-          Background="White"
-          BorderBrush="#DDD"
-          BorderThickness="1"
-          Margin="0,20,0,0">
+                          Grid.Row="2"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          HeadersVisibility="Column"
+                          RowHeight="40"
+                          FontSize="18"
+                          AlternationCount="2"
+                          Background="White"
+                          BorderBrush="#DDD"
+                          BorderThickness="1"
+                          Margin="0,20,0,0">
 
-                    <!-- HEADER STYLE -->
+                    <!-- ⭐ HEADER STYLE -->
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="#3CB4A7"/>
                             <Setter Property="Foreground" Value="White"/>
                             <Setter Property="FontSize" Value="18"/>
                             <Setter Property="FontWeight" Value="SemiBold"/>
-                            <Setter Property="Height" Value="45"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
 
-                    <!-- ROW STYLE -->
+                    <!-- ⭐ ROW CENTER ALIGNMENT -->
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                            <Setter Property="TextBlock.HorizontalAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.CellStyle>
+
+                    <!-- ⭐ ALTERNATE ROW COLORS -->
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
-                            <Setter Property="FontSize" Value="18"/>
-                            <Setter Property="VerticalAlignment" Value="Center"/>
-
                             <Style.Triggers>
-
-                                <!-- Alternate row color -->
                                 <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                                     <Setter Property="Background" Value="#F3F9F9"/>
                                 </Trigger>
-
-                                <!-- Hover effect -->
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background" Value="#D7EFEA"/>
                                 </Trigger>
-
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
 
-                    <!-- COLUMNS -->
+                    <!-- ⭐ COLUMNS WITH EQUAL WIDTH -->
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="Customer Name"
-                            Binding="{Binding BuyerName}"
-                            Width="*" />
+                                            Binding="{Binding BuyerName}"
+                                            Width="*"/>
 
                         <DataGridTextColumn Header="Article Name"
-                            Binding="{Binding ItemName}"
-                            Width="1.5*" />
+                                            Binding="{Binding ItemName}"
+                                            Width="*"/>
 
-                        <DataGridTextColumn Header="Qty"
-                            Binding="{Binding Quantity}"
-                            Width="100" />
+                        <DataGridTextColumn Header="Quantity"
+                                            Binding="{Binding Quantity}"
+                                            Width="*"/>
 
                         <DataGridTextColumn Header="Amount"
-                            Binding="{Binding Amount}"
-                            Width="120" />
+                                            Binding="{Binding Amount}"
+                                            Width="*"/>
 
                         <DataGridTextColumn Header="Sale Date"
-                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}"
-                            Width="150" />
+                                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}"
+                                            Width="*"/>
 
-                        <DataGridTemplateColumn Header="Edit" Width="70">
+                        <!-- ⭐ CENTERED EDIT BUTTON -->
+                        <DataGridTemplateColumn Header="Edit" Width="*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Width="45"
-                            Height="34"
-                            Background="#3CB4A7"
-                            Click="Options_Click">
+                                    <Button Width="40" Height="30"
+                                            Background="#3CB4A7"
+                                            HorizontalAlignment="Center"
+                                            Click="Options_Click">
                                         <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                              Fill="White"/>
+                                              Fill="White"/>
                                     </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
@@ -130,11 +121,11 @@
                     </DataGrid.Columns>
 
                 </DataGrid>
-                
-
-
 
             </Grid>
+
         </Border>
+
     </Grid>
+
 </Page>
