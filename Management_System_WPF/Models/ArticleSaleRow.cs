@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Management_System_WPF.Models
 {
     public class ArticleSaleRow
     {
         public string Date { get; set; }
-        public Dictionary<string, double> ArticleValues { get; set; }
+
+        // Qty should be INT
+        public Dictionary<string, int> ArticleValues { get; set; }
 
         public ArticleSaleRow()
         {
-            ArticleValues = new Dictionary<string, double>();
+            ArticleValues = new Dictionary<string, int>();
         }
     }
-
 }

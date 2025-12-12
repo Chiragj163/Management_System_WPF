@@ -5,28 +5,35 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
 using System.IO;
-using PdfSharp.Pdf;
-using MigraDoc.DocumentObjectModel;
-using MigraDoc.Rendering;
-
 
 namespace Management_System_WPF.Views
 {
     public partial class ArticleReportPage : Page
     {
+        // ✅ Declare here (class level)
+        private DateTime _currentMonth;
+
         public ArticleReportPage()
         {
             InitializeComponent();
+
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
-            txtTitle.Text = DateTime.Now.ToString("MMMM yyyy");
-            LoadArticleReport();
+
+            // Start at current month (first day)
+            _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+
+            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+
+            LoadArticleReport(_currentMonth);
         }
 
-        private void LoadArticleReport()
+        // ========================================================
+        // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
+        // ========================================================
+        private void LoadArticleReport(DateTime month)
         {
-            var raw = SalesService.GetArticleSales();
+            var raw = SalesService.GetArticleSalesByMonth(month.Year, month.Month);
 
             var dates = raw.Select(r => r.Date).Distinct().ToList();
             var articles = raw.Select(r => r.Article).Distinct().ToList();
@@ -38,23 +45,25 @@ namespace Management_System_WPF.Views
                 var row = new ArticleSaleRow();
                 row.Date = date;
 
-                // initialize values
                 foreach (var art in articles)
                     row.ArticleValues[art] = 0;
 
-                // fill values
                 foreach (var r in raw.Where(x => x.Date == date))
-                {
-                    row.ArticleValues[r.Article] += r.Total;
-                }
+                    row.ArticleValues[r.Article] += r.Qty;
 
                 rows.Add(row);
             }
 
             BuildDynamicColumns(articles);
             dgArticles.ItemsSource = rows;
+
+            // Update next/prev button states
+            UpdateMonthNavigationButtons();
         }
 
+        // ========================================================
+        // CREATE DYNAMIC COLUMNS
+        // ========================================================
         private void BuildDynamicColumns(List<string> articles)
         {
             dgArticles.Columns.Clear();
@@ -77,48 +86,41 @@ namespace Management_System_WPF.Views
             }
         }
 
+        // ========================================================
+        // BUTTON: BACK
+        // ========================================================
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            // 🔥 Restore normal layout (show side menu, add margins)
             var main = (MainWindow)Application.Current.MainWindow;
             main.ResetLayoutBeforeNavigation();
-
-            // Go back to ReportsPage
             NavigationService.GoBack();
         }
 
+        // ========================================================
+        // BUTTON: PREVIOUS MONTH
+        // ========================================================
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
-            var raw = SalesService.GetArticleSalesPreviousMonth();
+            _currentMonth = _currentMonth.AddMonths(-1);
 
-            var dates = raw.Select(r => r.Date).Distinct().ToList();
-            var articles = raw.Select(r => r.Article).Distinct().ToList();
-
-            List<ArticleSaleRow> rows = new();
-
-            foreach (var date in dates)
-            {
-                ArticleSaleRow row = new();
-                row.Date = date;
-
-                foreach (var a in articles)
-                    row.ArticleValues[a] = 0;
-
-                foreach (var r in raw.Where(x => x.Date == date))
-                {
-                    row.ArticleValues[r.Article] += r.Total;
-                }
-
-                rows.Add(row);
-            }
-
-            BuildDynamicColumns(articles);
-            dgArticles.ItemsSource = rows;
-
-            MessageBox.Show("Loaded Previous Month Records");
+            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+            LoadArticleReport(_currentMonth);
         }
 
+        // ========================================================
+        // BUTTON: NEXT MONTH
+        // ========================================================
+        private void NextMonth_Click(object sender, RoutedEventArgs e)
+        {
+            _currentMonth = _currentMonth.AddMonths(1);
 
+            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+            LoadArticleReport(_currentMonth);
+        }
+
+        // ========================================================
+        // EXPORT EXCEL
+        // ========================================================
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
@@ -137,9 +139,7 @@ namespace Management_System_WPF.Views
 
                 var articleNames = rows.First().ArticleValues.Keys.ToList();
                 foreach (var a in articleNames)
-                {
                     ws.Cells[1, col++].Value = a;
-                }
 
                 int rowIndex = 2;
                 foreach (var r in rows)
@@ -159,18 +159,34 @@ namespace Management_System_WPF.Views
                 MessageBox.Show($"Excel Exported Successfully!\n{filePath}");
             }
         }
+
+        // ========================================================
+        // PRINT REPORT
+        // ========================================================
         private void Print_Click(object sender, RoutedEventArgs e)
         {
-            PrintDialog printDlg = new PrintDialog();
-            if (printDlg.ShowDialog() == true)
+            PrintDialog pd = new PrintDialog();
+            if (pd.ShowDialog() == true)
             {
                 dgArticles.Margin = new Thickness(20);
-                printDlg.PrintVisual(dgArticles, "Sale By Article Report");
+                pd.PrintVisual(dgArticles, "Sale By Article Report");
             }
         }
 
+        // ========================================================
+        // DISABLE NEXT/PREV IF MONTH HAS NO SALES
+        // ========================================================
+        private void UpdateMonthNavigationButtons()
+        {
+            DateTime prev = _currentMonth.AddMonths(-1);
+            DateTime next = _currentMonth.AddMonths(1);
 
+            btnPrevMonth.IsEnabled = SalesService.HasSalesInMonth(prev.Year, prev.Month);
+            btnNextMonth.IsEnabled = SalesService.HasSalesInMonth(next.Year, next.Month);
 
+            btnPrevMonth.Opacity = btnPrevMonth.IsEnabled ? 1.0 : 0.4;
+            btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
+        }
 
     }
 }

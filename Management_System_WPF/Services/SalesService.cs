@@ -386,5 +386,168 @@ namespace Management_System_WPF.Services
 
             return list;
         }
+        // ======================================================
+        //  🔵 GET RAW SALES DATA FOR PIVOT REPORT (DYNAMIC ITEMS)
+        // ======================================================
+        public static List<SalesRaw> GetSalesRawForPivot(int buyerId, int year, int month)
+        {
+            var list = new List<SalesRaw>();
+
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT 
+            s.sale_date,
+            i.item_name,
+            si.qty,
+            si.price
+        FROM sale_items si
+        JOIN items i ON si.item_id = i.item_id
+        JOIN sales s ON si.sale_id = s.sale_id
+        WHERE s.buyer_id = @buyerId
+          AND strftime('%Y-%m', s.sale_date) = @ym
+        ORDER BY s.sale_date;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@buyerId", buyerId);
+
+            string ym = $"{year}-{month:D2}";
+            cmd.Parameters.AddWithValue("@ym", ym);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new SalesRaw
+                {
+                    Date = reader.GetString(0),
+                    ItemName = reader.GetString(1),
+                    Qty = Convert.ToInt32(reader["qty"]),
+                    Price = Convert.ToDecimal(reader["price"])
+                });
+            }
+
+            return list;
+        }
+        public static bool HasSalesInMonth(int buyerId, int year, int month)
+        {
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+
+            string query = @"
+        SELECT COUNT(*)
+        FROM sales s
+        JOIN sale_items si ON s.sale_id = si.sale_id
+        WHERE s.buyer_id = @buyerId
+          AND strftime('%Y-%m', s.sale_date) = @ym
+    ";
+
+            string ym = $"{year}-{month:D2}";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@buyerId", buyerId);
+            cmd.Parameters.AddWithValue("@ym", ym);
+
+            long count = (long)cmd.ExecuteScalar();
+            return count > 0;
+        }
+        public static List<SalesRaw> GetSalesBetweenDates(int buyerId, DateTime from, DateTime to)
+        {
+            var list = new List<SalesRaw>();
+
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT 
+            s.sale_date,
+            i.item_name,
+            si.qty,
+            si.price
+        FROM sale_items si
+        JOIN items i ON si.item_id = i.item_id
+        JOIN sales s ON s.sale_id = si.sale_id
+        WHERE s.buyer_id = @buyerId
+          AND date(s.sale_date) BETWEEN date(@from) AND date(@to)
+        ORDER BY s.sale_date;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@buyerId", buyerId);
+            cmd.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@to", to.ToString("yyyy-MM-dd"));
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new SalesRaw
+                {
+                    Date = reader.GetString(0),
+                    ItemName = reader.GetString(1),
+                    Qty = Convert.ToInt32(reader["qty"]),
+                    Price = Convert.ToDecimal(reader["price"])
+                });
+            }
+
+            return list;
+        }
+        public static List<(string Date, string Article, int Qty)> GetArticleSalesByMonth(int year, int month)
+        {
+            var list = new List<(string, string, int)>();
+
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+
+            string query = @"
+        SELECT 
+            s.sale_date,
+            i.item_name,
+            si.qty             -- ✅ THIS is what we need!
+        FROM sales s
+        JOIN sale_items si ON s.sale_id = si.sale_id
+        JOIN items i ON si.item_id = i.item_id
+        WHERE strftime('%Y', s.sale_date) = @year
+          AND strftime('%m', s.sale_date) = @month
+        ORDER BY s.sale_date;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@year", year.ToString());
+            cmd.Parameters.AddWithValue("@month", month.ToString("D2"));
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add((
+                    reader["sale_date"].ToString(),
+                    reader["item_name"].ToString(),
+                    Convert.ToInt32(reader["qty"])
+                ));
+            }
+
+            return list;
+        }
+        public static bool HasSalesInMonth(int year, int month)
+        {
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+
+            string query = @"
+        SELECT COUNT(*)
+        FROM sales
+        WHERE strftime('%Y', sale_date) = @year
+          AND strftime('%m', sale_date) = @month
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@year", year.ToString());
+            cmd.Parameters.AddWithValue("@month", month.ToString("D2"));
+
+            long count = (long)cmd.ExecuteScalar();
+            return count > 0;
+        }
+
+
     }
 }
