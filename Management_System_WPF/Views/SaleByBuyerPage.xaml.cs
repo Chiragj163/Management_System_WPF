@@ -12,12 +12,19 @@ namespace Management_System_WPF.Views
 {
     public partial class SaleByBuyerPage : Page
     {
+        private DateTime _currentMonth;
+
         public SaleByBuyerPage()
         {
             InitializeComponent();
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
-            LoadReport(DateTime.Now);
+
+            // Start from current month (first day)
+            _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+
+            LoadReport(_currentMonth);
         }
+
 
         // ==========================================
         // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
@@ -71,6 +78,8 @@ namespace Management_System_WPF.Views
 
             BuildDynamicColumns(buyers);
             dgBuyerSales.ItemsSource = rows;
+            UpdateMonthButtons();
+
         }
 
         // ==========================================
@@ -105,9 +114,27 @@ namespace Management_System_WPF.Views
         // ==========================================
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
-            DateTime previous = DateTime.Now.AddMonths(-1);
-            LoadReport(previous);
+            var prev = SalesService.GetPreviousSalesMonth(_currentMonth);
+
+            if (prev != null)
+            {
+                _currentMonth = prev.Value;
+                LoadReport(_currentMonth);
+            }
         }
+
+        private void NextMonth_Click(object sender, RoutedEventArgs e)
+        {
+            var next = SalesService.GetNextSalesMonth(_currentMonth);
+
+            if (next != null)
+            {
+                _currentMonth = next.Value;
+                LoadReport(_currentMonth);
+            }
+        }
+
+
 
         // ==========================================
         // BUTTON: EXPORT TO EXCEL (CSV format)
@@ -183,6 +210,15 @@ namespace Management_System_WPF.Views
             // Go back to ReportsPage
             NavigationService.GoBack();
         }
+        private void UpdateMonthButtons()
+        {
+            btnPrevMonth.IsEnabled = SalesService.GetPreviousSalesMonth(_currentMonth) != null;
+            btnNextMonth.IsEnabled = SalesService.GetNextSalesMonth(_currentMonth) != null;
+
+            btnPrevMonth.Opacity = btnPrevMonth.IsEnabled ? 1.0 : 0.4;
+            btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
+        }
+
 
     }
 }

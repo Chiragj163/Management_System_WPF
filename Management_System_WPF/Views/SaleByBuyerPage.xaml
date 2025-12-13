@@ -26,12 +26,25 @@
                     Margin="5"
                     Click="Back_Click"/>
 
-            <Button Content="Show Previous Month Sales"
-                    Width="220" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    Margin="5"
-                    Click="PrevMonth_Click"/>
+            <Button x:Name="btnPrevMonth"
+        Content="Show Previous Month Sales"
+        Width="220"
+        Height="35"
+        Background="#3CB4A7"
+        Foreground="White"
+        Margin="5"
+        Click="PrevMonth_Click"/>
+
+            <Button x:Name="btnNextMonth"
+        Content="Show Next Month Sales"
+        Width="220"
+        Height="35"
+        Background="#3CB4A7"
+        Foreground="White"
+        Margin="5"
+        Click="NextMonth_Click"/>
+
+
 
             <Button Content="Print"
                     Width="120" Height="35"

@@ -65,33 +65,46 @@ namespace Management_System_WPF.Views
         // =====================================================
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
-            _currentMonth = _currentMonth.AddMonths(-1);
-            LoadBuyerData();
+            var prev = SalesService.GetPreviousSalesMonthForBuyer(buyerId, _currentMonth);
+
+            if (prev != null)
+            {
+                _currentMonth = prev.Value;
+                LoadBuyerData();
+            }
         }
+
 
         // =====================================================
         // 🔵 NEXT MONTH BUTTON
         // =====================================================
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
-            _currentMonth = _currentMonth.AddMonths(1);
-            LoadBuyerData();
+            var next = SalesService.GetNextSalesMonthForBuyer(buyerId, _currentMonth);
+
+            if (next != null)
+            {
+                _currentMonth = next.Value;
+                LoadBuyerData();
+            }
         }
+
 
         // =====================================================
         // 🔵 ENABLE/DISABLE NAVIGATION BUTTONS
         // =====================================================
         private void UpdateMonthNavigationButtons()
         {
-            DateTime prev = _currentMonth.AddMonths(-1);
-            DateTime next = _currentMonth.AddMonths(1);
+            btnPrevMonth.IsEnabled =
+                SalesService.GetPreviousSalesMonthForBuyer(buyerId, _currentMonth) != null;
 
-            btnPrevMonth.IsEnabled = SalesService.HasSalesInMonth(buyerId, prev.Year, prev.Month);
-            btnNextMonth.IsEnabled = SalesService.HasSalesInMonth(buyerId, next.Year, next.Month);
+            btnNextMonth.IsEnabled =
+                SalesService.GetNextSalesMonthForBuyer(buyerId, _currentMonth) != null;
 
             btnPrevMonth.Opacity = btnPrevMonth.IsEnabled ? 1.0 : 0.4;
             btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
         }
+
 
         // =====================================================
         // 🔵 BUILD GRID

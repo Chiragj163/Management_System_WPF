@@ -547,6 +547,143 @@ namespace Management_System_WPF.Services
             long count = (long)cmd.ExecuteScalar();
             return count > 0;
         }
+        // ✅ Get the nearest previous month that has sales
+        public static DateTime? GetPreviousSalesMonth(DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        FROM sales
+        WHERE sale_date < @fromDate
+        ORDER BY sale_month DESC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+
+        // ✅ Get the nearest next month that has sales
+        public static DateTime? GetNextSalesMonth(DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        FROM sales
+        WHERE sale_date > @fromDate
+        ORDER BY sale_month ASC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+        // ==========================================
+        // 🔁 PREVIOUS SALES MONTH FOR BUYER
+        // ==========================================
+        public static DateTime? GetPreviousSalesMonthForBuyer(int buyerId, DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', s.sale_date) AS sale_month
+        FROM sales s
+        WHERE s.buyer_id = @buyerId
+          AND s.sale_date < @fromDate
+        ORDER BY sale_month DESC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@buyerId", buyerId);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+
+        // ==========================================
+        // 🔁 NEXT SALES MONTH FOR BUYER
+        // ==========================================
+        public static DateTime? GetNextSalesMonthForBuyer(int buyerId, DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', s.sale_date) AS sale_month
+        FROM sales s
+        WHERE s.buyer_id = @buyerId
+          AND s.sale_date > @fromDate
+        ORDER BY sale_month ASC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@buyerId", buyerId);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+        // ==========================================
+        // 🔁 PREVIOUS MONTH WITH ARTICLE SALES
+        // ==========================================
+        public static DateTime? GetPreviousArticleSalesMonth(DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        FROM sales
+        WHERE sale_date < @fromDate
+        ORDER BY sale_month DESC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+
+        // ==========================================
+        // 🔁 NEXT MONTH WITH ARTICLE SALES
+        // ==========================================
+        public static DateTime? GetNextArticleSalesMonth(DateTime fromMonth)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        FROM sales
+        WHERE sale_date > @fromDate
+        ORDER BY sale_month ASC
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+
+
 
 
     }

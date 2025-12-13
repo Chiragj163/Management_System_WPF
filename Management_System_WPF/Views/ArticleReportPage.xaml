@@ -72,40 +72,67 @@
 
         <!-- 🔷 DATA GRID WITH PDF-STYLE COLUMN DESIGN -->
         <DataGrid Grid.Row="2"
-                  x:Name="dgArticles"
-                  AutoGenerateColumns="False"
-                  FrozenColumnCount="1"
-                  RowHeight="32"
-                  FontSize="16"
-                  HeadersVisibility="Column"
-                  GridLinesVisibility="All"
-                  BorderThickness="1"
-                  BorderBrush="Gray"
-                  HorizontalAlignment="Stretch"
-                  VerticalAlignment="Stretch">
+          x:Name="dgArticles"
+          AutoGenerateColumns="False"
+          FrozenColumnCount="1"
+          CanUserAddRows="False"
+          HeadersVisibility="Column"
+          RowHeight="40"
+          FontSize="18"
+          ColumnHeaderHeight="40"
+          AlternationCount="2"
+          Background="White"
+          BorderBrush="#DDD"
+          BorderThickness="1"
+          VerticalScrollBarVisibility="Auto"
+          HorizontalAlignment="Stretch"
+          VerticalAlignment="Stretch"
+          SelectionChanged="dgArticles_SelectionChanged">
 
-            <!-- COLUMN HEADER STYLE LIKE PDF -->
+            <!-- 🔹 HEADER STYLE (same as BuyerReportPage) -->
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="#3CB4A7"/>
                     <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="FontWeight" Value="Bold"/>
-                    <Setter Property="FontSize" Value="16"/>
+                    <Setter Property="FontSize" Value="18"/>
+                    <Setter Property="FontWeight" Value="SemiBold"/>
+                    <Setter Property="Height" Value="40"/>
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="Padding" Value="10"/>
                 </Style>
             </DataGrid.ColumnHeaderStyle>
 
-            <!-- CELL STYLE -->
+            <!-- 🔹 CELL STYLE (clean + centered) -->
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
-                    <Setter Property="BorderBrush" Value="Gray"/>
-                    <Setter Property="BorderThickness" Value="0.5"/>
                     <Setter Property="Padding" Value="8"/>
+                    <Setter Property="BorderBrush" Value="#DDD"/>
+                    <Setter Property="BorderThickness" Value="0.5"/>
+                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                    <Setter Property="VerticalContentAlignment" Value="Center"/>
                 </Style>
             </DataGrid.CellStyle>
 
+            <!-- 🔹 ROW STYLE (alternate + hover like BuyerReport) -->
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Setter Property="FontSize" Value="18"/>
+
+                    <Style.Triggers>
+                        <!-- Alternate row -->
+                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                            <Setter Property="Background" Value="#F3F9F9"/>
+                        </Trigger>
+
+                        <!-- Hover -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="#D7EFEA"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+
         </DataGrid>
+
 
     </Grid>
 </Page>

@@ -101,22 +101,32 @@ namespace Management_System_WPF.Views
         // ========================================================
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
-            _currentMonth = _currentMonth.AddMonths(-1);
+            var prev = SalesService.GetPreviousArticleSalesMonth(_currentMonth);
 
-            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
-            LoadArticleReport(_currentMonth);
+            if (prev != null)
+            {
+                _currentMonth = prev.Value;
+                txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+                LoadArticleReport(_currentMonth);
+            }
         }
+
 
         // ========================================================
         // BUTTON: NEXT MONTH
         // ========================================================
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
-            _currentMonth = _currentMonth.AddMonths(1);
+            var next = SalesService.GetNextArticleSalesMonth(_currentMonth);
 
-            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
-            LoadArticleReport(_currentMonth);
+            if (next != null)
+            {
+                _currentMonth = next.Value;
+                txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+                LoadArticleReport(_currentMonth);
+            }
         }
+
 
         // ========================================================
         // EXPORT EXCEL
@@ -178,15 +188,19 @@ namespace Management_System_WPF.Views
         // ========================================================
         private void UpdateMonthNavigationButtons()
         {
-            DateTime prev = _currentMonth.AddMonths(-1);
-            DateTime next = _currentMonth.AddMonths(1);
+            btnPrevMonth.IsEnabled =
+                SalesService.GetPreviousArticleSalesMonth(_currentMonth) != null;
 
-            btnPrevMonth.IsEnabled = SalesService.HasSalesInMonth(prev.Year, prev.Month);
-            btnNextMonth.IsEnabled = SalesService.HasSalesInMonth(next.Year, next.Month);
+            btnNextMonth.IsEnabled =
+                SalesService.GetNextArticleSalesMonth(_currentMonth) != null;
 
             btnPrevMonth.Opacity = btnPrevMonth.IsEnabled ? 1.0 : 0.4;
             btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
         }
 
+        private void dgArticles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

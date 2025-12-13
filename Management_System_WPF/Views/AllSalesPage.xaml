@@ -34,19 +34,20 @@
 
                 <!-- SALES GRID -->
                 <DataGrid x:Name="dgSales"
-                          Grid.Row="2"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          HeadersVisibility="Column"
-                          RowHeight="40"
-                          FontSize="18"
-                          AlternationCount="2"
-                          Background="White"
-                          BorderBrush="#DDD"
-                          BorderThickness="1"
-                          Margin="0,20,0,0">
+          Grid.Row="2"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          HeadersVisibility="Column"
+          RowHeight="40"
+          FontSize="18"
+          AlternationCount="2"
+          Background="White"
+          BorderBrush="#DDD"
+          BorderThickness="1"
+          Margin="0,20,0,0"
+          ColumnWidth="*">
 
-                    <!-- ⭐ HEADER STYLE -->
+                    <!-- HEADER STYLE -->
                     <DataGrid.ColumnHeaderStyle>
                         <Style TargetType="DataGridColumnHeader">
                             <Setter Property="Background" Value="#3CB4A7"/>
@@ -58,15 +59,16 @@
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
 
-                    <!-- ⭐ ROW CENTER ALIGNMENT -->
+                    <!-- CELL STYLE -->
                     <DataGrid.CellStyle>
                         <Style TargetType="DataGridCell">
                             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-                            <Setter Property="TextBlock.HorizontalAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         </Style>
                     </DataGrid.CellStyle>
 
-                    <!-- ⭐ ALTERNATE ROW COLORS -->
+                    <!-- ROW STYLE -->
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
                             <Style.Triggers>
@@ -80,40 +82,36 @@
                         </Style>
                     </DataGrid.RowStyle>
 
-                    <!-- ⭐ COLUMNS WITH EQUAL WIDTH -->
+                    <!-- COLUMNS -->
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="Customer Name"
-                                            Binding="{Binding BuyerName}"
-                                            Width="*"/>
+                            Binding="{Binding BuyerName}" />
 
                         <DataGridTextColumn Header="Article Name"
-                                            Binding="{Binding ItemName}"
-                                            Width="*"/>
+                            Binding="{Binding ItemName}" />
 
                         <DataGridTextColumn Header="Quantity"
-                                            Binding="{Binding Quantity}"
-                                            Width="*"/>
+                            Binding="{Binding Quantity}" />
 
                         <DataGridTextColumn Header="Amount"
-                                            Binding="{Binding Amount}"
-                                            Width="*"/>
+                            Binding="{Binding Amount}" />
 
                         <DataGridTextColumn Header="Sale Date"
-                                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}"
-                                            Width="*"/>
+                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}" />
 
-                        <!-- ⭐ CENTERED EDIT BUTTON -->
-                        <DataGridTemplateColumn Header="Edit" Width="*">
+                        <!-- EDIT COLUMN (AUTO WIDTH) -->
+                        <DataGridTemplateColumn Header="Edit" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Width="40" Height="30"
-                                            Background="#3CB4A7"
-                                            HorizontalAlignment="Center"
-                                            Click="Options_Click">
-                                        <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                                              Fill="White"/>
-                                    </Button>
+                                    <Grid HorizontalAlignment="Center">
+                                        <Button Width="36" Height="30"
+                                Background="#3CB4A7"
+                                Click="Options_Click">
+                                            <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
+                                  Fill="White"/>
+                                        </Button>
+                                    </Grid>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
@@ -121,6 +119,7 @@
                     </DataGrid.Columns>
 
                 </DataGrid>
+
 
             </Grid>
 
