@@ -1,5 +1,8 @@
 ﻿using Management_System_WPF.Models;
 using Management_System_WPF.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -7,68 +10,108 @@ namespace Management_System_WPF.Views
 {
     public partial class AllSalesPage : Page
     {
+        private List<SaleRecord> _allSales = new();
+
         public AllSalesPage()
         {
             InitializeComponent();
+            txtTitle.Text = "All Sales";
             LoadSales();
         }
 
         private void LoadSales()
         {
-            dgSales.ItemsSource = SalesService.GetAllSaleRecords();
+            _allSales = SalesService.GetAllSaleRecords();
+            dgSales.ItemsSource = _allSales;
         }
 
-        private void ViewSale_Click(object sender, RoutedEventArgs e)
+        // 🔙 BACK
+        private void Back_Click(object sender, RoutedEventArgs e)
         {
-            if ((sender as Button)?.DataContext is not SaleRecord sale)
+            var main = (MainWindow)Application.Current.MainWindow;
+            main.RestoreHomeLayout();
+        }
+
+        // 🔍 FILTER LOGIC
+        private void Filter_Changed(object sender, EventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private void ClearFilter_Click(object sender, RoutedEventArgs e)
+        {
+            txtSearch.Clear();
+            dpFrom.SelectedDate = null;
+            dpTo.SelectedDate = null;
+            dgSales.ItemsSource = _allSales;
+        }
+
+        private void ApplyFilters()
+        {
+            IEnumerable<SaleRecord> filtered = _allSales;
+
+            string search = txtSearch.Text?.Trim().ToLower();
+            if (!string.IsNullOrEmpty(search))
             {
-                MessageBox.Show("Sale not found.");
-                return;
+                filtered = filtered.Where(s =>
+                    s.BuyerName.ToLower().Contains(search) ||
+                    s.ItemName.ToLower().Contains(search));
             }
 
-            MessageBox.Show(
-                $"Customer: {sale.BuyerName}\n" +
-                $"Item: {sale.ItemName}\n" +
-                $"Qty: {sale.Quantity}\n" +
-                $"Amount: ₹{sale.Amount}\n" +
-                $"Date: {sale.SaleDate}",
-                "Sale Details");
-        }
-
-        private void EditSale_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Edit feature coming soon!");
-        }
-
-        private void DeleteSale_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as Button)?.DataContext is not SaleRecord sale)
+            if (dpFrom.SelectedDate != null)
             {
-                MessageBox.Show("Sale not found.");
-                return;
+                filtered = filtered.Where(s =>
+                    s.SaleDate.Date >= dpFrom.SelectedDate.Value.Date);
             }
 
-            if (MessageBox.Show("Delete this sale?", "Confirm", MessageBoxButton.YesNo)
-                != MessageBoxResult.Yes) return;
+            if (dpTo.SelectedDate != null)
+            {
+                filtered = filtered.Where(s =>
+                    s.SaleDate.Date <= dpTo.SelectedDate.Value.Date);
+            }
 
-            SalesService.DeleteSale(sale.SaleId);
-            LoadSales();
+            dgSales.ItemsSource = filtered.ToList();
         }
+
+        // ⚙ OPTIONS MENU
         private void Options_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;
-            var sale = btn.DataContext as SaleRecord;
+            var sale = btn?.DataContext as SaleRecord;
+            if (sale == null) return;
 
             ContextMenu menu = new ContextMenu();
 
             MenuItem view = new MenuItem { Header = "View 👁" };
-            view.Click += (s, ev) => ViewSale_Click(btn, ev);
+            view.Click += (_, __) =>
+            {
+                MessageBox.Show(
+                    $"Customer: {sale.BuyerName}\n" +
+                    $"Item: {sale.ItemName}\n" +
+                    $"Qty: {sale.Quantity}\n" +
+                    $"Amount: ₹{sale.Amount}\n" +
+                    $"Date: {sale.SaleDate:dd/MM/yyyy}",
+                    "Sale Details");
+            };
 
             MenuItem edit = new MenuItem { Header = "Edit ✏" };
-            edit.Click += (s, ev) => EditSale_Click(btn, ev);
+            edit.Click += (_, __) =>
+            {
+                var win = new EditSaleWindow(sale);
+                if (win.ShowDialog() == true)
+                    LoadSales();
+            };
 
             MenuItem delete = new MenuItem { Header = "Delete ❌" };
-            delete.Click += (s, ev) => DeleteSale_Click(btn, ev);
+            delete.Click += (_, __) =>
+            {
+                if (MessageBox.Show("Delete this sale?", "Confirm",
+                    MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    SalesService.DeleteSale(sale.SaleId);
+                    LoadSales();
+                }
+            };
 
             menu.Items.Add(view);
             menu.Items.Add(edit);
@@ -76,19 +119,13 @@ namespace Management_System_WPF.Views
 
             menu.IsOpen = true;
         }
-
-        private void Back_Click(object sender, RoutedEventArgs e)
+        private void ToggleFilter_Click(object sender, RoutedEventArgs e)
         {
-            var main = (MainWindow)Application.Current.MainWindow;
-            main.RestoreHomeLayout();
+            FilterPanel.Visibility =
+                FilterPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
         }
-
-
-
-
-
-
-
 
     }
 }

@@ -3,11 +3,14 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 using System.Linq;
+using System.Data;
+
 
 namespace Management_System_WPF.Services
 {
     public static class SalesService
     {
+
         private static string connectionString =
             $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
 
@@ -53,6 +56,11 @@ namespace Management_System_WPF.Services
 
             cmd.ExecuteNonQuery();
         }
+        private static DateTime NormalizeMonth(DateTime dt)
+        {
+            return new DateTime(dt.Year, dt.Month, 1);
+        }
+
 
         // =================================
         // 3️⃣ GET ALL SALES RECORDS
@@ -66,17 +74,22 @@ namespace Management_System_WPF.Services
 
             string query = @"
     SELECT 
-        s.sale_id,
-        b.buyer_name AS buyer_name,
-        i.item_name,
-        si.qty,
-        (si.qty * si.price) AS amount,
-        s.sale_date
-    FROM sale_items si
-    JOIN sales s ON si.sale_id = s.sale_id
-    JOIN buyers b ON s.buyer_id = b.buyer_id
-    JOIN items i ON si.item_id = i.item_id
-    ORDER BY s.sale_id DESC;
+    si.sale_item_id,
+    s.sale_id,
+    b.buyer_id,
+    b.buyer_name,
+    i.item_id,
+    i.item_name,
+    si.qty,
+    si.price,
+    (si.qty * si.price) AS amount,
+    s.sale_date
+FROM sale_items si
+JOIN sales s ON si.sale_id = s.sale_id
+JOIN buyers b ON s.buyer_id = b.buyer_id
+JOIN items i ON si.item_id = i.item_id
+ORDER BY s.sale_id DESC;
+
 ";
 
 
@@ -87,13 +100,18 @@ namespace Management_System_WPF.Services
             {
                 list.Add(new SaleRecord
                 {
-                    SaleId = reader.GetInt32(0),
-                    BuyerName = reader.GetString(1),
-                    ItemName = reader.GetString(2),
-                    Qty = reader.GetInt32(3),
-                    Amount = Convert.ToDouble(reader["amount"]),
-                    SaleDate = DateTime.Parse(reader.GetString(5))
+                    SaleItemId = reader.GetInt32(0),
+                    SaleId = reader.GetInt32(1),
+                    BuyerId = reader.GetInt32(2),
+                    BuyerName = reader.GetString(3),
+                    ItemId = reader.GetInt32(4),
+                    ItemName = reader.GetString(5),
+                    Qty = reader.GetInt32(6),
+                    Price = reader.GetDouble(7),
+                    Amount = reader.GetDouble(8),
+                    SaleDate = DateTime.Parse(reader.GetString(9))
                 });
+
             }
 
             return list;
@@ -548,139 +566,290 @@ namespace Management_System_WPF.Services
             return count > 0;
         }
         // ✅ Get the nearest previous month that has sales
-        public static DateTime? GetPreviousSalesMonth(DateTime fromMonth)
+        public static DateTime? GetPreviousSalesMonth(DateTime currentMonth)
         {
+            currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
         FROM sales
-        WHERE sale_date < @fromDate
-        ORDER BY sale_month DESC
+        WHERE date(sale_date) < date(@currentMonth)
+        ORDER BY 1 DESC
         LIMIT 1;
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@currentMonth", currentMonth.ToString("yyyy-MM-dd"));
 
             var result = cmd.ExecuteScalar();
             return result == null ? null : DateTime.Parse(result.ToString());
         }
 
         // ✅ Get the nearest next month that has sales
-        public static DateTime? GetNextSalesMonth(DateTime fromMonth)
+        public static DateTime? GetNextSalesMonth(DateTime currentMonth)
         {
+            currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+            DateTime nextMonthStart = currentMonth.AddMonths(1);
+
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
         FROM sales
-        WHERE sale_date > @fromDate
-        ORDER BY sale_month ASC
+        WHERE date(sale_date) >= date(@nextMonthStart)
+        ORDER BY 1
         LIMIT 1;
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@nextMonthStart", nextMonthStart.ToString("yyyy-MM-dd"));
 
             var result = cmd.ExecuteScalar();
             return result == null ? null : DateTime.Parse(result.ToString());
         }
+
         // ==========================================
         // 🔁 PREVIOUS SALES MONTH FOR BUYER
         // ==========================================
-        public static DateTime? GetPreviousSalesMonthForBuyer(int buyerId, DateTime fromMonth)
+        public static DateTime? GetPreviousSalesMonthForBuyer(int buyerId, DateTime currentMonth)
         {
+            currentMonth = NormalizeMonth(currentMonth);
+
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', s.sale_date) AS sale_month
-        FROM sales s
-        WHERE s.buyer_id = @buyerId
-          AND s.sale_date < @fromDate
-        ORDER BY sale_month DESC
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
+        FROM sales
+        WHERE buyer_id = @buyerId
+          AND date(sale_date) < date(@currentMonth)
+        ORDER BY 1 DESC
         LIMIT 1;
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
             cmd.Parameters.AddWithValue("@buyerId", buyerId);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@currentMonth", currentMonth.ToString("yyyy-MM-dd"));
 
             var result = cmd.ExecuteScalar();
             return result == null ? null : DateTime.Parse(result.ToString());
         }
+
+
+
 
         // ==========================================
         // 🔁 NEXT SALES MONTH FOR BUYER
         // ==========================================
-        public static DateTime? GetNextSalesMonthForBuyer(int buyerId, DateTime fromMonth)
+        public static DateTime? GetNextSalesMonthForBuyer(int buyerId, DateTime currentMonth)
         {
+            currentMonth = NormalizeMonth(currentMonth);
+            DateTime nextMonthStart = currentMonth.AddMonths(1);
+
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', s.sale_date) AS sale_month
-        FROM sales s
-        WHERE s.buyer_id = @buyerId
-          AND s.sale_date > @fromDate
-        ORDER BY sale_month ASC
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
+        FROM sales
+        WHERE buyer_id = @buyerId
+          AND date(sale_date) >= date(@nextMonthStart)
+        ORDER BY 1
         LIMIT 1;
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
             cmd.Parameters.AddWithValue("@buyerId", buyerId);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@nextMonthStart", nextMonthStart.ToString("yyyy-MM-dd"));
 
             var result = cmd.ExecuteScalar();
             return result == null ? null : DateTime.Parse(result.ToString());
         }
+
+
+
+
         // ==========================================
         // 🔁 PREVIOUS MONTH WITH ARTICLE SALES
         // ==========================================
-        public static DateTime? GetPreviousArticleSalesMonth(DateTime fromMonth)
+        public static DateTime? GetPreviousArticleSalesMonth(DateTime currentMonth)
         {
+            currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
         FROM sales
-        WHERE sale_date < @fromDate
-        ORDER BY sale_month DESC
+        WHERE date(sale_date) < date(@currentMonth)
+        ORDER BY 1 DESC
         LIMIT 1;
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@currentMonth", currentMonth.ToString("yyyy-MM-dd"));
 
             var result = cmd.ExecuteScalar();
             return result == null ? null : DateTime.Parse(result.ToString());
         }
+
 
         // ==========================================
         // 🔁 NEXT MONTH WITH ARTICLE SALES
         // ==========================================
-        public static DateTime? GetNextArticleSalesMonth(DateTime fromMonth)
+        public static DateTime? GetNextArticleSalesMonth(DateTime currentMonth)
+        {
+            currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
+            DateTime nextMonthStart = currentMonth.AddMonths(1);
+
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT DISTINCT strftime('%Y-%m-01', sale_date)
+        FROM sales
+        WHERE date(sale_date) >= date(@nextMonthStart)
+        ORDER BY 1
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@nextMonthStart", nextMonthStart.ToString("yyyy-MM-dd"));
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? null : DateTime.Parse(result.ToString());
+        }
+
+        // ✅ SQLITE VERSION
+        public static int GetArticleQtyByDate(string article, DateTime date)
         {
             using var conn = GetConnection();
             conn.Open();
 
             string query = @"
-        SELECT DISTINCT strftime('%Y-%m-01', sale_date) AS sale_month
-        FROM sales
-        WHERE sale_date > @fromDate
-        ORDER BY sale_month ASC
-        LIMIT 1;
+        SELECT IFNULL(SUM(si.qty), 0)
+        FROM sales s
+        JOIN sale_items si ON s.sale_id = si.sale_id
+        JOIN items i ON si.item_id = i.item_id
+        WHERE i.item_name = @article
+          AND date(s.sale_date) = date(@date);
     ";
 
             using var cmd = new SQLiteCommand(query, conn);
-            cmd.Parameters.AddWithValue("@fromDate", fromMonth.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@article", article);
+            cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
 
-            var result = cmd.ExecuteScalar();
-            return result == null ? null : DateTime.Parse(result.ToString());
+            return Convert.ToInt32(cmd.ExecuteScalar());
+        }
+
+        public static void UpdateArticleSaleQty(string article, DateTime date, int qty)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+              string query = @"
+                     UPDATE sale_items
+                     SET qty = @qty
+                     WHERE sale_id IN (
+                     SELECT s.sale_id
+                     FROM sales s
+                     JOIN sale_items si ON s.sale_id = si.sale_id
+                     JOIN items i ON si.item_id = i.item_id
+                     WHERE i.item_name = @article
+                    AND date(s.sale_date) = date(@date)
+                             );
+                    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@qty", qty);
+            cmd.Parameters.AddWithValue("@article", article);
+            cmd.Parameters.AddWithValue("@date", date.ToString("yyyy-MM-dd"));
+
+            cmd.ExecuteNonQuery();
+        }
+
+    
+
+    public static void UpdateSaleQty(int saleId, int itemId, int qty)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        UPDATE sale_items
+        SET qty = @qty
+        WHERE sale_id = @saleId AND item_id = @itemId;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@qty", qty);
+            cmd.Parameters.AddWithValue("@saleId", saleId);
+            cmd.Parameters.AddWithValue("@itemId", itemId);
+
+            cmd.ExecuteNonQuery();
+        }
+        public static void UpdateSaleItemQty(int saleItemId, int qty)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            using var cmd = new SQLiteCommand(
+                "UPDATE sale_items SET qty = @qty WHERE sale_item_id = @id",
+                conn);
+
+            cmd.Parameters.AddWithValue("@qty", qty);
+            cmd.Parameters.AddWithValue("@id", saleItemId);
+
+            cmd.ExecuteNonQuery();
+        }
+
+
+        // =======================================
+        // ✅ UPDATE FULL SALE ITEM (BUYER + ITEM + QTY)
+        // =======================================
+        public static void UpdateSaleItemFull(
+            int saleItemId,
+            int saleId,
+            int buyerId,
+            int itemId,
+            int qty)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            using var tx = conn.BeginTransaction();
+
+            // 🔵 Update buyer in SALES table
+            new SQLiteCommand(
+                "UPDATE sales SET buyer_id=@b WHERE sale_id=@s",
+                conn, tx)
+            {
+                Parameters =
+        {
+            new SQLiteParameter("@b", buyerId),
+            new SQLiteParameter("@s", saleId)
+        }
+            }.ExecuteNonQuery();
+
+            // 🔵 Update item + qty in SALE_ITEMS table
+            new SQLiteCommand(
+                "UPDATE sale_items SET item_id=@i, qty=@q WHERE sale_item_id=@id",
+                conn, tx)
+            {
+                Parameters =
+        {
+            new SQLiteParameter("@i", itemId),
+            new SQLiteParameter("@q", qty),
+            new SQLiteParameter("@id", saleItemId)
+        }
+            }.ExecuteNonQuery();
+
+            tx.Commit();
         }
 
 
@@ -688,3 +857,4 @@ namespace Management_System_WPF.Services
 
     }
 }
+

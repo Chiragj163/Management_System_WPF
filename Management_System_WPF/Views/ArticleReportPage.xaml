@@ -1,14 +1,21 @@
 ﻿<Page x:Class="Management_System_WPF.Views.ArticleReportPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="clr-namespace:Management_System_WPF.Helpers"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
       Background="White">
+    <Page.Resources>
+        <local:DateOrTotalConverter x:Key="DateOrTotalConverter"/>
+    </Page.Resources>
+
+
 
     <Grid Margin="20">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Buttons -->
             <RowDefinition Height="Auto"/>
-            <!-- Month-Year Title -->
+            <!-- Title -->
             <RowDefinition Height="*"/>
             <!-- DataGrid -->
         </Grid.RowDefinitions>
@@ -27,25 +34,22 @@
                     Click="Back_Click"/>
 
             <Button x:Name="btnPrevMonth"
-        Content="Show Previous Month Sales"
-        Width="220" Height="35"
-        Background="#3CB4A7"
-        Foreground="White"
-        FontSize="16"
-        Margin="5"
-        BorderThickness="0"
-        Click="PrevMonth_Click"/>
+                    Content="Show Previous Month Sales"
+                    Width="220" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    FontSize="16"
+                    Margin="5"
+                    Click="PrevMonth_Click"/>
 
             <Button x:Name="btnNextMonth"
-        Content="Show Next Month Sales"
-        Width="220" Height="35"
-        Background="#3CB4A7"
-        Foreground="White"
-        FontSize="16"
-        Margin="5"
-        BorderThickness="0"
-        Click="NextMonth_Click"/>
-
+                    Content="Show Next Month Sales"
+                    Width="220" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    FontSize="16"
+                    Margin="5"
+                    Click="NextMonth_Click"/>
 
             <Button Content="Print"
                     Width="120" Height="35"
@@ -60,65 +64,67 @@
                     Foreground="White"
                     Margin="5"
                     Click="ExportExcel_Click"/>
+
+            <Button Content="Edit"
+                    Width="120" Height="35"
+                    Background="#3CB4A7"
+                    Foreground="White"
+                    Margin="5"
+                    Click="Edit_Click"/>
         </StackPanel>
 
-        <!-- 🔷 MONTH - YEAR TITLE -->
-        <TextBlock Grid.Row="1"
-                   x:Name="txtTitle"
+        <!-- 🔷 MONTH TITLE -->
+        <TextBlock x:Name="txtTitle"
+                   Grid.Row="1"
                    FontSize="28"
                    FontWeight="Bold"
                    HorizontalAlignment="Center"
-                   Margin="0,0,0,25"/>
+                   Margin="0,0,0,15"/>
 
-        <!-- 🔷 DATA GRID WITH PDF-STYLE COLUMN DESIGN -->
+        <!-- 🔷 DATA GRID -->
         <DataGrid Grid.Row="2"
-          x:Name="dgArticles"
-          AutoGenerateColumns="False"
-          FrozenColumnCount="1"
-          CanUserAddRows="False"
-          HeadersVisibility="Column"
-          RowHeight="40"
-          FontSize="18"
-          ColumnHeaderHeight="40"
-          AlternationCount="2"
-          Background="White"
-          BorderBrush="#DDD"
-          BorderThickness="1"
-          VerticalScrollBarVisibility="Auto"
-          HorizontalAlignment="Stretch"
-          VerticalAlignment="Stretch"
-          SelectionChanged="dgArticles_SelectionChanged">
+                  x:Name="dgArticles"
+                  AutoGenerateColumns="False"
+                  FrozenColumnCount="1"
+                  CanUserAddRows="False"
+                  HeadersVisibility="Column"
+                  RowHeight="40"
+                  FontSize="18"
+                  SelectionUnit="Cell"
+                  SelectionMode="Single"
+                  AlternationCount="2"
+                  Background="White"
+                  BorderBrush="#DDD"
+                  BorderThickness="1"
+                  SelectedCellsChanged="dgArticles_SelectedCellsChanged">
 
-            <!-- 🔹 HEADER STYLE (same as BuyerReportPage) -->
+            <!-- HEADER STYLE -->
             <DataGrid.ColumnHeaderStyle>
                 <Style TargetType="DataGridColumnHeader">
                     <Setter Property="Background" Value="#3CB4A7"/>
                     <Setter Property="Foreground" Value="White"/>
                     <Setter Property="FontSize" Value="18"/>
                     <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="Height" Value="40"/>
                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
                 </Style>
             </DataGrid.ColumnHeaderStyle>
 
-            <!-- 🔹 CELL STYLE (clean + centered) -->
+            <!-- CELL STYLE -->
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Setter Property="Padding" Value="8"/>
-                    <Setter Property="BorderBrush" Value="#DDD"/>
-                    <Setter Property="BorderThickness" Value="0.5"/>
                     <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                     <Setter Property="VerticalContentAlignment" Value="Center"/>
                 </Style>
             </DataGrid.CellStyle>
 
-            <!-- 🔹 ROW STYLE (alternate + hover like BuyerReport) -->
+
+            <!-- ROW STYLE -->
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
-                    <Setter Property="FontSize" Value="18"/>
-
                     <Style.Triggers>
-                        <!-- Alternate row -->
+
+                        <!-- Alternate row color -->
                         <Trigger Property="ItemsControl.AlternationIndex" Value="1">
                             <Setter Property="Background" Value="#F3F9F9"/>
                         </Trigger>
@@ -127,12 +133,22 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="#D7EFEA"/>
                         </Trigger>
+
+                        <!-- ✅ TOTAL ROW -->
+                        <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
+                            <Setter Property="Background" Value="#004D40"/>
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="FontWeight" Value="Bold"/>
+                            <Setter Property="FontSize" Value="19"/>
+                        </DataTrigger>
+
                     </Style.Triggers>
                 </Style>
             </DataGrid.RowStyle>
+           
+
 
         </DataGrid>
-
 
     </Grid>
 </Page>

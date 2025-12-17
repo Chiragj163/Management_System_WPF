@@ -1,17 +1,23 @@
 ﻿using Management_System_WPF.Models;
 using Management_System_WPF.Services;
+using OfficeOpenXml;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using OfficeOpenXml;
-using System.IO;
 
 namespace Management_System_WPF.Views
 {
     public partial class ArticleReportPage : Page
     {
-        // ✅ Declare here (class level)
+        private string _selectedArticle;
+        private DateTime _selectedDate;
+
+
         private DateTime _currentMonth;
 
         public ArticleReportPage()
@@ -20,7 +26,7 @@ namespace Management_System_WPF.Views
 
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
 
-            // Start at current month (first day)
+           
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
             txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
@@ -28,9 +34,9 @@ namespace Management_System_WPF.Views
             LoadArticleReport(_currentMonth);
         }
 
-        // ========================================================
+
         // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
-        // ========================================================
+
         private void LoadArticleReport(DateTime month)
         {
             var raw = SalesService.GetArticleSalesByMonth(month.Year, month.Month);
@@ -40,55 +46,97 @@ namespace Management_System_WPF.Views
 
             List<ArticleSaleRow> rows = new();
 
-            foreach (var date in dates)
+            // 🔹 DAILY ROWS
+            foreach (var dateStr in dates)
             {
-                var row = new ArticleSaleRow();
-                row.Date = date;
+                if (!DateTime.TryParse(dateStr, out DateTime parsedDate))
+                    continue;
 
-                foreach (var art in articles)
-                    row.ArticleValues[art] = 0;
+                var row = new ArticleSaleRow
+                {
+                    Date = parsedDate
+                };
 
-                foreach (var r in raw.Where(x => x.Date == date))
-                    row.ArticleValues[r.Article] += r.Qty;
+                foreach (var r in raw.Where(x => x.Date == dateStr))
+                {
+                    row.ArticleValues[r.Article] =
+                        (row.ArticleValues.ContainsKey(r.Article)
+                            ? row.ArticleValues[r.Article] ?? 0
+                            : 0) + r.Qty;
+                }
 
                 rows.Add(row);
             }
 
+            // 🔹 TOTAL ROW (ONLY ONCE)
+            var totalRow = new ArticleSaleRow
+            {
+                IsTotalRow = true
+            };
+
+            foreach (var art in articles)
+            {
+                totalRow.ArticleValues[art] =
+                    rows.Sum(r => r.ArticleValues.ContainsKey(art)
+                        ? r.ArticleValues[art] ?? 0
+                        : 0);
+            }
+
+            rows.Add(totalRow);
+
             BuildDynamicColumns(articles);
             dgArticles.ItemsSource = rows;
-
-            // Update next/prev button states
-            UpdateMonthNavigationButtons();
         }
 
-        // ========================================================
+
+
+
+
+
+
         // CREATE DYNAMIC COLUMNS
-        // ========================================================
+
         private void BuildDynamicColumns(List<string> articles)
         {
             dgArticles.Columns.Clear();
 
+            // ✅ DATE COLUMN (ONLY ONCE)
             dgArticles.Columns.Add(new DataGridTextColumn
             {
                 Header = "Date",
-                Binding = new Binding("Date"),
-                Width = 120
+                Binding = new Binding("DateDisplay"), // 👈 IMPORTANT
+                Width = 120,
+                IsReadOnly = true
             });
 
+            // ARTICLE COLUMNS
             foreach (var art in articles)
             {
                 dgArticles.Columns.Add(new DataGridTextColumn
                 {
                     Header = art,
                     Binding = new Binding($"ArticleValues[{art}]"),
-                    Width = 100
+                    Width = 100,
+                    IsReadOnly = true
                 });
             }
+
+            // TOTAL COLUMN
+            dgArticles.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Total",
+                Binding = new Binding("Total"),
+                Width = 120,
+                IsReadOnly = true
+            });
         }
 
-        // ========================================================
+
+
+
+
         // BUTTON: BACK
-        // ========================================================
+
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             var main = (MainWindow)Application.Current.MainWindow;
@@ -96,9 +144,9 @@ namespace Management_System_WPF.Views
             NavigationService.GoBack();
         }
 
-        // ========================================================
+      
         // BUTTON: PREVIOUS MONTH
-        // ========================================================
+       
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousArticleSalesMonth(_currentMonth);
@@ -112,9 +160,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        // ========================================================
+       
         // BUTTON: NEXT MONTH
-        // ========================================================
+        
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
             var next = SalesService.GetNextArticleSalesMonth(_currentMonth);
@@ -128,9 +176,8 @@ namespace Management_System_WPF.Views
         }
 
 
-        // ========================================================
         // EXPORT EXCEL
-        // ========================================================
+       
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
@@ -155,10 +202,18 @@ namespace Management_System_WPF.Views
                 foreach (var r in rows)
                 {
                     ws.Cells[rowIndex, 1].Value = r.Date;
+                    ws.Cells[rowIndex, 1].Style.Numberformat.Format = "dd/mm/yyyy";
+
 
                     col = 2;
-                    foreach (var val in r.ArticleValues.Values)
-                        ws.Cells[rowIndex, col++].Value = val;
+                    foreach (var art in articleNames)
+                    {
+                        if (r.ArticleValues.ContainsKey(art) && r.ArticleValues[art].HasValue)
+                            ws.Cells[rowIndex, col++].Value = r.ArticleValues[art].Value;
+                        else
+                            ws.Cells[rowIndex, col++].Value = ""; // empty cell
+                    }
+
 
                     rowIndex++;
                 }
@@ -170,9 +225,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // ========================================================
+        
         // PRINT REPORT
-        // ========================================================
+       
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog pd = new PrintDialog();
@@ -183,9 +238,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // ========================================================
+        
         // DISABLE NEXT/PREV IF MONTH HAS NO SALES
-        // ========================================================
+        
         private void UpdateMonthNavigationButtons()
         {
             btnPrevMonth.IsEnabled =
@@ -198,9 +253,42 @@ namespace Management_System_WPF.Views
             btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
         }
 
-        private void dgArticles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void dgArticles_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
+            if (dgArticles.SelectedCells.Count == 0)
+                return;
 
+            var cell = dgArticles.SelectedCells[0];
+            var row = cell.Item as ArticleSaleRow;
+
+            // Ignore Date column
+            if (row == null || cell.Column.DisplayIndex == 0)
+                return;
+
+            _selectedDate = row.Date;
+            _selectedArticle = cell.Column.Header.ToString();
         }
+
+
+
+        private void Edit_Click(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrEmpty(_selectedArticle))
+            {
+                MessageBox.Show("Please select an article cell to edit.");
+                return;
+            }
+
+            EditArticleSaleWindow win =
+                new EditArticleSaleWindow(_selectedArticle, _selectedDate);
+
+            if (win.ShowDialog() == true)
+            {
+                LoadArticleReport(_currentMonth);
+            }
+        }
+
+
+
     }
 }

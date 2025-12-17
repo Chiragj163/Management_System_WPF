@@ -3,49 +3,117 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="Transparent">
 
-    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+    <Grid>
 
         <Border Background="#F9FFFFFF"
                 CornerRadius="20"
                 Padding="30">
 
             <Grid>
+                <!-- 🔹 GRID STRUCTURE -->
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
+                    <!-- Back -->
                     <RowDefinition Height="Auto"/>
+                    <!-- Title -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Filters -->
                     <RowDefinition Height="*"/>
+                    <!-- DataGrid -->
                 </Grid.RowDefinitions>
 
-                <!-- BACK BUTTON -->
-                <Button Content="⟵ Back"
-                        Width="120" Height="40"
+                <!-- 🔙 BACK BUTTON -->
+                <Button Grid.Row="0"
+                        Content="⟵ Back"
+                        Width="120"
+                        Height="40"
                         HorizontalAlignment="Left"
-                        Background="#3CB4A7" Foreground="White"
+                        Background="#3CB4A7"
+                        Foreground="White"
                         FontSize="18"
                         Click="Back_Click"/>
+                <Button Content="🔍 Filter"
+            Margin="15,0,0,0"
+            Width="100"
+            Height="35"
+            Background="#3CB4A7"
+            Foreground="White"
+                        HorizontalAlignment="Right"
+            Click="ToggleFilter_Click"/>
 
-                <!-- TITLE -->
-                <TextBlock Grid.Row="1"
-                           Text="Sale List"
-                           FontSize="32"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           Margin="0,10,0,20"/>
+                <!-- 🧾 TITLE -->
+                <TextBlock x:Name="txtTitle"
+           Grid.Row="1"
+           FontSize="48"
+           FontWeight="Bold"
+           HorizontalAlignment="Center"
+           Margin="0,0,0,25"/>
 
-                <!-- SALES GRID -->
-                <DataGrid x:Name="dgSales"
-          Grid.Row="2"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          HeadersVisibility="Column"
-          RowHeight="40"
-          FontSize="18"
-          AlternationCount="2"
-          Background="White"
-          BorderBrush="#DDD"
-          BorderThickness="1"
-          Margin="0,20,0,0"
-          ColumnWidth="*">
+
+
+                <!-- 🔍 FILTER PANEL -->
+                <StackPanel x:Name="FilterPanel"
+            Grid.Row="2"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Margin="0,0,0,8"
+            Visibility="Collapsed">
+
+
+                    <!-- 🔍 SEARCH -->
+                    <TextBox x:Name="txtSearch"
+             Width="220"
+             Height="30"
+             Margin="3"
+             FontSize="14"
+             VerticalContentAlignment="Center"
+             TextChanged="Filter_Changed"
+             ToolTip="Search Buyer or Item"/>
+
+                    <!-- 📅 FROM -->
+                    <DatePicker x:Name="dpFrom"
+                Width="135"
+                Height="30"
+                Margin="3"
+                FontSize="14"
+                SelectedDateChanged="Filter_Changed"/>
+
+                    <!-- 📅 TO -->
+                    <DatePicker x:Name="dpTo"
+                Width="135"
+                Height="30"
+                Margin="3"
+                FontSize="14"
+                SelectedDateChanged="Filter_Changed"/>
+
+                    <!-- ❌ CLEAR -->
+                    <Button Content="✖"
+            Width="32"
+            Height="30"
+            Margin="3"
+            FontSize="14"
+            Background="#E57373"
+            Foreground="White"
+            ToolTip="Clear Filters"
+            Click="ClearFilter_Click"/>
+                </StackPanel>
+
+
+                <!-- 📊 SALES GRID -->
+                <DataGrid Grid.Row="3"
+                          x:Name="dgSales"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          IsReadOnly="True"
+                          HeadersVisibility="Column"
+                          RowHeight="40"
+                          FontSize="18"
+                          AlternationCount="2"
+                          Background="White"
+                          BorderBrush="#DDD"
+                          BorderThickness="1"
+                          ColumnWidth="*">
 
                     <!-- HEADER STYLE -->
                     <DataGrid.ColumnHeaderStyle>
@@ -55,7 +123,6 @@
                             <Setter Property="FontSize" Value="18"/>
                             <Setter Property="FontWeight" Value="SemiBold"/>
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="VerticalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
 
@@ -64,7 +131,6 @@
                         <Style TargetType="DataGridCell">
                             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                             <Setter Property="VerticalContentAlignment" Value="Center"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                         </Style>
                     </DataGrid.CellStyle>
 
@@ -86,45 +152,39 @@
                     <DataGrid.Columns>
 
                         <DataGridTextColumn Header="Customer Name"
-                            Binding="{Binding BuyerName}" />
+                                            Binding="{Binding BuyerName}" />
 
                         <DataGridTextColumn Header="Article Name"
-                            Binding="{Binding ItemName}" />
+                                            Binding="{Binding ItemName}" />
 
                         <DataGridTextColumn Header="Quantity"
-                            Binding="{Binding Quantity}" />
+                                            Binding="{Binding Quantity}" />
 
                         <DataGridTextColumn Header="Amount"
-                            Binding="{Binding Amount}" />
+                                            Binding="{Binding Amount}" />
 
                         <DataGridTextColumn Header="Sale Date"
-                            Binding="{Binding SaleDate, StringFormat=\{0:yyyy-MM-dd\}}" />
+                                            Binding="{Binding SaleDate, StringFormat=dd/MM/yyyy}" />
 
-                        <!-- EDIT COLUMN (AUTO WIDTH) -->
-                        <DataGridTemplateColumn Header="Edit" Width="Auto">
+                        <!-- OPTIONS -->
+                        <DataGridTemplateColumn Header="Options" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Grid HorizontalAlignment="Center">
-                                        <Button Width="36" Height="30"
-                                Background="#3CB4A7"
-                                Click="Options_Click">
-                                            <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                                  Fill="White"/>
-                                        </Button>
-                                    </Grid>
+                                    <Button Width="36"
+                                            Height="30"
+                                            Background="#3CB4A7"
+                                            Click="Options_Click">
+                                        <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
+                                              Fill="White"/>
+                                    </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
 
                     </DataGrid.Columns>
-
                 </DataGrid>
 
-
             </Grid>
-
         </Border>
-
     </Grid>
-
 </Page>

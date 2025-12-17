@@ -26,9 +26,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        // ==========================================
+        
         // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
-        // ==========================================
+        
         private void LoadReport(DateTime month)
         {
             var allSales = SalesService.GetSales(); // ALL rows from DB
@@ -42,6 +42,9 @@ namespace Management_System_WPF.Views
             {
                 MessageBox.Show("No records found for this month");
                 dgBuyerSales.ItemsSource = null;
+                dgBuyerSales.Columns.Clear();
+                txtTitle.Text = month.ToString("MMMM yyyy");
+                UpdateMonthButtons();
                 return;
             }
 
@@ -68,9 +71,11 @@ namespace Management_System_WPF.Views
                 {
                     double total = sales
                         .Where(x => x.BuyerName == buyer && x.SaleDate.Date == date)
-                        .Sum(x => x.TotalAmount);
+                        .Sum(x => x.Qty * x.Price);
 
-                    row.BuyerValues[buyer] = total;
+
+                    row.BuyerValues[buyer] = total == 0 ? (double?)null : total;
+
                 }
 
                 rows.Add(row);
@@ -82,9 +87,9 @@ namespace Management_System_WPF.Views
 
         }
 
-        // ==========================================
+
         // BUILD TABLE COLUMNS
-        // ==========================================
+
         private void BuildDynamicColumns(List<string> buyers)
         {
             dgBuyerSales.Columns.Clear();
@@ -93,8 +98,12 @@ namespace Management_System_WPF.Views
             dgBuyerSales.Columns.Add(new DataGridTextColumn
             {
                 Header = "Dates",
-                Binding = new System.Windows.Data.Binding("Date") { StringFormat = "dd-MMM-yyyy" },
-                Width = 150
+                Binding = new System.Windows.Data.Binding("Date")
+                {
+                    StringFormat = "dd/MM/yyyy"
+                },
+                Width = 150,
+                IsReadOnly = true       // ✅ NON-EDITABLE
             });
 
             // Dynamic Buyer Columns
@@ -104,14 +113,16 @@ namespace Management_System_WPF.Views
                 {
                     Header = buyer,
                     Binding = new System.Windows.Data.Binding($"BuyerValues[{buyer}]"),
-                    Width = 150
+                    Width = 150,
+                    IsReadOnly = true   // ✅ NON-EDITABLE
                 });
             }
         }
 
-        // ==========================================
+
+
         // BUTTON: PREVIOUS MONTH
-        // ==========================================
+
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousSalesMonth(_currentMonth);
@@ -136,9 +147,9 @@ namespace Management_System_WPF.Views
 
 
 
-        // ==========================================
+      
         // BUTTON: EXPORT TO EXCEL (CSV format)
-        // ==========================================
+       
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             if (dgBuyerSales.ItemsSource == null)
@@ -168,30 +179,31 @@ namespace Management_System_WPF.Views
                         {
                             List<string> cells = new List<string>();
 
-                            cells.Add(row.Date.ToString("dd-MMM-yyyy"));
+                            cells.Add(row.Date.ToString("dd/MM/yyyy"));
 
                             foreach (var col in dgBuyerSales.Columns.Skip(1))
                             {
                                 string buyer = col.Header.ToString();
-                                double val = row.BuyerValues.ContainsKey(buyer)
-                                    ? row.BuyerValues[buyer]
-                                    : 0;
 
-                                cells.Add(val.ToString());
+                                if (row.BuyerValues.ContainsKey(buyer) && row.BuyerValues[buyer].HasValue)
+                                    cells.Add(row.BuyerValues[buyer].Value.ToString());
+                                else
+                                    cells.Add("");
                             }
 
                             writer.WriteLine(string.Join(",", cells));
                         }
                     }
+
                 }
 
                 MessageBox.Show("Excel file exported successfully!");
             }
         }
 
-        // ==========================================
+        
         // BUTTON: PRINT
-        // ==========================================
+       
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog print = new PrintDialog();
@@ -203,7 +215,7 @@ namespace Management_System_WPF.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            // 🔥 Restore normal layout (show side menu, add margins)
+            //  Restore normal layout (show side menu, add margins)
             var main = (MainWindow)Application.Current.MainWindow;
             main.ResetLayoutBeforeNavigation();
 

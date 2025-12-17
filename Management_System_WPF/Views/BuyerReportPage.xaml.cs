@@ -2,12 +2,16 @@
 using Management_System_WPF.Services;
 using OfficeOpenXml.Style;
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
 using System.Windows.Media;
+
 
 namespace Management_System_WPF.Views
 {
@@ -15,7 +19,7 @@ namespace Management_System_WPF.Views
     {
         int buyerId;
 
-        // 🔥 Tracks the MONTH currently being viewed
+        //  Tracks the MONTH currently being viewed
         private DateTime _currentMonth;
 
         public BuyerReportPage(int id, string buyerName = "")
@@ -36,9 +40,9 @@ namespace Management_System_WPF.Views
             LoadBuyerData();
         }
 
-        // =====================================================
-        // 🔵 LOAD DATA FOR SELECTED MONTH
-        // =====================================================
+       
+        //  LOAD DATA FOR SELECTED MONTH
+        
         private void LoadBuyerData()
         {
             var raw = SalesService.GetSalesRawForPivot(
@@ -50,19 +54,18 @@ namespace Management_System_WPF.Views
             DataTable pivot = PivotHelper.CreatePivotTableWithTotals(raw);
             BindPivotToGrid(pivot);
 
-            double total = raw.Sum(r => (double)(r.Price * r.Qty));
-            txtGrandTotal.Text = total.ToString("₹0.00");
+          
 
-            // 🔥 SHOW MONTH NAME (not buyer name)
+            //  SHOW MONTH NAME (not buyer name)
             txtMonthName.Text = _currentMonth.ToString("MMMM yyyy");
 
-            // 🔥 UPDATE BUTTON STATES
+            //  UPDATE BUTTON STATES
             UpdateMonthNavigationButtons();
         }
 
-        // =====================================================
-        // 🔵 PREVIOUS MONTH BUTTON
-        // =====================================================
+        
+        //  PREVIOUS MONTH BUTTON
+       
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousSalesMonthForBuyer(buyerId, _currentMonth);
@@ -75,9 +78,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        // =====================================================
-        // 🔵 NEXT MONTH BUTTON
-        // =====================================================
+       
+        //  NEXT MONTH BUTTON
+        
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
             var next = SalesService.GetNextSalesMonthForBuyer(buyerId, _currentMonth);
@@ -90,9 +93,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        // =====================================================
-        // 🔵 ENABLE/DISABLE NAVIGATION BUTTONS
-        // =====================================================
+       
+        // ENABLE/DISABLE NAVIGATION BUTTONS
+       
         private void UpdateMonthNavigationButtons()
         {
             btnPrevMonth.IsEnabled =
@@ -106,30 +109,48 @@ namespace Management_System_WPF.Views
         }
 
 
-        // =====================================================
-        // 🔵 BUILD GRID
-        // =====================================================
+
+        // BUILD GRID
+
         private void BindPivotToGrid(DataTable pivot)
         {
             dgBuyerReport.Columns.Clear();
 
             foreach (DataColumn col in pivot.Columns)
             {
-                dgBuyerReport.Columns.Add(new DataGridTextColumn
+                if (col.ColumnName.Equals("Date", StringComparison.OrdinalIgnoreCase))
                 {
-                    Header = col.ColumnName,
-                    Binding = new Binding(col.ColumnName),
-                    FontSize = 16,
-                    Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-                });
+                    dgBuyerReport.Columns.Add(new DataGridTextColumn
+                    {
+                        Header = "Date",
+                        Binding = new Binding("Date"),
+                        FontSize = 16,
+                        IsReadOnly = true,          // ✅ NON EDITABLE
+                        Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+                    });
+                }
+                else
+                {
+                    dgBuyerReport.Columns.Add(new DataGridTextColumn
+                    {
+                        Header = col.ColumnName,
+                        Binding = new Binding(col.ColumnName),
+                        FontSize = 16,
+                        IsReadOnly = true,          // ✅ NON EDITABLE
+                        Width = new DataGridLength(1, DataGridLengthUnitType.Star)
+                    });
+                }
             }
 
             dgBuyerReport.ItemsSource = pivot.DefaultView;
         }
 
-        // =====================================================
-        // 🔵 BACK & PRINT
-        // =====================================================
+
+
+
+
+        //  BACK & PRINT
+
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             var main = (MainWindow)Application.Current.MainWindow;
@@ -140,11 +161,150 @@ namespace Management_System_WPF.Views
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog pd = new PrintDialog();
-            if (pd.ShowDialog() == true)
-                pd.PrintVisual(this.Content as Visual, "Buyer Report Print");
+            if (pd.ShowDialog() != true) return;
+
+            FlowDocument doc = BuildInvoiceDocument();
+
+            doc.PageHeight = pd.PrintableAreaHeight;
+            doc.PageWidth = pd.PrintableAreaWidth;
+            doc.PagePadding = new Thickness(40);
+            doc.ColumnWidth = pd.PrintableAreaWidth;
+
+            pd.PrintDocument(
+                ((IDocumentPaginatorSource)doc).DocumentPaginator,
+                "Sales Invoice"
+            );
+        }
+        private FlowDocument BuildInvoiceDocument()
+        {
+            FlowDocument doc = new FlowDocument
+            {
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 13
+            };
+
+            // 🧾 TITLE
+            doc.Blocks.Add(new Paragraph(new Run("SALES INVOICE"))
+            {
+                FontSize = 26,
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 0, 0, 20)
+            });
+
+            // Buyer + Period
+            doc.Blocks.Add(new Paragraph(new Run(
+                $"Name : {txtBuyerName.Text}\n" +
+                $"Invoice For : {txtMonthName.Text}\n" +
+                $"Invoice Date : {DateTime.Now:dd/MM/yyyy}"
+            ))
+            {
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 20)
+            });
+
+            // 🔹 FETCH RAW DATA (NOT PIVOT)
+            var sales = SalesService.GetSalesBetweenDates(
+                buyerId,
+                _currentMonth,
+                _currentMonth.AddMonths(1).AddDays(-1)
+            );
+
+            Table table = new Table();
+            doc.Blocks.Add(table);
+
+            table.Columns.Add(new TableColumn { Width = new GridLength(110) }); // Date
+            table.Columns.Add(new TableColumn { Width = new GridLength(180) }); // Item
+            table.Columns.Add(new TableColumn { Width = new GridLength(70) });  // Qty
+            table.Columns.Add(new TableColumn { Width = new GridLength(90) });  // Rate
+            table.Columns.Add(new TableColumn { Width = new GridLength(120) }); // Amount
+
+
+            // HEADER
+            TableRowGroup headerGroup = new TableRowGroup();
+            table.RowGroups.Add(headerGroup);
+
+            TableRow header = new TableRow();
+            headerGroup.Rows.Add(header);
+
+            HeaderCell("Date");
+            HeaderCell("Item");
+            HeaderCell("Total Qty");
+            HeaderCell("Unit Price");
+            HeaderCell("Total Price");
+
+
+            // BODY
+            TableRowGroup body = new TableRowGroup();
+            table.RowGroups.Add(body);
+
+            decimal grandTotal = 0m;
+            foreach (var s in sales)
+            {
+                decimal amount = s.Qty * s.Price;
+                grandTotal += amount;
+
+
+                TableRow row = new TableRow();
+                body.Rows.Add(row);
+
+                row.Cells.Add(Cell(
+                DateTime.TryParse(s.Date.ToString(), out DateTime d)
+                ? d.ToString("dd/MM/yyyy")
+                 : s.Date.ToString()
+                 ));
+                row.Cells.Add(Cell(s.ItemName));
+                row.Cells.Add(Cell(s.Qty.ToString()));
+                row.Cells.Add(Cell($"₹ {s.Price:0.00}"));
+                row.Cells.Add(Cell($"₹ {amount:0.00}"));
+            }
+
+
+
+            // 🔹 GRAND TOTAL ROW (INSIDE TABLE)
+            TableRow totalRow = new TableRow();
+            body.Rows.Add(totalRow);
+
+            totalRow.Cells.Add(Cell(""));
+            totalRow.Cells.Add(Cell(""));
+            totalRow.Cells.Add(Cell(""));
+            totalRow.Cells.Add(Cell("GRAND TOTAL", true));
+            totalRow.Cells.Add(Cell($"₹ {grandTotal:0.00}", true));
+
+
+            // SIGNATURE
+            doc.Blocks.Add(new Paragraph(new Run("\n\nAuthorized Signature"))
+            {
+                TextAlignment = TextAlignment.Right,
+                Margin = new Thickness(0, 40, 0, 0)
+            });
+
+            return doc;
+
+            // Local helpers
+            void HeaderCell(string text)
+            {
+                header.Cells.Add(new TableCell(new Paragraph(new Run(text)))
+                {
+                    FontWeight = FontWeights.Bold,
+                    Background = Brushes.LightGray,
+                    Padding = new Thickness(6),
+                    TextAlignment = TextAlignment.Center
+                });
+            }
         }
 
-       
+        private TableCell Cell(string text, bool bold = false)
+        {
+            return new TableCell(new Paragraph(new Run(text)))
+            {
+                Padding = new Thickness(6),
+                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal
+            };
+        }
+
+
+
         private void Filter_Click(object sender, RoutedEventArgs e)
         {
             FilterPanel.Visibility =
@@ -169,7 +329,7 @@ namespace Management_System_WPF.Views
             BindPivotToGrid(pivot);
 
             txtMonthName.Text = "Last 6 Months";
-            txtGrandTotal.Text = raw.Sum(r => (double)(r.Price * r.Qty)).ToString("₹0.00");
+            
 
             FilterPanel.Visibility = Visibility.Collapsed;
         }
@@ -184,8 +344,7 @@ namespace Management_System_WPF.Views
             BindPivotToGrid(pivot);
 
             txtMonthName.Text = DateTime.Now.Year + " (Year)";
-            txtGrandTotal.Text = raw.Sum(r => (double)(r.Price * r.Qty)).ToString("₹0.00");
-
+           
             FilterPanel.Visibility = Visibility.Collapsed;
         }
         private void FilterCustom_Click(object sender, RoutedEventArgs e)
@@ -204,8 +363,8 @@ namespace Management_System_WPF.Views
             DataTable pivot = PivotHelper.CreatePivotTableWithTotals(raw);
             BindPivotToGrid(pivot);
 
-            txtMonthName.Text = $"{from:dd MMM yyyy} → {to:dd MMM yyyy}";
-            txtGrandTotal.Text = raw.Sum(r => (double)(r.Price * r.Qty)).ToString("₹0.00");
+            txtMonthName.Text = $"{from:dd/MM/yyyy} → {to:dd/MM/yyyy}";
+           
 
             FilterPanel.Visibility = Visibility.Collapsed;
         }
@@ -227,7 +386,7 @@ namespace Management_System_WPF.Views
                 {
                     var ws = package.Workbook.Worksheets.Add("Buyer Report");
 
-                    // 🔥 Write Headers
+                    //  Write Headers
                     for (int col = 0; col < dt.Columns.Count; col++)
                     {
                         ws.Cells[1, col + 1].Value = dt.Columns[col].ColumnName;
@@ -238,7 +397,7 @@ namespace Management_System_WPF.Views
                         ws.Column(col + 1).Width = 18;
                     }
 
-                    // 🔥 Write Data Rows
+                    //  Write Data Rows
                     for (int row = 0; row < dt.Rows.Count; row++)
                     {
                         for (int col = 0; col < dt.Columns.Count; col++)
@@ -247,17 +406,17 @@ namespace Management_System_WPF.Views
                         }
                     }
 
-                    // 🔥 Apply Borders
+                    //  Apply Borders
                     var range = ws.Cells[1, 1, dt.Rows.Count + 1, dt.Columns.Count];
                     range.Style.Border.Top.Style = ExcelBorderStyle.Thin;
                     range.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
                     range.Style.Border.Left.Style = ExcelBorderStyle.Thin;
                     range.Style.Border.Right.Style = ExcelBorderStyle.Thin;
 
-                    // 🔥 AutoFit
+                    //  AutoFit
                     ws.Cells.AutoFitColumns();
 
-                    // 🔥 Create file
+                    //  Create file
                     string fileName = $"BuyerReport_{txtBuyerName.Text}_{DateTime.Now:yyyyMMdd}.xlsx";
                     string filePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), fileName);
 

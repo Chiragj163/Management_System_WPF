@@ -128,6 +128,21 @@
                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
                         </Style>
                     </DataGrid.ColumnHeaderStyle>
+                    <DataGrid.CellStyle>
+                        <Style TargetType="DataGridCell">
+                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+
+                            <Style.Triggers>
+                                <!-- 🔥 CENTER GRAND TOTAL -->
+                                <DataTrigger Binding="{Binding Date}" Value="Grand Total">
+                                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.CellStyle>
+
 
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
@@ -157,25 +172,21 @@
                                     <Setter Property="Foreground" Value="White"/>
                                     <Setter Property="FontWeight" Value="Bold"/>
                                 </DataTrigger>
+                                <DataTrigger Binding="{Binding Date}" Value="Grand Total">
+                                    <Setter Property="Background" Value="#004D40"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontSize" Value="20"/>
+
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                </DataTrigger>
+
+
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
                 </DataGrid>
 
-                <!-- 🔥 GRAND TOTAL -->
-                <StackPanel Grid.Row="3"
-                            Orientation="Horizontal"
-                            HorizontalAlignment="Right"
-                            Margin="0 10 0 0">
-                    <TextBlock Text="Grand Total: "
-                               FontSize="20"
-                               FontWeight="Bold"/>
-                    <TextBlock x:Name="txtGrandTotal"
-                               FontSize="20"
-                               FontWeight="Bold"
-                               Foreground="#3CB4A7"/>
-                </StackPanel>
-
+                
                 <!-- 🔥 FILTER PANEL (FIXED + SHADOW) -->
                 <Border x:Name="FilterPanel"
                         Visibility="Collapsed"

@@ -105,6 +105,37 @@ namespace Management_System_WPF.Views
                 return;
             }
 
+            if (dpSaleDate.SelectedDate == null)
+            {
+                MessageBox.Show("Select sale date.");
+                return;
+            }
+
+            DateTime selectedDate = dpSaleDate.SelectedDate.Value;
+
+            // 🟢 CASE 1: CART HAS ITEMS
+            if (cart.Any())
+            {
+                decimal totalAmount = cart.Sum(c => c.Total);
+
+                int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, totalAmount);
+
+                foreach (var c in cart)
+                {
+                    SalesService.AddSaleItem(
+                        saleId,
+                        c.ItemId,
+                        c.Quantity,
+                        c.Price
+                    );
+                }
+
+                MessageBox.Show("Sale saved successfully!");
+                ResetForm();
+                return;
+            }
+
+            // 🟢 CASE 2: DIRECT SINGLE ITEM SALE
             if (cmbItem.SelectedItem is not Item item)
             {
                 MessageBox.Show("Please select an item.");
@@ -117,25 +148,15 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            if (dpSaleDate.SelectedDate == null)
-            {
-                MessageBox.Show("Select sale date.");
-                return;
-            }
-
-            DateTime selectedDate = dpSaleDate.SelectedDate.Value;
             decimal amount = item.Price * qty;
 
-            // 1️⃣ Create Sale
-            int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, amount);
+            int singleSaleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, amount);
+            SalesService.AddSaleItem(singleSaleId, item.Id, qty, item.Price);
 
-            // 2️⃣ Save Item
-            SalesService.AddSaleItem(saleId, item.Id, qty, item.Price);
-
-            MessageBox.Show("Sale Saved Successfully!");
-
+            MessageBox.Show("Sale saved successfully!");
             ResetForm();
         }
+
 
         // 🟩 RESET ENTIRE PAGE
         private void ResetForm()
