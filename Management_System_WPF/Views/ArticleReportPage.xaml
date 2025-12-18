@@ -18,6 +18,8 @@
             <!-- Title -->
             <RowDefinition Height="*"/>
             <!-- DataGrid -->
+            <RowDefinition Height="Auto"/>
+            <!-- Sales Till Now -->
         </Grid.RowDefinitions>
 
         <!-- 🔷 TOP BUTTON ROW -->
@@ -113,6 +115,7 @@
             <DataGrid.CellStyle>
                 <Style TargetType="DataGridCell">
                     <Setter Property="Padding" Value="8"/>
+                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
                     <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                     <Setter Property="VerticalContentAlignment" Value="Center"/>
                 </Style>
@@ -149,6 +152,82 @@
 
 
         </DataGrid>
+        <!-- 🔷 SALES TILL NOW -->
+        <StackPanel Grid.Row="3" Margin="0,25,0,0">
+
+            <!-- TITLE -->
+            <TextBlock Text="Sales Till Now"
+               FontSize="24"
+               FontWeight="Bold"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,10"/>
+
+            <!-- DATA GRID -->
+            <DataGrid x:Name="dgSalesTillNow"
+              AutoGenerateColumns="False"
+              CanUserAddRows="False"
+              HeadersVisibility="Column"
+              RowHeight="36"
+              FontSize="16"
+              IsReadOnly="True"
+              AlternationCount="2"
+              Background="White"
+              BorderBrush="#DDD"
+              BorderThickness="1"
+              HorizontalAlignment="Stretch">
+
+                <!-- 🔹 HEADER STYLE -->
+                <DataGrid.ColumnHeaderStyle>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="#004D40"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Setter Property="FontWeight" Value="Bold"/>
+                        <Setter Property="FontSize" Value="16"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.ColumnHeaderStyle>
+
+                <!-- 🔹 CELL STYLE (THIS FIXES CENTER ISSUE) -->
+                <DataGrid.CellStyle>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="6"/>
+                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                        <Setter Property="VerticalContentAlignment" Value="Center"/>
+                        <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                    </Style>
+                </DataGrid.CellStyle>
+
+                <!-- 🔹 ROW STYLE -->
+                <DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <Style.Triggers>
+                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                <Setter Property="Background" Value="#F3F9F9"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </DataGrid.RowStyle>
+
+                <!-- 🔹 COLUMNS -->
+                <DataGrid.Columns>
+
+                    <DataGridTextColumn Header="Article"
+                                Binding="{Binding Article}"
+                                Width="*"/>
+
+                    <DataGridTextColumn Header="Total Qty"
+                                Binding="{Binding Qty}"
+                                Width="150"/>
+
+                </DataGrid.Columns>
+
+            </DataGrid>
+        </StackPanel>
+
+        
+
+       
+
 
     </Grid>
 </Page>

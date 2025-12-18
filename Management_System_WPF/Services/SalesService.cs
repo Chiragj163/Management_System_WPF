@@ -852,6 +852,37 @@ ORDER BY s.sale_id DESC;
             tx.Commit();
         }
 
+        public static List<ArticleSaleRaw> GetArticleSalesTillNow()
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT 
+            i.item_name AS Article,
+            SUM(si.qty) AS Qty
+        FROM sale_items si
+        INNER JOIN items i ON i.item_id = si.item_id
+        GROUP BY i.item_name
+        ORDER BY i.item_name;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            using var reader = cmd.ExecuteReader();
+
+            List<ArticleSaleRaw> result = new();
+
+            while (reader.Read())
+            {
+                result.Add(new ArticleSaleRaw
+                {
+                    Article = reader["Article"].ToString(),
+                    Qty = Convert.ToInt32(reader["Qty"])
+                });
+            }
+
+            return result;
+        }
 
 
 

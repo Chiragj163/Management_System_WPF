@@ -25,8 +25,9 @@ namespace Management_System_WPF.Views
             InitializeComponent();
 
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
+            LoadSalesTillNow();
 
-           
+
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
             txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
@@ -288,6 +289,47 @@ namespace Management_System_WPF.Views
             }
         }
 
+        private void LoadSalesTillNow()
+        {
+            var raw = SalesService.GetArticleSalesTillNow();
+
+            var articles = raw.Select(x => x.Article).Distinct().ToList();
+
+            dgSalesTillNow.Columns.Clear();
+
+            // First column
+            dgSalesTillNow.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Articles →",
+                Binding = new Binding("Key"),
+                Width = 160
+            });
+
+            // Total row data
+            Dictionary<string, int> totals = new();
+
+            foreach (var art in articles)
+            {
+                int sum = raw.Where(x => x.Article == art).Sum(x => x.Qty);
+                totals[art] = sum;
+
+                dgSalesTillNow.Columns.Add(new DataGridTextColumn
+                {
+                    Header = art,
+                    Binding = new Binding($"Value[{art}]"),
+                    Width = 100
+                });
+            }
+
+            dgSalesTillNow.ItemsSource = new[]
+            {
+        new
+        {
+            Key = "Total →",
+            Value = totals
+        }
+    };
+        }
 
 
     }
