@@ -1,188 +1,280 @@
 ﻿<Page x:Class="Management_System_WPF.Views.SalesPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="SalesPage"
+      d:DesignHeight="700" d:DesignWidth="1000"
       Background="Transparent">
 
-    <Grid Margin="20">
+    <Page.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
+        <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
+        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
 
+        <Style TargetType="{x:Type Control}" x:Key="InputStyle">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
 
-        <!-- MAIN WHITE PANEL -->
-        <Border HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch"
-        MaxWidth="4000"
-        Background="#F9FFFFFF"
-        CornerRadius="20"
-        Padding="20"
-        Margin="0,20,20,20">
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
+        <Style TargetType="Button" x:Key="IconButtonStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="50">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
 
-            <StackPanel>
-                <Button Content="✖"
-        Width="35"
-        Height="35"
-        Background="#FF3CB4A7"
-        Foreground="White"
-        HorizontalAlignment="Right"
-        VerticalAlignment="Top"
-        Margin="0,10,10,0"
-        Click="ExitSalePage_Click"/>
+    <Grid>
+       
 
+        <Border Background="#F9F9F9"
+                CornerRadius="15"
+                Margin="40"
+                MaxWidth="1100"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
 
-                <!-- TITLE -->
-                <TextBlock Text="ADD SALE"
-                           FontSize="30"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,25"
-                           Foreground="Black"/>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="Black"/>
+            </Border.Effect>
 
-                <!-- MAIN CONTENT GRID -->
-                <Grid Margin="0,10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="25,20,25,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="ADD  SALE" 
+                                   FontSize="24" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextDark}"/>
+                    </StackPanel>
+
+                    <Button Content="✖" 
+                            Style="{StaticResource IconButtonStyle}"
+                            Width="30" Height="30"
+                            FontSize="16"
+                            Foreground="{StaticResource TextLight}"
+                            HorizontalAlignment="Right"
+                            Click="ExitSalePage_Click"/>
+                </Grid>
+
+                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,50,0,0"/>
+
+                <Grid Grid.Row="1" Margin="25">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="1*"/>
+                        <ColumnDefinition Width="350"/>
+                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- LEFT FORM SECTION -->
                     <StackPanel Grid.Column="0">
 
-                        <!-- Select Buyer -->
-                        <StackPanel Orientation="Horizontal" Margin="0,5">
-                            <TextBlock Text="Select Buyer:" Width="120" VerticalAlignment="Center"/>
-                            <ComboBox x:Name="cmbBuyer"
-                                      Width="250"
-                                      Height="30"
-                                      FontSize="14"/>
-                        </StackPanel>
+                        <TextBlock Text="Buyer" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                        <ComboBox x:Name="cmbBuyer" Style="{StaticResource InputStyle}"/>
 
-                        <!-- Select Item/Article -->
-                        <StackPanel Orientation="Horizontal" Margin="0,10">
-                            <TextBlock Text="Select Article:" Width="120" VerticalAlignment="Center"/>
-                            <ComboBox x:Name="cmbItem"
-                                      Width="250"
-                                      Height="30"
-                                      FontSize="14"/>
-                        </StackPanel>
+                        <TextBlock Text="Article / Item" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                        <ComboBox x:Name="cmbItem" Style="{StaticResource InputStyle}"/>
 
-                        <!-- Quantity -->
-                        <StackPanel Orientation="Horizontal" Margin="0,10">
-                            <TextBlock Text="Enter Quantity:" Width="120" VerticalAlignment="Center"/>
-                            <TextBox x:Name="txtQuantity"
-                                     Width="250"
-                                     Height="30"
-                                     FontSize="14"/>
-                        </StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                        <!-- Date -->
-                        <StackPanel Orientation="Horizontal" Margin="0,10">
-                            <TextBlock Text="Select Date:" Width="120" VerticalAlignment="Center"/>
-                            <DatePicker x:Name="dpSaleDate"
-                                        Width="250"
-                                        Height="30"
-                                        FontSize="14"
-                                        SelectedDateFormat="Short"/>
-                        </StackPanel>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Quantity" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                                <TextBox x:Name="txtQuantity" Style="{StaticResource InputStyle}" VerticalContentAlignment="Center"/>
+                            </StackPanel>
 
-                        <!-- Calculate & Total -->
-                        <StackPanel Orientation="Horizontal" Margin="0,20">
-                            <Button Content="Calculate"
-                                    Width="120"
-                                    Height="35"
-                                    Background="#FF3CB4A7"
-                                    Foreground="White"
-                                    Click="Calculate_Click"/>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Date" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                                <DatePicker x:Name="dpSaleDate" 
+                                            Height="40" 
+                                            FontSize="14" 
+                                            VerticalContentAlignment="Center"
+                                            Margin="0,0,0,15"
+                                            SelectedDateFormat="Short"/>
+                            </StackPanel>
+                        </Grid>
 
-                            <TextBlock Text="Total:"
-                                       Margin="20,0,5,0"
-                                       VerticalAlignment="Center"
-                                       FontWeight="Bold"/>
+                        <Border Background="White" CornerRadius="8" Padding="15" Margin="0,10,0,20" BorderBrush="#EEE" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock x:Name="txtTotal"
-                                       FontSize="18"
-                                       VerticalAlignment="Center"
-                                       Foreground="Black"
-                                       FontWeight="Bold"/>
-                        </StackPanel>
+                                <Button Content="Calculate" 
+                                        Grid.Column="0"
+                                        Style="{StaticResource PrimaryButton}"
+                                        Background="#607D8B"
+                                        Width="100" Height="35"
+                                        Click="Calculate_Click"/>
 
-                        <!-- Buttons -->
-                        <StackPanel Orientation="Horizontal" Margin="0,20">
-                            <Button Content="Save Sale"
-                                    Width="120"
-                                    Height="35"
-                                    Background="#FF3CB4A7"
-                                    Foreground="White"
-                                    Click="SaveSale_Click"/>
+                                <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                                    <TextBlock Text="Total:" FontWeight="SemiBold" FontSize="16" Foreground="{StaticResource TextLight}" Margin="0,0,10,0"/>
+                                    <TextBlock x:Name="txtTotal" Text="0.00" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}"/>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
 
-                            <Button Content="Add to Cart"
-                                    Width="120"
-                                    Margin="20,0,0,0"
-                                    Height="35"
-                                    Background="#FF3CB4A7"
-                                    Foreground="White"
-                                    Click="AddToCart_Click"/>
-                        </StackPanel>
+                        <Button Content="Add to Cart 🛒" 
+                                Style="{StaticResource PrimaryButton}"
+                                Height="45"
+                                Margin="0,0,0,10"
+                                Click="AddToCart_Click"/>
+
+                        <Button Content="Save Entire Sale" 
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="{StaticResource PrimaryColor}"
+                                Foreground="{StaticResource PrimaryColor}"
+                                Height="40"
+                                Click="SaveSale_Click">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            BorderBrush="{TemplateBinding BorderBrush}" 
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="5">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
                     </StackPanel>
 
-                    <!-- CART SECTION -->
-                    <Border Grid.Column="1"
-                            Background="#E8F1F7"
-                            MaxWidth="800"
-                            CornerRadius="10"
-                            Padding="5"
-                            Margin="5,0,0,0">
+                    <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#EEE" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
-                        <StackPanel>
-                            <TextBlock Text="CART"
-                                       FontWeight="Bold"
-                                       HorizontalAlignment="Center"
-                                       FontSize="18"
-                                       Margin="0,0,0,10"/>
+                            <Border Background="{StaticResource SecondaryColor}" CornerRadius="10,10,0,0" Padding="15">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text=" 🛒 Cart" FontSize="16" FontWeight="Bold"  Foreground="{StaticResource PrimaryColor}"/>
+                                   
+                                </StackPanel>
+                            </Border>
 
-                            <TextBlock x:Name="txtCartStatus"
-                                       Text="Cart is empty!"
-                                       FontSize="16"
-                                       HorizontalAlignment="Center"
-                                       Foreground="Black"/>
-                            <DataGrid x:Name="dgCart"
-          AutoGenerateColumns="False"
-          CanUserAddRows="False"
-          HeadersVisibility="Column"
-          FontSize="16"
-          RowHeight="35"
-          Margin="10" Width="215">
+                            <DataGrid x:Name="dgCart" 
+                                      Grid.Row="1"
+                                      AutoGenerateColumns="False" 
+                                      CanUserAddRows="False"
+                                      CanUserResizeRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EEE"
+                                      BorderThickness="0"
+                                      Background="White"
+                                      RowHeight="40"
+                                      FontSize="14">
+
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+                                        <Setter Property="Padding" Value="10"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                    </Style>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="10,0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DataGridCell">
+                                                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.Resources>
 
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*" />
-                                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="80" />
-                                    <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80" />
-                                    <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="100" />
+                                    <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*"/>
+                                    <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="60"/>
+                                    <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="80"/>
+                                    <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="100" FontWeight="Bold"/>
 
-                                    <!-- REMOVE BUTTON -->
-                                    <DataGridTemplateColumn Width="60">
+                                    <DataGridTemplateColumn Width="50">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Content="❌"
-                            Background="#FFB40000"
-                            Foreground="White"
-                            Click="RemoveCartItem_Click"/>
+                                                <Button Content="✖" 
+                                                        Width="25" Height="25"
+                                                        Background="#FFEBEE"
+                                                        Foreground="{StaticResource DangerColor}"
+                                                        BorderThickness="0"
+                                                        FontWeight="Bold"
+                                                        Cursor="Hand"
+                                                        Click="RemoveCartItem_Click">
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-
                                 </DataGrid.Columns>
-
                             </DataGrid>
 
-                        </StackPanel>
 
+                        </Grid>
                     </Border>
-
                 </Grid>
-
-            </StackPanel>
-
+            </Grid>
         </Border>
-
     </Grid>
 </Page>

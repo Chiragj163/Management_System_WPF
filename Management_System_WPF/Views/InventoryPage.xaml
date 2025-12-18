@@ -1,133 +1,230 @@
 ﻿<Page x:Class="Management_System_WPF.Views.InventoryPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="InventoryPage"
+      d:DesignHeight="700" d:DesignWidth="1000"
       Background="Transparent">
 
-    <Grid Margin="20">
+    <Page.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
+        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
 
-        <!-- MAIN WHITE PANEL -->
-        <Border HorizontalAlignment="Stretch"
-        VerticalAlignment="Stretch"
-        MaxWidth="900"
-        Background="#F9FFFFFF"
-        CornerRadius="20"
-        Padding="20"
-        Margin="0,20,20,20">
+        <Style TargetType="{x:Type Control}" x:Key="InputStyle">
+            <Setter Property="Height" Value="45"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="10,0"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+            <Setter Property="BorderBrush" Value="#CFD8DC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+        </Style>
 
-            <StackPanel>
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
-                <!-- EXIT BUTTON -->
-                <Button Content="✖"
-                        Width="35"
-                        Height="35"
-                        Background="#FF3CB4A7"
-                        Foreground="White"
-                        HorizontalAlignment="Right"
-                        Margin="0,10,10,0"
-                        Click="ExitInventoryPage_Click"/>
+        <Style TargetType="Button" x:Key="IconButtonStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="50">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Page.Resources>
 
-                <!-- TITLE -->
-                <TextBlock Text="ADD NEW ARTICLE"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           Margin="0,0,0,20"
-                           Foreground="Black"/>
+    <Grid>
+       
 
-                <!-- FORM -->
-                <Grid Margin="0,0,0,20">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="150"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="200"/>
-                    </Grid.ColumnDefinitions>
+        <Border Background="#F9F9F9"
+                CornerRadius="15"
+                Margin="40"
+                MaxWidth="1000"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
 
-                    <!-- LABELS -->
-                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
-                        <TextBlock Text="Article Name:" FontSize="18" Margin="0,0,0,10"/>
-                        <TextBlock Text="Article Price:" FontSize="18"/>
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="Black"/>
+            </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="25,20,25,10">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="ADD NEW ARTICLE" 
+                                   FontSize="24" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextDark}"/>
                     </StackPanel>
 
-                    <!-- INPUTS -->
-                    <StackPanel Grid.Column="1" Margin="10,0">
-                        <TextBox x:Name="txtItemName"
-                                 Height="35"
-                                 FontSize="16"
-                                 Margin="0,0,0,10"/>
-
-                        <TextBox x:Name="txtItemPrice"
-                                 Height="35"
-                                 FontSize="16"/>
-                    </StackPanel>
-
-                    <!-- SAVE BUTTON (NOW HAS A NAME!) -->
-                    <StackPanel Grid.Column="2">
-                        <Button x:Name="btnSave"
-                                Content="Save Article"
-                                Width="150"
-                                Height="40"
-                                FontSize="16"
-                                Background="#FF3CB4A7"
-                                Foreground="White"
-                                Click="SaveItem_Click"/>
-                    </StackPanel>
+                    <Button Content="✖" 
+                            Style="{StaticResource IconButtonStyle}"
+                            Width="35" Height="35"
+                            FontSize="18"
+                            Foreground="{StaticResource TextLight}"
+                            HorizontalAlignment="Right"
+                            Click="ExitInventoryPage_Click"/>
                 </Grid>
 
-                <!-- INVENTORY TABLE -->
-                <Border Background="#F7F7F7"
-                        CornerRadius="10"
-                        Padding="10">
-                    
-                    <DataGrid x:Name="dgItems"
-                              AutoGenerateColumns="False"
-                              Height="400"
-                              VerticalScrollBarVisibility="Auto"
-                              ScrollViewer.VerticalScrollBarVisibility="Auto"
-                              CanUserAddRows="False"
-                              HeadersVisibility="Column"
-                              RowHeight="40"
-                              FontSize="16">
+                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,55,0,0"/>
+
+                <Grid Grid.Row="1" Margin="25">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="300"/>
+                        <ColumnDefinition Width="30"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0">
                        
-    
 
+                        <TextBlock Text="Article Name" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtItemName" Style="{StaticResource InputStyle}"/>
 
-                            <DataGrid.Columns>
+                        <TextBlock Text="Article Price" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtItemPrice" Style="{StaticResource InputStyle}"/>
 
-                            <DataGridTextColumn Header="Name"
-                                                Width="*"
-                                                Binding="{Binding Name}"/>
+                        <Button x:Name="btnSave"
+                                Content="Save Article"
+                                Style="{StaticResource PrimaryButton}"
+                                Height="45"
+                                Margin="0,10,0,0"
+                                Click="SaveItem_Click"/>
+                    </StackPanel>
 
-                            <DataGridTextColumn Header="Price"
-                                                Width="150"
-                                                Binding="{Binding Price}"/>
+                    <Border Grid.Column="2" 
+                            Background="White" 
+                            CornerRadius="10" 
+                            BorderBrush="#EEE" 
+                            BorderThickness="1">
 
-                            <!-- OPTIONS MENU BUTTON -->
-                            <DataGridTemplateColumn Width="60">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <Button Width="35"
-                                                Height="30"
-                                                Background="#FF3CB4A7"
-                                                Click="Options_Click">
-                                            <Button.Content>
-                                                <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                                                      Fill="White"/>
-                                            </Button.Content>
-                                        </Button>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
 
-                        </DataGrid.Columns>
+                            <Border Background="{StaticResource SecondaryColor}" CornerRadius="10,10,0,0" Padding="15">
+                                <TextBlock Text="Inventory" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
+                            </Border>
 
-                    </DataGrid>
+                            <DataGrid x:Name="dgItems"
+                                      Grid.Row="1"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      CanUserResizeRows="False"
+                                      HeadersVisibility="Column"
+                                      GridLinesVisibility="Horizontal"
+                                      HorizontalGridLinesBrush="#EEE"
+                                      BorderThickness="0"
+                                      Background="White"
+                                      RowHeight="50"
+                                      FontSize="15"
+                                      VerticalScrollBarVisibility="Auto">
 
-                </Border>
+                                <DataGrid.Resources>
+                                    <Style TargetType="DataGridColumnHeader">
+                                        <Setter Property="Background" Value="White"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+                                        <Setter Property="Padding" Value="15,10"/>
+                                        <Setter Property="FontWeight" Value="SemiBold"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                        <Setter Property="BorderBrush" Value="#EEE"/>
+                                    </Style>
+                                    <Style TargetType="DataGridCell">
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="15,0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DataGridCell">
+                                                    <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
+                                                        <ContentPresenter VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DataGrid.Resources>
 
-            </StackPanel>
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Name" 
+                                                        Binding="{Binding Name}" 
+                                                        Width="*"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{StaticResource TextDark}"/>
 
+                                    <DataGridTextColumn Header="Price" 
+                                                        Binding="{Binding Price}" 
+                                                        Width="150"
+                                                        Foreground="{StaticResource TextDark}"/>
+
+                                    <DataGridTemplateColumn Width="80">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Width="36" Height="36"
+                                                        Background="#E0F7FA"
+                                                        Cursor="Hand"
+                                                        Click="Options_Click">
+
+                                                    <Button.Template>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}" CornerRadius="18">
+                                                                <Path Data="M3,17.25V21h3.75L17.81,9.94l-3.75-3.75L3,17.25z M20.71,7.04c0.39-0.39,0.39-1.02,0-1.41l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-1.83,1.83l3.75,3.75L20.71,7.04z"
+                                                                      Fill="{StaticResource PrimaryColor}"
+                                                                      Width="16" Height="16"
+                                                                      Stretch="Uniform"
+                                                                      HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </Grid>
         </Border>
-
     </Grid>
-
 </Page>
