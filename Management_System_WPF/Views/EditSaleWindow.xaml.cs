@@ -18,6 +18,7 @@ namespace Management_System_WPF.Views
             txtBuyer.Text = sale.BuyerName;
             txtItem.Text = sale.ItemName;
             txtQty.Text = sale.Qty.ToString();
+            dpSaleDate.SelectedDate = sale.SaleDate; 
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
@@ -29,7 +30,7 @@ namespace Management_System_WPF.Views
             }
 
             SalesService.UpdateSaleQty(_sale.SaleId, _sale.ItemId, qty);
-
+            SalesService.UpdateSaleDate(_sale.SaleId, dpSaleDate.SelectedDate.Value);
             DialogResult = true;
             Close();
         }

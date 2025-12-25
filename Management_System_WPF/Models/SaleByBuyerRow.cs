@@ -7,7 +7,7 @@ namespace Management_System_WPF.Models
     {
         public DateTime Date { get; set; }
         public Dictionary<string, double?> BuyerValues { get; set; } = new();
-
+        public double? Total { get; set; }
         public SaleByBuyerRow()
         {
             BuyerValues = new Dictionary<string, double?>(); 

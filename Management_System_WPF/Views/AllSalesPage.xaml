@@ -5,7 +5,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
       Title="AllSalesPage"
-      d:DesignHeight="700" d:DesignWidth="1000"
+      d:DesignHeight="2000" d:DesignWidth="1000"
       Background="Transparent">
 
     <Page.Resources>
@@ -15,6 +15,12 @@
         <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
         <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
         <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
+        <Style x:Key="CenteredTextColumn" TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
 
         <Style TargetType="{x:Type Control}" x:Key="FilterInputStyle">
             <Setter Property="Height" Value="40"/>
@@ -25,6 +31,11 @@
             <Setter Property="BorderBrush" Value="#CFD8DC"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="White"/>
+        </Style>
+        <Style x:Key="CenterText" TargetType="TextBlock">
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
         </Style>
 
         <Style TargetType="Button" x:Key="PrimaryButton">
@@ -77,10 +88,10 @@
 
         <Border Background="#F9F9F9"
                 CornerRadius="15"
-                Margin="40"
-                MaxWidth="1100"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center">
+                Margin="5"
+                MaxWidth="2000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
 
             <Border.Effect>
                 <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="Black"/>
@@ -98,37 +109,45 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+                    
 
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal"  HorizontalAlignment="Center" VerticalAlignment="Center">
                         <TextBlock x:Name="txtTitle"
                                    Text="Sale List" 
                                    FontSize="26" 
-                                   HorizontalAlignment="Center"
+                                  
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource TextDark}"
                                    VerticalAlignment="Center"/>
 
-                        <Button Content="🔍 Filter"
-                                Margin="20,0,0,0"
-                                Height="35"
-                                HorizontalAlignment="Right"
-                                Style="{StaticResource PrimaryButton}"
-                                Background="#546E7A"
-                                Click="ToggleFilter_Click"/>
+                       
                     </StackPanel>
+                    <Button Content="🔍 Filter"
+         Margin="20,0,0,0"
+                            Padding="10,0"
+         Height="35"
+                            Width="80"
+                            
+         HorizontalAlignment="Right"
+         Style="{StaticResource PrimaryButton}"
+         Background="#546E7A"
+         Click="ToggleFilter_Click"/>
 
-                    <Button Grid.Column="1"
-                            Style="{StaticResource IconButtonStyle}"
-                            Width="40" Height="40"
-                            HorizontalAlignment="Left"
-                            ToolTip="Go Back"
-                            Click="Back_Click">
-                        <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
-                              Fill="{StaticResource TextDark}"
-                              Width="20" Height="20"
-                              Stretch="Uniform"/>
-                    </Button>
+
                 </Grid>
+                <Button Grid.Column="1"
+        Style="{StaticResource IconButtonStyle}"
+        Width="40" Height="40"
+                       
+        HorizontalAlignment="Left"
+                       
+        ToolTip="Go Back"
+        Click="Back_Click">
+                    <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+          Fill="{StaticResource TextDark}"
+          Width="20" Height="20"
+          Stretch="Uniform"/>
+                </Button>
 
                 <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,60,0,0"/>
 
@@ -167,11 +186,13 @@
                                         SelectedDateChanged="Filter_Changed"/>
                         </StackPanel>
 
-                        <Button Content="✖"
-                                Width="35" Height="35"
+                        <Button Content="Clear"
+                                Width="60" Height="35"
                                 Background="{StaticResource DangerColor}"
                                 Style="{StaticResource PrimaryButton}"
                                 ToolTip="Clear Filters"
+                                Margin="10,0,0,0"
+                                
                                 Click="ClearFilter_Click"/>
                     </StackPanel>
                 </Border>
@@ -184,87 +205,90 @@
                         BorderThickness="1">
 
                     <DataGrid x:Name="dgSales"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              IsReadOnly="True"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#EEE"
-                              BorderThickness="0"
-                              Background="White"
-                              RowHeight="50"
-                              FontSize="15"
-                              VerticalScrollBarVisibility="Auto">
-
+          Grid.Row="2"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          IsReadOnly="True"
+          HeadersVisibility="Column"
+          FrozenColumnCount="1"
+          GridLinesVisibility="All"
+          HorizontalGridLinesBrush="#EEE"
+          VerticalGridLinesBrush="#EEE"
+          BorderThickness="0"
+          Background="White"
+          FontSize="16"
+          ColumnHeaderHeight="45"
+          AlternationCount="2"
+          VerticalScrollBarVisibility="Auto"
+          ColumnWidth="*">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
-                                <Setter Property="Padding" Value="15,10"/>
+                                <Setter Property="FontSize" Value="16"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
                                 <Setter Property="BorderBrush" Value="#B2DFDB"/>
+                                <Setter Property="Padding" Value="10"/>
                             </Style>
-
                             <Style TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="6,0"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderThickness" Value="0"/>
-                                <Setter Property="Padding" Value="10,0"/>
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="DataGridCell">
-                                            <Border Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}">
-                                                <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
                             </Style>
                         </DataGrid.Resources>
 
                         <DataGrid.Columns>
-
-                            <DataGridTextColumn Header="Customer Name" 
-                                                Binding="{Binding BuyerName}" 
-                                                Width="*"
-                                                FontWeight="SemiBold"
-                                                Foreground="{StaticResource TextDark}"/>
-
-                            <DataGridTextColumn Header="Article" 
-                                                Binding="{Binding ItemName}" 
-                                                Width="*"/>
-
-                            <DataGridTextColumn Header="Qty" 
-                                                Binding="{Binding Quantity}" 
-                                                Width="80"/>
-
-                            <DataGridTextColumn Header="Amount" 
-                                                Binding="{Binding Amount}" 
-                                                Width="120"
-                                                FontWeight="Bold"
-                                                Foreground="{StaticResource PrimaryColor}"/>
-
                             <DataGridTextColumn Header="Date" 
-                                                Binding="{Binding SaleDate, StringFormat=dd/MM/yyyy}" 
-                                                Width="120"
-                                                Foreground="{StaticResource TextLight}"/>
+                     Binding="{Binding SaleDate, StringFormat=dd/MM/yyyy}" 
+                     Width="*"
+                     ElementStyle="{StaticResource CenteredTextColumn}"
+                     FontWeight="Bold"
+                     Foreground="{StaticResource TextLight}"/>
 
-                            <DataGridTemplateColumn Header="Action" Width="80">
+                            <DataGridTextColumn Header="Customer Name"
+                            Binding="{Binding BuyerName}"
+                            Width="*" 
+                            ElementStyle="{StaticResource CenteredTextColumn}"
+                            FontWeight="SemiBold"
+                            Foreground="{StaticResource TextDark}"/>
+
+                            <DataGridTextColumn Header="Article"
+                            Binding="{Binding ItemName}"
+                            Width="*"
+                            ElementStyle="{StaticResource CenteredTextColumn}"/>
+
+                            <DataGridTextColumn Header="Quantity"
+                            Binding="{Binding Quantity}"
+                            Width="*"
+                            ElementStyle="{StaticResource CenteredTextColumn}"/>
+
+                            <DataGridTextColumn Header="Amount"
+                            Binding="{Binding Amount}"
+                            Width="*"
+                            ElementStyle="{StaticResource CenteredTextColumn}"
+                            FontWeight="Bold"
+                            Foreground="{StaticResource PrimaryColor}"/>
+                           
+
+                            <DataGridTemplateColumn Header="Action" Width="*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Button Width="36" Height="36"
-                                                Background="#E0F7FA"
-                                                Cursor="Hand"
-                                                Click="Options_Click">
+                            Background="#E0F7FA"
+                            Cursor="Hand"
+                            Click="Options_Click">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="18">
                                                         <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                                                              Fill="{StaticResource PrimaryColor}"
-                                                              Width="16" Height="16"
-                                                              Stretch="Uniform"
-                                                              HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
+                                          Fill="{StaticResource PrimaryColor}"
+                                          Width="16" Height="16"
+                                          Stretch="Uniform"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Button.Template>
@@ -274,10 +298,32 @@
                             </DataGridTemplateColumn>
 
                         </DataGrid.Columns>
+
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Height" Value="40"/>
+                                <Setter Property="MinHeight" Value="40"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="SnapsToDevicePixels" Value="True"/>
+                               
+                                <Style.Triggers>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                        <Setter Property="Background" Value="#FAFAFA"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F1F8E9"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+
                     </DataGrid>
+
                 </Border>
+                
 
             </Grid>
+            
         </Border>
     </Grid>
 </Page>

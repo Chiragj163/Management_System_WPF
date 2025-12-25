@@ -40,9 +40,9 @@ namespace Management_System_WPF.Views
             LoadBuyerData();
         }
 
-       
+
         //  LOAD DATA FOR SELECTED MONTH
-        
+
         private void LoadBuyerData()
         {
             var raw = SalesService.GetSalesRawForPivot(
@@ -54,7 +54,7 @@ namespace Management_System_WPF.Views
             DataTable pivot = PivotHelper.CreatePivotTableWithTotals(raw);
             BindPivotToGrid(pivot);
 
-          
+
 
             //  SHOW MONTH NAME (not buyer name)
             txtMonthName.Text = _currentMonth.ToString("MMMM yyyy");
@@ -63,9 +63,9 @@ namespace Management_System_WPF.Views
             UpdateMonthNavigationButtons();
         }
 
-        
+
         //  PREVIOUS MONTH BUTTON
-       
+
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousSalesMonthForBuyer(buyerId, _currentMonth);
@@ -78,9 +78,9 @@ namespace Management_System_WPF.Views
         }
 
 
-       
+
         //  NEXT MONTH BUTTON
-        
+
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
             var next = SalesService.GetNextSalesMonthForBuyer(buyerId, _currentMonth);
@@ -93,9 +93,9 @@ namespace Management_System_WPF.Views
         }
 
 
-       
+
         // ENABLE/DISABLE NAVIGATION BUTTONS
-       
+
         private void UpdateMonthNavigationButtons()
         {
             btnPrevMonth.IsEnabled =
@@ -155,153 +155,232 @@ namespace Management_System_WPF.Views
         {
             var main = (MainWindow)Application.Current.MainWindow;
             main.ResetLayoutBeforeNavigation();
-            NavigationService.GoBack();
+            main.ResizeMode = ResizeMode.CanResize;
+            if (main.WindowState == WindowState.Maximized)
+            {
+                main.WindowState = WindowState.Normal;
+                main.WindowState = WindowState.Maximized;
+            }
+            if (NavigationService.CanGoBack)
+            {
+                NavigationService.GoBack();
+            }
         }
+
+        // ================= PRINT LOGIC STARTS HERE =================
 
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog pd = new PrintDialog();
             if (pd.ShowDialog() != true) return;
 
+            // Get Printer Size
+            double pageWidth = pd.PrintableAreaWidth;
+            double pageHeight = pd.PrintableAreaHeight;
+
             FlowDocument doc = BuildInvoiceDocument();
 
-            doc.PageHeight = pd.PrintableAreaHeight;
-            doc.PageWidth = pd.PrintableAreaWidth;
-            doc.PagePadding = new Thickness(40);
-            doc.ColumnWidth = pd.PrintableAreaWidth;
+            // --- UPDATED SETTINGS ---
+            doc.PageHeight = pageHeight;
+            doc.PageWidth = pageWidth;
+
+            // Set PagePadding to fit the borders nicely
+            doc.PagePadding = new Thickness(30);
+
+            // Calculate the width available for content
+            // This helps the table know how wide it can be
+            doc.ColumnWidth = pageWidth - 60; // (PageWidth - Left/Right Padding)
 
             pd.PrintDocument(
                 ((IDocumentPaginatorSource)doc).DocumentPaginator,
-                "Sales Invoice"
+                $"Report - {txtBuyerName.Text}"
             );
         }
+
         private FlowDocument BuildInvoiceDocument()
         {
             FlowDocument doc = new FlowDocument
             {
-                FontFamily = new FontFamily("Segoe UI"),
-                FontSize = 13
+                FontFamily = new FontFamily("Calibri"), // Excel default font
+                FontSize = 10, // Point 2: Smaller font to fit more data
+                TextAlignment = TextAlignment.Left
             };
 
-            // 🧾 TITLE
-            doc.Blocks.Add(new Paragraph(new Run("SALES INVOICE"))
+            // ================= 1. HEADING (BUYER NAME) =================
+            // Point 1: Replaced "SALES INVOICE" with Buyer Name
+            Paragraph titlePara = new Paragraph(new Run(txtBuyerName.Text.ToUpper()))
             {
-                FontSize = 26,
+                FontSize = 24,
                 FontWeight = FontWeights.Bold,
                 TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 20)
-            });
+                Margin = new Thickness(0, 0, 0, 5)
+            };
+            doc.Blocks.Add(titlePara);
 
-            // Buyer + Period
-            doc.Blocks.Add(new Paragraph(new Run(
-                $"Name : {txtBuyerName.Text}\n" +
-                $"Invoice For : {txtMonthName.Text}\n" +
-                $"Invoice Date : {DateTime.Now:dd/MM/yyyy}"
-            ))
+            // Sub-heading (Month and Print Date)
+            Paragraph subHeader = new Paragraph(new Run($"{txtMonthName.Text} | Generated: {DateTime.Now:dd-MM-yyyy}"))
             {
-                FontSize = 14,
+                FontSize = 12,
+                Foreground = Brushes.Gray,
+                TextAlignment = TextAlignment.Center,
                 Margin = new Thickness(0, 0, 0, 20)
-            });
+            };
+            doc.Blocks.Add(subHeader);
 
-            // 🔹 FETCH RAW DATA (NOT PIVOT)
+
+            // ================= FETCH DATA =================
             var sales = SalesService.GetSalesBetweenDates(
                 buyerId,
                 _currentMonth,
                 _currentMonth.AddMonths(1).AddDays(-1)
             );
 
+            if (sales == null || sales.Count == 0)
+            {
+                doc.Blocks.Add(new Paragraph(new Run("No sales data available for this month.")));
+                return doc;
+            }
+
+            // Grouping Logic
+            var items = sales.GroupBy(x => x.ItemName)
+                .Select(g => new
+                {
+                    Item = g.Key,
+                    UnitPrice = g.First().Price,
+                    TotalQty = g.Sum(x => x.Qty),
+                    TotalAmount = g.Sum(x => x.Qty * x.Price),
+                    DateQty = g.GroupBy(x => x.Date.ToString())
+                               .ToDictionary(d => d.Key, d => d.Sum(x => x.Qty))
+                }).ToList();
+
+            var dates = sales.Select(x => x.Date.ToString()).Distinct().OrderBy(x => x).ToList();
+
+
+            // ================= TABLE SETUP =================
             Table table = new Table();
+            table.CellSpacing = 0;
             doc.Blocks.Add(table);
 
-            table.Columns.Add(new TableColumn { Width = new GridLength(110) }); // Date
-            table.Columns.Add(new TableColumn { Width = new GridLength(180) }); // Item
-            table.Columns.Add(new TableColumn { Width = new GridLength(70) });  // Qty
-            table.Columns.Add(new TableColumn { Width = new GridLength(90) });  // Rate
-            table.Columns.Add(new TableColumn { Width = new GridLength(120) }); // Amount
+            // 1. Date Column (Fixed Width)
+            table.Columns.Add(new TableColumn { Width = new GridLength(80) });
+
+            // 2. Item Columns (CHANGE THIS)
+            // Star sizing (*) often fails in PrintDialog. Use a fixed width or Auto.
+            foreach (var _ in items)
+            {
+                // Try 80 pixels per item column. 
+                // If you have many items, the table will simply stretch to the right.
+                table.Columns.Add(new TableColumn { Width = new GridLength(80) });
+            }
 
 
-            // HEADER
+            // ================= TABLE HEADER =================
             TableRowGroup headerGroup = new TableRowGroup();
             table.RowGroups.Add(headerGroup);
+            TableRow headerRow = new TableRow();
+            headerGroup.Rows.Add(headerRow);
 
-            TableRow header = new TableRow();
-            headerGroup.Rows.Add(header);
-
-            HeaderCell("Date");
-            HeaderCell("Item");
-            HeaderCell("Total Qty");
-            HeaderCell("Unit Price");
-            HeaderCell("Total Price");
+            // Header Cells (Point 3: Excel Style Headers)
+            AddExcelCell(headerRow, "Date", true, true);
+            foreach (var item in items)
+            {
+                AddExcelCell(headerRow, item.Item, true, true);
+            }
 
 
-            // BODY
+            // ================= TABLE BODY =================
             TableRowGroup body = new TableRowGroup();
             table.RowGroups.Add(body);
 
-            decimal grandTotal = 0m;
-            foreach (var s in sales)
+            foreach (var date in dates)
             {
-                decimal amount = s.Qty * s.Price;
-                grandTotal += amount;
-
-
                 TableRow row = new TableRow();
                 body.Rows.Add(row);
 
-                row.Cells.Add(Cell(
-                DateTime.TryParse(s.Date.ToString(), out DateTime d)
-                ? d.ToString("dd/MM/yyyy")
-                 : s.Date.ToString()
-                 ));
-                row.Cells.Add(Cell(s.ItemName));
-                row.Cells.Add(Cell(s.Qty.ToString()));
-                row.Cells.Add(Cell($"₹ {s.Price:0.00}"));
-                row.Cells.Add(Cell($"₹ {amount:0.00}"));
+                // Date Cell
+                string dateStr = DateTime.TryParse(date, out DateTime d) ? d.ToString("dd-MM/yyyy") : date;
+                AddExcelCell(row, dateStr, false, false);
+
+                // Qty Cells
+                foreach (var item in items)
+                {
+                    string qty = item.DateQty.ContainsKey(date) ? item.DateQty[date].ToString() : "";
+                    AddExcelCell(row, qty, false, false);
+                }
             }
 
 
+            // ================= SUMMARY ROWS (Totals) =================
+            // Divider Row
+            TableRow emptyRow = new TableRow();
+            body.Rows.Add(emptyRow); // Spacer
 
-            // 🔹 GRAND TOTAL ROW (INSIDE TABLE)
-            TableRow totalRow = new TableRow();
-            body.Rows.Add(totalRow);
+            // Total Qty Row
+            TableRow qtyRow = new TableRow();
+            body.Rows.Add(qtyRow);
+            AddExcelCell(qtyRow, "Total Qty", true, true);
+            foreach (var item in items) AddExcelCell(qtyRow, item.TotalQty.ToString(), true, false);
 
-            totalRow.Cells.Add(Cell(""));
-            totalRow.Cells.Add(Cell(""));
-            totalRow.Cells.Add(Cell(""));
-            totalRow.Cells.Add(Cell("GRAND TOTAL", true));
-            totalRow.Cells.Add(Cell($"₹ {grandTotal:0.00}", true));
+            // Unit Price Row
+            TableRow priceRow = new TableRow();
+            body.Rows.Add(priceRow);
+            AddExcelCell(priceRow, "Price", true, true);
+            foreach (var item in items) AddExcelCell(priceRow, item.UnitPrice.ToString("0.00"), false, false);
+
+            // Total Amount Row
+            TableRow amountRow = new TableRow();
+            body.Rows.Add(amountRow);
+            AddExcelCell(amountRow, "Amount", true, true);
+            foreach (var item in items) AddExcelCell(amountRow, item.TotalAmount.ToString("0.00"), true, false);
 
 
-            // SIGNATURE
-            doc.Blocks.Add(new Paragraph(new Run("\n\nAuthorized Signature"))
+            // ================= GRAND TOTAL =================
+            decimal grandTotal = items.Sum(x => x.TotalAmount);
+
+            Paragraph totalPara = new Paragraph(new Run($"Grand Total: {grandTotal:N2}"))
             {
-                TextAlignment = TextAlignment.Right,
-                Margin = new Thickness(0, 40, 0, 0)
-            });
+                FontSize = 14,
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0, 20, 0, 0)
+            };
+            doc.Blocks.Add(totalPara);
 
             return doc;
-
-            // Local helpers
-            void HeaderCell(string text)
-            {
-                header.Cells.Add(new TableCell(new Paragraph(new Run(text)))
-                {
-                    FontWeight = FontWeights.Bold,
-                    Background = Brushes.LightGray,
-                    Padding = new Thickness(6),
-                    TextAlignment = TextAlignment.Center
-                });
-            }
         }
 
-        private TableCell Cell(string text, bool bold = false)
+
+        // ================= HELPER: CREATE EXCEL STYLE CELL =================
+        // Point 3: This function creates the borders and gridlines
+        // ================= HELPER: CREATE EXCEL STYLE CELL =================
+
+        private void AddExcelCell(TableRow row, string text, bool isBold, bool isHeader)
         {
-            return new TableCell(new Paragraph(new Run(text)))
+            // 1. Create the Text Content
+            Paragraph p = new Paragraph(new Run(text));
+            p.Margin = new Thickness(0); // Remove default paragraph gap
+            p.TextAlignment = TextAlignment.Center;
+            p.FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal;
+
+            // 2. Create the TableCell and add the Paragraph to it
+            // TableCell automatically accepts a 'Block' (like Paragraph) in its constructor
+            TableCell cell = new TableCell(p);
+
+            // 3. Apply Excel Styling DIRECTLY to the Cell
+            cell.BorderBrush = Brushes.Black;
+            cell.BorderThickness = new Thickness(0.5); // This creates the gridline
+            cell.Padding = new Thickness(4, 2, 4, 2);  // Padding inside the cell
+
+            if (isHeader)
             {
-                Padding = new Thickness(6),
-                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal
-            };
+                cell.Background = Brushes.LightGray;
+            }
+
+            // 4. Add to Row
+            row.Cells.Add(cell);
         }
+
+
 
 
 
@@ -329,7 +408,7 @@ namespace Management_System_WPF.Views
             BindPivotToGrid(pivot);
 
             txtMonthName.Text = "Last 6 Months";
-            
+
 
             FilterPanel.Visibility = Visibility.Collapsed;
         }
@@ -344,7 +423,7 @@ namespace Management_System_WPF.Views
             BindPivotToGrid(pivot);
 
             txtMonthName.Text = DateTime.Now.Year + " (Year)";
-           
+
             FilterPanel.Visibility = Visibility.Collapsed;
         }
         private void FilterCustom_Click(object sender, RoutedEventArgs e)
@@ -364,7 +443,7 @@ namespace Management_System_WPF.Views
             BindPivotToGrid(pivot);
 
             txtMonthName.Text = $"{from:dd/MM/yyyy} → {to:dd/MM/yyyy}";
-           
+
 
             FilterPanel.Visibility = Visibility.Collapsed;
         }

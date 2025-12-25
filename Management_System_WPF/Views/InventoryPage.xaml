@@ -69,14 +69,12 @@
 
         <Border Background="#F9F9F9"
                 CornerRadius="15"
-                Margin="40"
-                MaxWidth="1000"
+                Margin="0,0,0,20"
+                MaxWidth="1000"               
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
 
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="Black"/>
-            </Border.Effect>
+           
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -139,10 +137,7 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border Background="{StaticResource SecondaryColor}" CornerRadius="10,10,0,0" Padding="15">
-                                <TextBlock Text="Inventory" FontSize="16" FontWeight="Bold" Foreground="{StaticResource PrimaryColor}"/>
-                            </Border>
-
+                            
                             <DataGrid x:Name="dgItems"
                                       Grid.Row="1"
                                       AutoGenerateColumns="False"

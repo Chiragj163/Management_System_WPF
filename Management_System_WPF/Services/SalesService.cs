@@ -884,6 +884,23 @@ ORDER BY s.sale_id DESC;
             return result;
         }
 
+        public static void UpdateSaleDate(int saleId, DateTime newDate)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        UPDATE sales
+        SET sale_date = @date
+        WHERE sale_id = @saleId;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@date", newDate.ToString("yyyy-MM-dd"));
+            cmd.Parameters.AddWithValue("@saleId", saleId);
+
+            cmd.ExecuteNonQuery();
+        }
 
 
     }

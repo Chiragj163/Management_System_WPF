@@ -84,7 +84,7 @@ namespace Management_System_WPF.Views
             }
 
             rows.Add(totalRow);
-
+            UpdateMonthNavigationButtons();
             BuildDynamicColumns(articles);
             dgArticles.ItemsSource = rows;
         }
@@ -142,12 +142,21 @@ namespace Management_System_WPF.Views
         {
             var main = (MainWindow)Application.Current.MainWindow;
             main.ResetLayoutBeforeNavigation();
-            NavigationService.GoBack();
+            main.ResizeMode = ResizeMode.CanResize;
+            if (main.WindowState == WindowState.Maximized)
+            {
+                main.WindowState = WindowState.Normal;
+                main.WindowState = WindowState.Maximized;
+            }
+            if (NavigationService.CanGoBack)
+            {
+                NavigationService.GoBack();
+            }
         }
 
-      
+
         // BUTTON: PREVIOUS MONTH
-       
+
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousArticleSalesMonth(_currentMonth);
@@ -161,9 +170,9 @@ namespace Management_System_WPF.Views
         }
 
 
-       
+
         // BUTTON: NEXT MONTH
-        
+
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
             var next = SalesService.GetNextArticleSalesMonth(_currentMonth);
@@ -178,7 +187,7 @@ namespace Management_System_WPF.Views
 
 
         // EXPORT EXCEL
-       
+
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
@@ -226,9 +235,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        
+
         // PRINT REPORT
-       
+
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog pd = new PrintDialog();
@@ -239,9 +248,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        
+
         // DISABLE NEXT/PREV IF MONTH HAS NO SALES
-        
+
         private void UpdateMonthNavigationButtons()
         {
             btnPrevMonth.IsEnabled =
@@ -330,7 +339,7 @@ namespace Management_System_WPF.Views
         }
     };
         }
-
+       
 
     }
 }

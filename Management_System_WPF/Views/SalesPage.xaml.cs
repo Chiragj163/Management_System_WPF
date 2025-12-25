@@ -5,18 +5,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Management_System_WPF.Views
 {
     public partial class SalesPage : Page
     {
-        private List<CartItem> cart = new List<CartItem>();
+        private readonly List<CartItem> cart = new();
+        private decimal currentItemPrice = 0;
 
         public SalesPage()
         {
             InitializeComponent();
 
-            cmbBuyer.ItemsSource = BuyersService.GetAllBuyers();
+            cmbBuyer.ItemsSource = BuyersService
+                .GetAllBuyers()
+                .OrderBy(b => b.Name)
+                .ToList();
             cmbBuyer.DisplayMemberPath = "Name";
 
             cmbItem.ItemsSource = ItemsService.GetAllItems();
@@ -25,28 +30,82 @@ namespace Management_System_WPF.Views
             dpSaleDate.SelectedDate = DateTime.Now;
         }
 
+        // ======================================================
+        // LOAD EFFECTIVE PRICE (SPECIAL / NORMAL)
+        // ======================================================
+        private void LoadEffectivePrice()
+        {
+            currentItemPrice = 0;
+
+            if (cmbBuyer.SelectedItem is not Buyer buyer)
+                return;
+
+            if (cmbItem.SelectedItem is not Item item)
+                return;
+
+            try
+            {
+                currentItemPrice =
+                    SpecialPriceService.GetEffectivePrice(buyer.BuyerId, item.Id);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Price Load Error");
+                currentItemPrice = item.Price;
+            }
+
+            CalculateTotal();
+        }
+
+        // ======================================================
+        // CALCULATE TOTAL
+        // ======================================================
+        private void CalculateTotal()
+        {
+            if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
+            {
+                txtTotal.Text = "0.00 ₹";
+                return;
+            }
+
+            txtTotal.Text = $"{(currentItemPrice * qty):0.00} ₹";
+        }
+
+        private void Calculate_Click(object sender, RoutedEventArgs e)
+        {
+            LoadEffectivePrice();
+        }
+
+        // ======================================================
+        // SELECTION EVENTS
+        // ======================================================
+        private void cmbBuyer_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadEffectivePrice();
+        }
+
+        private void cmbItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            LoadEffectivePrice();
+            txtQuantity.Focus();
+        }
+
         private void txtQuantity_TextChanged(object sender, TextChangedEventArgs e)
         {
             CalculateTotal();
         }
 
-        private void CalculateTotal()
-        {
-            if (cmbItem.SelectedItem is Item item &&
-                int.TryParse(txtQuantity.Text, out int qty))
-            {
-                txtTotal.Text = $"{(item.Price * qty):0.00} ₹";
-            }
-            else
-            {
-                txtTotal.Text = "0.00 ₹";
-            }
-        }
-        private void Calculate_Click(object sender, RoutedEventArgs e) { CalculateTotal(); }
-
-        // 🟩 ADD TO CART WORKS INDEPENDENTLY
+        // ======================================================
+        // ADD TO CART
+        // ======================================================
         private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
+            if (cmbBuyer.SelectedItem is not Buyer)
+            {
+                MessageBox.Show("Please select a buyer.");
+                return;
+            }
+
             if (cmbItem.SelectedItem is not Item item)
             {
                 MessageBox.Show("Please select an item.");
@@ -58,6 +117,8 @@ namespace Management_System_WPF.Views
                 MessageBox.Show("Enter valid quantity.");
                 return;
             }
+
+            LoadEffectivePrice();
 
             var existing = cart.FirstOrDefault(c => c.ItemId == item.Id);
 
@@ -72,18 +133,21 @@ namespace Management_System_WPF.Views
                     ItemId = item.Id,
                     ItemName = item.Name,
                     Quantity = qty,
-                    Price = item.Price
+                    Price = currentItemPrice
                 });
             }
 
             RefreshCartDisplay();
+
+            // ✅ RESET ONLY ITEM-RELATED FIELDS
+            ResetAfterAddToCart();
         }
+
 
         private void RefreshCartDisplay()
         {
             dgCart.ItemsSource = null;
             dgCart.ItemsSource = cart;
-
             txtTotal.Text = $"{cart.Sum(c => c.Total):0.00} ₹";
         }
 
@@ -96,7 +160,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // 🟩 SAVE SALE WITHOUT CART (DIRECT SALE)
+        // ======================================================
+        // SAVE SALE
+        // ======================================================
         private void SaveSale_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem is not Buyer buyer)
@@ -111,14 +177,13 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            DateTime selectedDate = dpSaleDate.SelectedDate.Value;
+            DateTime saleDate = dpSaleDate.SelectedDate.Value;
 
-            // 🟢 CASE 1: CART HAS ITEMS
             if (cart.Any())
             {
-                decimal totalAmount = cart.Sum(c => c.Total);
+                decimal total = cart.Sum(c => c.Total);
 
-                int saleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, totalAmount);
+                int saleId = SalesService.CreateSale(buyer.BuyerId, saleDate, total);
 
                 foreach (var c in cart)
                 {
@@ -135,30 +200,34 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // 🟢 CASE 2: DIRECT SINGLE ITEM SALE
+            // Direct sale
             if (cmbItem.SelectedItem is not Item item)
-            {
-                MessageBox.Show("Please select an item.");
                 return;
-            }
 
             if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
-            {
-                MessageBox.Show("Enter valid quantity.");
                 return;
-            }
 
-            decimal amount = item.Price * qty;
+            LoadEffectivePrice();
 
-            int singleSaleId = SalesService.CreateSale(buyer.BuyerId, selectedDate, amount);
-            SalesService.AddSaleItem(singleSaleId, item.Id, qty, item.Price);
+            decimal amount = currentItemPrice * qty;
+
+            int singleSaleId =
+                SalesService.CreateSale(buyer.BuyerId, saleDate, amount);
+
+            SalesService.AddSaleItem(
+                singleSaleId,
+                item.Id,
+                qty,
+                currentItemPrice
+            );
 
             MessageBox.Show("Sale saved successfully!");
             ResetForm();
         }
 
-
-        // 🟩 RESET ENTIRE PAGE
+        // ======================================================
+        // RESET
+        // ======================================================
         private void ResetForm()
         {
             cmbBuyer.SelectedIndex = -1;
@@ -167,16 +236,83 @@ namespace Management_System_WPF.Views
             txtQuantity.Text = "";
             txtTotal.Text = "0.00 ₹";
 
-            dpSaleDate.SelectedDate = DateTime.Now;
+            dpSaleDate.SelectedDate = DateTime.Today; // ✅ FIX
 
             cart.Clear();
             RefreshCartDisplay();
         }
 
+
+        // ======================================================
+        // EXIT
+        // ======================================================
         private void ExitSalePage_Click(object sender, RoutedEventArgs e)
         {
-            var main = Window.GetWindow(this) as MainWindow;
-            main.MainFrame.Content = null;
+            if (Window.GetWindow(this) is MainWindow main)
+                main.MainFrame.Content = null;
         }
+
+        private void dpSaleDate_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // 🚫 Do NOT block normal keys
+            // Allow Tab, Backspace, Numbers, Numpad, Enter
+            if (e.Key == Key.Tab ||
+                e.Key == Key.Back ||
+                e.Key == Key.Delete ||
+                (e.Key >= Key.D0 && e.Key <= Key.D9) ||
+                (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9))
+            {
+                return;
+            }
+
+            if (dpSaleDate.SelectedDate == null)
+                dpSaleDate.SelectedDate = DateTime.Today;
+
+            DateTime current = dpSaleDate.SelectedDate.Value;
+
+            // Ctrl + Up / Down → Month change
+            if (Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                if (e.Key == Key.Up)
+                {
+                    dpSaleDate.SelectedDate = current.AddMonths(1);
+                    e.Handled = true;
+                }
+                else if (e.Key == Key.Down)
+                {
+                    dpSaleDate.SelectedDate = current.AddMonths(-1);
+                    e.Handled = true;
+                }
+                return;
+            }
+
+            // Up / Down → Day change
+            if (e.Key == Key.Up)
+            {
+                dpSaleDate.SelectedDate = current.AddDays(1);
+                e.Handled = true;
+            }
+            else if (e.Key == Key.Down)
+            {
+                dpSaleDate.SelectedDate = current.AddDays(-1);
+                e.Handled = true;
+            }
+        }
+        private void txtQuantity_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+                Calculate_Click(sender, e);
+        }
+        private void ResetAfterAddToCart()
+        {
+            cmbItem.SelectedIndex = -1;     // reset item
+            txtQuantity.Text = "";          // reset quantity
+            txtTotal.Text = "0.00 ₹";       // reset total
+            currentItemPrice = 0;           // reset price cache
+           // dpSaleDate.SelectedDate = DateTime.Today; // ✅ FIX
+            cmbItem.Focus();                // keyboard-friendly
+        }
+
+
     }
 }

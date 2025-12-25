@@ -1,7 +1,8 @@
-﻿using System.Windows;
-using System.Windows.Controls;
+﻿using Management_System_WPF.Models;
 using Management_System_WPF.Services;
-using Management_System_WPF.Models;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Management_System_WPF.Views
 {
@@ -15,11 +16,16 @@ namespace Management_System_WPF.Views
 
         private void LoadBuyers()
         {
-            var buyers = BuyersService.GetAllBuyers();
+            var buyers = BuyersService
+                .GetAllBuyers()
+                .OrderBy(b => b.Name)
+                .ToList();
+
             cmbBuyer.ItemsSource = buyers;
             cmbBuyer.DisplayMemberPath = "Name";
             cmbBuyer.SelectedValuePath = "BuyerId";
         }
+
 
         // 1️⃣ ALL SALES → OPEN BuyerReportPage IN FULL SCREEN
         private void AllSales_Click(object sender, RoutedEventArgs e)

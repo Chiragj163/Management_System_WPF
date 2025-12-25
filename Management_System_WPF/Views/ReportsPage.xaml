@@ -136,59 +136,53 @@
                     </StackPanel>
 
                 </Grid>
-
-                <TextBlock Text="General Analytics" 
-                           FontSize="14" 
-                           FontWeight="Bold" 
-                           Foreground="{StaticResource TextLight}" 
-                           Margin="0,0,0,10"/>
-                <Button Content="Sales By Buyer "
-         Click="SalesByBuyer_Click"
-                         Margin="0,0,0,10"
-         Style="{StaticResource PrimaryButton}"/>
                 
-
-                <Button Style="{StaticResource MenuButtonStyle}"
-                        Tag="Sales  by Article"
-                        Click="SalesByArticles_Click">
-                    <Path Data="M13,12H20V13.5H13M13,9.5H20V11H13M13,14.5H20V16H13M21,4H3A2,2 0 0,0 1,6V19A2,2 0 0,0 3,21H21A2,2 0 0,0 23,19V6A2,2 0 0,0 21,4M21,19H12V6H21" 
-                          Fill="{StaticResource PrimaryColor}"
-                          Width="20" Height="20" Stretch="Uniform"/>
-                </Button>
-
-                <Separator Background="#E0E0E0" Margin="0,15,0,20"/>
-
                 <TextBlock Text="Buyer Specific Reports" 
                            FontSize="14" 
                            FontWeight="Bold" 
                            Foreground="{StaticResource TextLight}" 
                            Margin="0,0,0,10"/>
 
-                <Border Background="White" 
+                 <Border Background="White" 
                         BorderBrush="#E0E0E0" 
                         BorderThickness="1" 
                         CornerRadius="10" 
                         Padding="15">
-                    <StackPanel>
-                        <TextBlock Text="Select Buyer to generate report:" 
+                     <StackPanel>
+                            <TextBlock Text="Select Buyer to generate report:" 
                                    Foreground="{StaticResource TextDark}" 
                                    Margin="0,0,0,8"
                                    FontSize="14"/>
 
-                        <ComboBox x:Name="cmbBuyer" 
+                            <ComboBox x:Name="cmbBuyer" 
                                   Style="{StaticResource InputStyle}"
                                   Height="40"
                                   Margin="0,0,0,15"/>
 
-                        <Button Style="{StaticResource MenuButtonStyle}"
-        Tag="View All Sales History"
-        Click="AllSales_Click">
-                            <Path Data="M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,19H22V21H2V3H4V17.54L9.5,8L16,11.78Z" 
-          Fill="{StaticResource PrimaryColor}"
-          Width="20" Height="20" Stretch="Uniform"/>
-                        </Button>
+                            <Button Style="{StaticResource MenuButtonStyle}"
+                                    Tag="View All Sales History"
+                                    Click="AllSales_Click">
+                                    <Path Data="M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,19H22V21H2V3H4V17.54L9.5,8L16,11.78Z" Fill="{StaticResource PrimaryColor}" Width="20" Height="20" Stretch="Uniform"/>
+                            </Button>
                     </StackPanel>
                 </Border>
+                <Separator Background="#E0E0E0" Margin="0,15,0,20"/>
+                <TextBlock Text="General Analytics" 
+                           FontSize="14" 
+                           FontWeight="Bold" 
+                           Foreground="{StaticResource TextLight}" 
+                           Margin="0,0,0,10"/>
+                <Button Content="Sales By Buyer "
+                           Click="SalesByBuyer_Click"
+                           Margin="0,0,0,10"
+                           Style="{StaticResource PrimaryButton}"/>
+
+
+                <Button Style="{StaticResource MenuButtonStyle}"
+                        Tag="Sales  by Article"
+                        Click="SalesByArticles_Click">
+                        <Path Data="M13,12H20V13.5H13M13,9.5H20V11H13M13,14.5H20V16H13M21,4H3A2,2 0 0,0 1,6V19A2,2 0 0,0 3,21H21A2,2 0 0,0 23,19V6A2,2 0 0,0 21,4M21,19H12V6H21" Fill="{StaticResource PrimaryColor}" Width="20" Height="20" Stretch="Uniform"/>
+                </Button>
 
             </StackPanel>
 

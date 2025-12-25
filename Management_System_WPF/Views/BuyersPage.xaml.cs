@@ -1,5 +1,6 @@
 ﻿using Management_System_WPF.Models;
 using Management_System_WPF.Services;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,7 +20,10 @@ namespace Management_System_WPF.Views
         // ------------------- LOAD BUYERS -------------------
         private void LoadBuyers()
         {
-            var buyers = BuyersService.GetAllBuyers();
+            var buyers = BuyersService
+                .GetAllBuyers()
+                .OrderBy(b => b.Name)   // ✅ A → Z sorting
+                .ToList();
 
             if (buyers == null)
                 return;
@@ -32,6 +36,7 @@ namespace Management_System_WPF.Views
 
             dgBuyers.ItemsSource = buyers;
         }
+
 
         // ------------------- EXIT PAGE -------------------
         private void ExitBuyerPage_Click(object sender, RoutedEventArgs e)
@@ -51,8 +56,17 @@ namespace Management_System_WPF.Views
 
             ContextMenu menu = new ContextMenu();
 
-            MenuItem edit = new MenuItem { Header = "Edit Buyer ✏" };
-            edit.Click += (s, ev) => EditBuyer(buyer);
+            MenuItem edit = new MenuItem { Header = "Manage Buyer" };
+            edit.Click += (s, ev) =>
+            {
+                var win = new BuyerSpecialPriceWindow(buyer)
+                {
+                    Owner = Application.Current.MainWindow
+                };
+                win.ShowDialog();
+                LoadBuyers();
+            };
+
 
             MenuItem delete = new MenuItem { Header = "Delete Buyer ❌" };
             delete.Click += (s, ev) => DeleteBuyer(buyer);
@@ -126,5 +140,17 @@ namespace Management_System_WPF.Views
             LoadBuyers();
             Keyboard.ClearFocus();
         }
+        private void Buyer_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (dgBuyers.SelectedItem is Buyer buyer)
+            {
+                BuyerSpecialPriceWindow win =
+                    new BuyerSpecialPriceWindow(buyer);
+
+                win.Owner = Window.GetWindow(this);
+                win.ShowDialog();
+            }
+        }
+
     }
 }

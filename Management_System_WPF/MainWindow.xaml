@@ -6,113 +6,160 @@
         WindowStyle="None"
         Background="Transparent">
 
-    <Grid x:Name="RootGrid">
+    <WindowChrome.WindowChrome>
+        <WindowChrome GlassFrameThickness="0" 
+                      CornerRadius="0" 
+                      CaptionHeight="0"
+                      ResizeBorderThickness="5" />
+    </WindowChrome.WindowChrome>
 
-        <Grid.Background>
-            <ImageBrush ImageSource="Assets/bg.jpg" Stretch="UniformToFill"/>
-        </Grid.Background>
+    <Viewbox Stretch="Uniform">
 
-        <!-- MAIN LAYOUT -->
-        <Grid x:Name="MainLayout">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="400"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <Grid Width="1600" Height="900" x:Name="RootGrid">
 
-            <!-- TOP BAR -->
-            <Grid Grid.ColumnSpan="2"
-                  Height="70"
-                  VerticalAlignment="Top"
-                  Background="#80000000">
+
+            <Grid.Background>
+
+                <ImageBrush ImageSource="Assets/bg.jpg" Stretch="UniformToFill"/>
+
+            </Grid.Background>
+
+
+            <Grid x:Name="MainLayout">
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
-                    <ColumnDefinition Width="200" />
-                    <ColumnDefinition Width="80" />
+
+                    <ColumnDefinition Width="400"/>
+
+                    <ColumnDefinition Width="*"/>
+
                 </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="txtDate"
-                           Margin="20,0,0,0"
-                           VerticalAlignment="Center"
-                           FontSize="26"
-                           FontWeight="Bold"
-                           Foreground="White" />
 
-                <TextBlock x:Name="txtTime"
-                           Grid.Column="1"
-                           Margin="0,0,20,0"
-                           HorizontalAlignment="Right"
-                           VerticalAlignment="Center"
-                           FontSize="26"
-                           FontWeight="Bold"
-                           Foreground="White" />
+                <Grid x:Name="TopBarGrid"
+                      Grid.ColumnSpan="2"
+                      Height="70"
+                      VerticalAlignment="Top"
+                      Background="#80000000"
+                      MouseLeftButtonDown="TopBar_MouseDown">
 
-                <Button Grid.Column="2"
-                        Content="✖"
-                        Width="45"
-                        Height="40"
-                        FontSize="22"
-                        Foreground="White"
-                        Background="#55FF0000"
-                        BorderThickness="0"
-                        Cursor="Hand"
-                        VerticalAlignment="Center"
-                        HorizontalAlignment="Center"
-                        Click="Exit_Click"/>
+
+                    <Grid.ColumnDefinitions>
+
+                        <ColumnDefinition />
+
+                        <ColumnDefinition Width="400" />
+
+                        <ColumnDefinition Width="140" />
+
+                    </Grid.ColumnDefinitions>
+
+
+                    <TextBlock x:Name="txtDate"
+                               Margin="20,0,0,0"
+                               VerticalAlignment="Center"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Foreground="White" />
+
+                    <TextBlock x:Name="txtTime"
+                               Grid.Column="1"
+                               Margin="0,0,20,0"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"
+                               FontSize="26"
+                               FontWeight="Bold"
+                               Foreground="White" />
+
+                    <StackPanel Grid.Column="2"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,0,10,0">
+
+                        <Button Content="—"
+                                Width="40"
+                                Height="40"
+                                FontSize="22"
+                                Foreground="White"
+                                Background="#55000000"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="Minimize_Click"/>
+
+                        <Button Content="▢"
+                                Width="40"
+                                Height="40"
+                                FontSize="18"
+                                Foreground="White"
+                                Background="#55000000"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="Maximize_Click"/>
+
+                        <Button Content="✖"
+                                Width="40"
+                                Height="40"
+                                FontSize="18"
+                                Foreground="White"
+                                Background="#55FF0000"
+                                BorderThickness="0"
+                                Cursor="Hand"
+                                Click="Exit_Click"/>
+                    </StackPanel>
+                </Grid>
+
+
+                <Border x:Name="SideMenu"
+                        Grid.Column="0"
+                        Margin="0,70,0,0"
+                        Padding="20">
+
+                    <StackPanel>
+
+                        <StackPanel.Resources>
+                            <Style x:Key="MenuButton" TargetType="Button">
+                                <Setter Property="Height" Value="120"/>
+                                <Setter Property="Margin" Value="0,20,0,0"/>
+                                <Setter Property="FontSize" Value="25"/>
+                                <Setter Property="Background" Value="#FF3CB4A7"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="BorderThickness" Value="0"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}"
+                                                    CornerRadius="10"
+                                                    Padding="20,0">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </StackPanel.Resources>
+
+                        <Button Content="Sales" Style="{StaticResource MenuButton}" Click="Sales_Click"/>
+                        <Button Content="Inventory" Style="{StaticResource MenuButton}" Click="Inventory_Click"/>
+                        <Button Content="Buyers" Style="{StaticResource MenuButton}" Click="Buyers_Click"/>
+                        <Button Content="Reports" Style="{StaticResource MenuButton}" Click="Reports_Click"/>
+
+                        <Button Content="All Sales" Style="{StaticResource MenuButton}" Click="AllSales_Click"/>
+
+                    </StackPanel>
+                </Border>
+
+                <Frame x:Name="MainFrame"
+                       Grid.Column="1"
+                       Margin="0,70,0,0"
+                       NavigationUIVisibility="Hidden"/>
+
             </Grid>
 
-            <!-- SIDE MENU -->
-            <Border x:Name="SideMenu"
-                    Grid.Column="0"
-                    Margin="0,70,0,0"
-                    Padding="20">
-
-                <StackPanel>
-
-                    <StackPanel.Resources>
-                        <Style x:Key="MenuButton" TargetType="Button">
-                            <Setter Property="Height" Value="120"/>
-                            <Setter Property="Margin" Value="0,20,0,0"/>
-                            <Setter Property="FontSize" Value="25"/>
-                            <Setter Property="Background" Value="#FF3CB4A7"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="Cursor" Value="Hand"/>
-                            <Setter Property="BorderThickness" Value="0"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                            <Setter Property="Template">
-                            <Setter.Value>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
-                                                CornerRadius="10"
-                                                Padding="20,0">
-                                        <ContentPresenter HorizontalAlignment="Center"
-                                                              VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Setter.Value>
-                            </Setter>
-                        </Style>
-                    </StackPanel.Resources>
-
-                    <Button Content="Sales" Style="{StaticResource MenuButton}" Click="Sales_Click"/>
-                    <Button Content="Inventory" Style="{StaticResource MenuButton}" Click="Inventory_Click"/>
-                    <Button Content="Buyers" Style="{StaticResource MenuButton}" Click="Buyers_Click"/>
-                    <Button Content="Reports" Style="{StaticResource MenuButton}" Click="Reports_Click"/>
-                    <Button Content="All Sales" Style="{StaticResource MenuButton}" Click="AllSales_Click"/>
-
-                </StackPanel>
-            </Border>
-
-            <!-- PAGE FRAME -->
-            <Frame x:Name="MainFrame"
-       Grid.Column="1"
-       Margin="0,70,20,20"
-       NavigationUIVisibility="Hidden"/>
-
-
-
         </Grid>
-
-    </Grid>
+    </Viewbox>
 
 </Window>

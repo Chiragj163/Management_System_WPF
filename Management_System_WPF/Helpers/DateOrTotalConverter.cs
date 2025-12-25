@@ -8,14 +8,15 @@ namespace Management_System_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is DateTime dt)
+            // If the value is the minimum date, we display "Total"
+            if (value is DateTime date)
             {
-                return dt == DateTime.MinValue
-                    ? "Total"
-                    : dt.ToString("dd/MM/yyyy");
-            }
+                if (date == DateTime.MinValue)
+                    return "Total";
 
-            return "";
+                return date.ToString("dd-MM-yyyy");
+            }
+            return value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

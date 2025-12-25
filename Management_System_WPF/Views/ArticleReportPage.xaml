@@ -3,231 +3,332 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:Management_System_WPF.Helpers"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
-      Background="White">
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+      mc:Ignorable="d"
+      Title="ArticleReportPage"
+      d:DesignHeight="800" d:DesignWidth="1100"
+      Background="Transparent">
+
     <Page.Resources>
         <local:DateOrTotalConverter x:Key="DateOrTotalConverter"/>
+
+        <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
+        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
+
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="15,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button" x:Key="SecondaryButton">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button" x:Key="IconButtonStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="50">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F0F0F0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
 
-
-
-    <Grid Margin="20">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <!-- Buttons -->
-            <RowDefinition Height="Auto"/>
-            <!-- Title -->
-            <RowDefinition Height="*"/>
-            <!-- DataGrid -->
-            <RowDefinition Height="Auto"/>
-            <!-- Sales Till Now -->
-        </Grid.RowDefinitions>
-
-        <!-- 🔷 TOP BUTTON ROW -->
-        <StackPanel Grid.Row="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    Margin="0,0,0,15">
-
-            <Button Content="⟵ Back"
-                    Width="100" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    Margin="5"
-                    Click="Back_Click"/>
-
-            <Button x:Name="btnPrevMonth"
-                    Content="Show Previous Month Sales"
-                    Width="220" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    FontSize="16"
-                    Margin="5"
-                    Click="PrevMonth_Click"/>
-
-            <Button x:Name="btnNextMonth"
-                    Content="Show Next Month Sales"
-                    Width="220" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    FontSize="16"
-                    Margin="5"
-                    Click="NextMonth_Click"/>
-
-            <Button Content="Print"
-                    Width="120" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    Margin="5"
-                    Click="Print_Click"/>
-
-            <Button Content="Export Excel"
-                    Width="140" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    Margin="5"
-                    Click="ExportExcel_Click"/>
-
-            <Button Content="Edit"
-                    Width="120" Height="35"
-                    Background="#3CB4A7"
-                    Foreground="White"
-                    Margin="5"
-                    Click="Edit_Click"/>
-        </StackPanel>
-
-        <!-- 🔷 MONTH TITLE -->
-        <TextBlock x:Name="txtTitle"
-                   Grid.Row="1"
-                   FontSize="28"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   Margin="0,0,0,15"/>
-
-        <!-- 🔷 DATA GRID -->
-        <DataGrid Grid.Row="2"
-                  x:Name="dgArticles"
-                  AutoGenerateColumns="False"
-                  FrozenColumnCount="1"
-                  CanUserAddRows="False"
-                  HeadersVisibility="Column"
-                  RowHeight="40"
-                  FontSize="18"
-                  SelectionUnit="Cell"
-                  SelectionMode="Single"
-                  AlternationCount="2"
-                  Background="White"
-                  BorderBrush="#DDD"
-                  BorderThickness="1"
-                  SelectedCellsChanged="dgArticles_SelectedCellsChanged">
-
-            <!-- HEADER STYLE -->
-            <DataGrid.ColumnHeaderStyle>
-                <Style TargetType="DataGridColumnHeader">
-                    <Setter Property="Background" Value="#3CB4A7"/>
-                    <Setter Property="Foreground" Value="White"/>
-                    <Setter Property="FontSize" Value="18"/>
-                    <Setter Property="FontWeight" Value="SemiBold"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                </Style>
-            </DataGrid.ColumnHeaderStyle>
-
-            <!-- CELL STYLE -->
-            <DataGrid.CellStyle>
-                <Style TargetType="DataGridCell">
-                    <Setter Property="Padding" Value="8"/>
-                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-                    <Setter Property="VerticalContentAlignment" Value="Center"/>
-                </Style>
-            </DataGrid.CellStyle>
-
-
-            <!-- ROW STYLE -->
-            <DataGrid.RowStyle>
-                <Style TargetType="DataGridRow">
-                    <Style.Triggers>
-
-                        <!-- Alternate row color -->
-                        <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                            <Setter Property="Background" Value="#F3F9F9"/>
-                        </Trigger>
-
-                        <!-- Hover -->
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="#D7EFEA"/>
-                        </Trigger>
-
-                        <!-- ✅ TOTAL ROW -->
-                        <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
-                            <Setter Property="Background" Value="#004D40"/>
-                            <Setter Property="Foreground" Value="White"/>
-                            <Setter Property="FontWeight" Value="Bold"/>
-                            <Setter Property="FontSize" Value="19"/>
-                        </DataTrigger>
-
-                    </Style.Triggers>
-                </Style>
-            </DataGrid.RowStyle>
-           
-
-
-        </DataGrid>
-        <!-- 🔷 SALES TILL NOW -->
-        <StackPanel Grid.Row="3" Margin="0,25,0,0">
-
-            <!-- TITLE -->
-            <TextBlock Text="Sales Till Now"
-               FontSize="24"
-               FontWeight="Bold"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,10"/>
-
-            <!-- DATA GRID -->
-            <DataGrid x:Name="dgSalesTillNow"
-              AutoGenerateColumns="False"
-              CanUserAddRows="False"
-              HeadersVisibility="Column"
-              RowHeight="36"
-              FontSize="16"
-              IsReadOnly="True"
-              AlternationCount="2"
-              Background="White"
-              BorderBrush="#DDD"
-              BorderThickness="1"
-              HorizontalAlignment="Stretch">
-
-                <!-- 🔹 HEADER STYLE -->
-                <DataGrid.ColumnHeaderStyle>
-                    <Style TargetType="DataGridColumnHeader">
-                        <Setter Property="Background" Value="#004D40"/>
-                        <Setter Property="Foreground" Value="White"/>
-                        <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="FontSize" Value="16"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                    </Style>
-                </DataGrid.ColumnHeaderStyle>
-
-                <!-- 🔹 CELL STYLE (THIS FIXES CENTER ISSUE) -->
-                <DataGrid.CellStyle>
-                    <Style TargetType="DataGridCell">
-                        <Setter Property="Padding" Value="6"/>
-                        <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                        <Setter Property="VerticalContentAlignment" Value="Center"/>
-                        <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-                    </Style>
-                </DataGrid.CellStyle>
-
-                <!-- 🔹 ROW STYLE -->
-                <DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <Style.Triggers>
-                            <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                <Setter Property="Background" Value="#F3F9F9"/>
-                            </Trigger>
-                        </Style.Triggers>
-                    </Style>
-                </DataGrid.RowStyle>
-
-                <!-- 🔹 COLUMNS -->
-                <DataGrid.Columns>
-
-                    <DataGridTextColumn Header="Article"
-                                Binding="{Binding Article}"
-                                Width="*"/>
-
-                    <DataGridTextColumn Header="Total Qty"
-                                Binding="{Binding Qty}"
-                                Width="150"/>
-
-                </DataGrid.Columns>
-
-            </DataGrid>
-        </StackPanel>
-
-        
-
+    <Grid>
        
 
+        <Border Background="#F9F9F9"
+                CornerRadius="15"
+                Margin="10"
+                MaxWidth="2000"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
 
+            
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="25,20,25,10" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <TextBlock x:Name="txtTitle"
+                                   Text="Month Name" 
+                                   FontSize="26" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource TextDark}"/>
+                       
+                    </StackPanel>
+
+                    
+                </Grid>
+                <Button Grid.Column="1"
+Style="{StaticResource IconButtonStyle}"
+Width="40" Height="40"
+HorizontalAlignment="Left"
+ToolTip="Go Back"
+Click="Back_Click">
+                    <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
+  Fill="{StaticResource TextDark}"
+  Width="20" Height="20"
+  Stretch="Uniform"/>
+                </Button>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="70,0,0,0">
+                    <Button x:Name="btnPrevMonth"
+             Content="◄ Prev "
+             Style="{StaticResource SecondaryButton}"
+             Height="35" Width="130"
+             Margin="0,0,10,0"
+             Click="PrevMonth_Click"/>
+
+                    <Button x:Name="btnNextMonth"
+             Content="Next  ►"
+             Style="{StaticResource SecondaryButton}"
+             Height="35" Width="130"
+             Click="NextMonth_Click"/>
+                </StackPanel>
+                <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
+                    <Button Content="✎ Edit"
+             Style="{StaticResource PrimaryButton}"
+             Background="#FFA000"
+             Height="35" Width="80"
+             Margin="0,0,10,0"
+             Click="Edit_Click"/>
+
+                    <Button Content="🖨 Print"
+             Style="{StaticResource PrimaryButton}"
+             Background="#607D8B"
+             Height="35" Width="80"
+             Margin="0,0,10,0"
+             Click="Print_Click"/>
+
+                    <Button Content="📊 Excel"
+             Style="{StaticResource PrimaryButton}"
+             Background="#4CAF50"
+             Height="35" Width="80"
+             Click="ExportExcel_Click"/>
+                </StackPanel>
+                <Border Grid.Row="2" 
+                        Margin="15,0,15,5"
+                        Background="White" 
+                        CornerRadius="10" 
+                        BorderBrush="#EEE" 
+                        BorderThickness="1">
+
+                    <DataGrid x:Name="dgArticles"
+                              AutoGenerateColumns="False"
+                              FrozenColumnCount="1"
+                              CanUserAddRows="False"
+                              HeadersVisibility="Column"                             
+                              RowHeight="38"
+                              FontSize="15"
+                              SelectionUnit="Cell"
+                              SelectionMode="Single"
+                              ColumnHeaderHeight="45"
+                              GridLinesVisibility="All"
+                              HorizontalGridLinesBrush="#B5B5B5"
+                              VerticalGridLinesBrush="#B5B5B5"
+                              BorderThickness="1"                             
+                              Background="White"
+                              BorderBrush="#C0C0C0"
+                              SelectedCellsChanged="dgArticles_SelectedCellsChanged">
+
+                        <DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="BorderBrush" Value="#9E9E9E"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,2"/>
+                                <Setter Property="Padding" Value="10"/>
+                            </Style>
+
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                <Setter Property="BorderBrush" Value="#B5B5B5"/>
+                                <Setter Property="Padding" Value="5"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Background" Value="#E0F2F1"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.Resources>
+
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Setter Property="Background" Value="White"/>
+                                
+                                <Style.Triggers>
+                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
+                                        <Setter Property="Background" Value="#FAFAFA"/>
+                                    </Trigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#F1F8E9"/>
+                                    </Trigger>
+
+                                    <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
+                                        <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="FontSize" Value="16"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+
+                    </DataGrid>
+                </Border>
+
+                <Border Grid.Row="3" 
+                        Margin="15,0,15,15"
+                        Background="#FAFAFA" 
+                        CornerRadius="10" 
+                        BorderBrush="#EEE" 
+                        BorderThickness="1"
+                        Padding="5">
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text=" Sales Till Now" 
+                                   FontSize="20" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="{StaticResource TextDark}"
+                                   TextAlignment="Center"
+                                   Margin="0,0,0,10"/>
+
+                        <DataGrid Grid.Row="1"
+                                  x:Name="dgSalesTillNow"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  HeadersVisibility="Column"
+                                  RowHeight="32"
+                                  FontSize="14"
+                                  IsReadOnly="True"
+                                  GridLinesVisibility="All"
+                                  HorizontalGridLinesBrush="#EEE"
+                                  SnapsToDevicePixels="True"
+                                  UseLayoutRounding="True"
+                                  BorderThickness="0"
+                                  Background="White">
+
+                            <DataGrid.Resources>
+                                <Style TargetType="DataGridColumnHeader">
+                                    <Setter Property="Background" Value="{StaticResource TextDark}"/>
+                                    <Setter Property="Foreground" Value="White"/>
+                                    <Setter Property="FontSize" Value="14"/>
+                                    <Setter Property="FontWeight" Value="Bold"/>
+                                    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="BorderBrush" Value="#C0C0C0"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    <Setter Property="Padding" Value="8"/>
+                                </Style>
+                                <Style TargetType="DataGridCell">
+                                    <Setter Property="Background" Value="White"/>
+                                    <Setter Property="Foreground" Value="Black"/>
+                                    <Setter Property="BorderBrush" Value="#DADADA"/>
+                                    <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                    <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                    <Setter Property="BorderThickness" Value="0,0,1,1"/>
+                                    <Setter Property="Padding" Value="6"/>
+                                    <Style.Triggers>
+                                        <!-- Selected row -->
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter Property="Background" Value="#DCEEFF"/>
+                                            <Setter Property="Foreground" Value="Black"/>
+                                        </Trigger>
+
+                                        <!-- Hover -->
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#EEF6FF"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Resources>
+
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Article" Binding="{Binding Article}" Width="*"/>
+                                <DataGridTextColumn Header="Total Qty" Binding="{Binding Qty}" Width="150" FontWeight="Bold"/>
+                            </DataGrid.Columns>
+
+                        </DataGrid>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Border>
     </Grid>
 </Page>

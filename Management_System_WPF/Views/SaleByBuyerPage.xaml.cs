@@ -1,12 +1,15 @@
-﻿using Management_System_WPF.Models;
+﻿using Management_System_WPF.Helpers;
+using Management_System_WPF.Models;
 using Management_System_WPF.Services;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using Microsoft.Win32;
-using System.IO;
+using System.Windows.Data;
 
 namespace Management_System_WPF.Views
 {
@@ -26,9 +29,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        
+
         // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
-        
+
         private void LoadReport(DateTime month)
         {
             var allSales = SalesService.GetSales(); // ALL rows from DB
@@ -64,8 +67,12 @@ namespace Management_System_WPF.Views
 
             foreach (var date in dates)
             {
-                var row = new SaleByBuyerRow();
-                row.Date = date;
+                var row = new SaleByBuyerRow
+                {
+                    Date = date
+                };
+
+                double rowTotal = 0;
 
                 foreach (var buyer in buyers)
                 {
@@ -73,13 +80,42 @@ namespace Management_System_WPF.Views
                         .Where(x => x.BuyerName == buyer && x.SaleDate.Date == date)
                         .Sum(x => x.Qty * x.Price);
 
-
-                    row.BuyerValues[buyer] = total == 0 ? (double?)null : total;
-
+                    if (total > 0)
+                    {
+                        row.BuyerValues[buyer] = total;
+                        rowTotal += total;
+                    }
+                    else
+                    {
+                        row.BuyerValues[buyer] = null;
+                    }
                 }
 
+                row.Total = rowTotal == 0 ? null : rowTotal;
                 rows.Add(row);
             }
+            // ================= TOTAL ROW =================
+            var totalRow = new SaleByBuyerRow
+            {
+                Date = DateTime.MinValue // marker for "Total"
+            };
+
+            double grandTotal = 0;
+
+            foreach (var buyer in buyers)
+            {
+                double colTotal = rows
+                    .Where(r => r.BuyerValues.ContainsKey(buyer) && r.BuyerValues[buyer].HasValue)
+                    .Sum(r => r.BuyerValues[buyer].Value);
+
+                totalRow.BuyerValues[buyer] = colTotal == 0 ? null : colTotal;
+                grandTotal += colTotal;
+            }
+
+            totalRow.Total = grandTotal;
+            rows.Add(totalRow);
+
+
 
             BuildDynamicColumns(buyers);
             dgBuyerSales.ItemsSource = rows;
@@ -94,31 +130,60 @@ namespace Management_System_WPF.Views
         {
             dgBuyerSales.Columns.Clear();
 
-            // DATE column
+            // ================= DATE COLUMN =================
             dgBuyerSales.Columns.Add(new DataGridTextColumn
             {
                 Header = "Dates",
-                Binding = new System.Windows.Data.Binding("Date")
+                Binding = new Binding("Date")
                 {
-                    StringFormat = "dd/MM/yyyy"
+                    Converter = new DateOrTotalConverter()
                 },
                 Width = 150,
-                IsReadOnly = true       // ✅ NON-EDITABLE
+                IsReadOnly = true
             });
 
-            // Dynamic Buyer Columns
+            // ================= BUYER COLUMNS =================
             foreach (var buyer in buyers)
             {
                 dgBuyerSales.Columns.Add(new DataGridTextColumn
                 {
                     Header = buyer,
-                    Binding = new System.Windows.Data.Binding($"BuyerValues[{buyer}]"),
-                    Width = 150,
-                    IsReadOnly = true   // ✅ NON-EDITABLE
+                    Binding = new Binding($"BuyerValues[{buyer}]")
+                    {
+                        StringFormat = "0.##"
+                    },
+                    Width = 120,
+                    IsReadOnly = true
                 });
             }
+
+            // ================= TOTAL COLUMN (ONLY ONCE) =================
+            dgBuyerSales.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Total",
+                Binding = new Binding("Total")
+                {
+                    StringFormat = "0.##"
+                },
+                Width = 140,
+                IsReadOnly = true
+            });
         }
 
+
+        public class DateOrTotalConverter : IValueConverter
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                if (value is DateTime dt && dt == DateTime.MinValue)
+                    return "Total";
+
+                return ((DateTime)value).ToString("dd/MM/yyyy");
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => throw new NotImplementedException();
+        }
 
 
         // BUTTON: PREVIOUS MONTH
@@ -147,9 +212,9 @@ namespace Management_System_WPF.Views
 
 
 
-      
+
         // BUTTON: EXPORT TO EXCEL (CSV format)
-       
+
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             if (dgBuyerSales.ItemsSource == null)
@@ -201,9 +266,9 @@ namespace Management_System_WPF.Views
             }
         }
 
-        
+
         // BUTTON: PRINT
-       
+
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             PrintDialog print = new PrintDialog();
@@ -215,12 +280,18 @@ namespace Management_System_WPF.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            //  Restore normal layout (show side menu, add margins)
             var main = (MainWindow)Application.Current.MainWindow;
             main.ResetLayoutBeforeNavigation();
-
-            // Go back to ReportsPage
-            NavigationService.GoBack();
+            main.ResizeMode = ResizeMode.CanResize;
+            if (main.WindowState == WindowState.Maximized)
+            {
+                main.WindowState = WindowState.Normal;
+                main.WindowState = WindowState.Maximized;
+            }
+            if (NavigationService.CanGoBack)
+            {
+                NavigationService.GoBack();
+            }
         }
         private void UpdateMonthButtons()
         {
