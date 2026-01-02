@@ -92,12 +92,12 @@
     </Page.Resources>
 
     <Grid>
-       
 
-        <Border Background="#F9F9F9"
+
+        <Border Background="#80FFFFFF"
                 CornerRadius="15"
                 Margin="10"
-                MaxWidth="2000"
+               
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
 
@@ -118,10 +118,11 @@
                                    FontSize="26" 
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource TextDark}"/>
-                       
-                    </StackPanel>
 
+                    </StackPanel>
                     
+
+
                 </Grid>
                 <Button Grid.Column="1"
 Style="{StaticResource IconButtonStyle}"
@@ -135,6 +136,7 @@ Click="Back_Click">
   Stretch="Uniform"/>
                 </Button>
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="70,0,0,0">
+                    
                     <Button x:Name="btnPrevMonth"
              Content="◄ Prev "
              Style="{StaticResource SecondaryButton}"
@@ -147,21 +149,19 @@ Click="Back_Click">
              Style="{StaticResource SecondaryButton}"
              Height="35" Width="130"
              Click="NextMonth_Click"/>
+                    
                 </StackPanel>
                 <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
-                    <Button Content="✎ Edit"
-             Style="{StaticResource PrimaryButton}"
-             Background="#FFA000"
-             Height="35" Width="80"
-             Margin="0,0,10,0"
-             Click="Edit_Click"/>
+                    <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#78909C" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="cmbFilterCategory" 
+Width="150" 
+Height="35"
+Margin="0,0,30,0"
+VerticalContentAlignment="Center"
+FontSize="14"
+SelectionChanged="FilterCategory_Changed"/>
 
-                    <Button Content="🖨 Print"
-             Style="{StaticResource PrimaryButton}"
-             Background="#607D8B"
-             Height="35" Width="80"
-             Margin="0,0,10,0"
-             Click="Print_Click"/>
+                   
 
                     <Button Content="📊 Excel"
              Style="{StaticResource PrimaryButton}"
@@ -171,9 +171,9 @@ Click="Back_Click">
                 </StackPanel>
                 <Border Grid.Row="2" 
                         Margin="15,0,15,5"
-                        Background="White" 
+                       
                         CornerRadius="10" 
-                        BorderBrush="#EEE" 
+                        BorderBrush="Transparent" 
                         BorderThickness="1">
 
                     <DataGrid x:Name="dgArticles"
@@ -181,30 +181,30 @@ Click="Back_Click">
                               FrozenColumnCount="1"
                               CanUserAddRows="False"
                               HeadersVisibility="Column"                             
-                              RowHeight="38"
+                              RowHeight="30"
                               FontSize="15"
                               SelectionUnit="Cell"
                               SelectionMode="Single"
-                              ColumnHeaderHeight="45"
+                              ColumnHeaderHeight="40"
                               GridLinesVisibility="All"
-                              HorizontalGridLinesBrush="#B5B5B5"
-                              VerticalGridLinesBrush="#B5B5B5"
+                              HorizontalGridLinesBrush="Gray"
+                              VerticalGridLinesBrush="Gray"
                               BorderThickness="1"                             
-                              Background="White"
-                              BorderBrush="#C0C0C0"
+                              Background="#80FFFFFF"
+                              BorderBrush="Transparent"
                               SelectedCellsChanged="dgArticles_SelectedCellsChanged">
 
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
                                 <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
-                                <Setter Property="FontSize" Value="16"/>
+                                <Setter Property="FontSize" Value="15"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderThickness" Value="0,0,1,1"/>
                                 <Setter Property="BorderBrush" Value="#9E9E9E"/>
                                 <Setter Property="BorderThickness" Value="0,0,1,2"/>
-                                <Setter Property="Padding" Value="10"/>
+                                <Setter Property="Padding" Value="5"/>
                             </Style>
 
                             <Style TargetType="DataGridCell">
@@ -239,7 +239,7 @@ Click="Back_Click">
                                         <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
                                         <Setter Property="Foreground" Value="White"/>
                                         <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="FontSize" Value="16"/>
+                                        <Setter Property="FontSize" Value="15"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -250,9 +250,9 @@ Click="Back_Click">
 
                 <Border Grid.Row="3" 
                         Margin="15,0,15,15"
-                        Background="#FAFAFA" 
+                        Background="#80FFFFFF" 
                         CornerRadius="10" 
-                        BorderBrush="#EEE" 
+                        BorderBrush="Transparent" 
                         BorderThickness="1"
                         Padding="5">
 
@@ -278,7 +278,7 @@ Click="Back_Click">
                                   FontSize="14"
                                   IsReadOnly="True"
                                   GridLinesVisibility="All"
-                                  HorizontalGridLinesBrush="#EEE"
+                                  HorizontalGridLinesBrush="Gray"
                                   SnapsToDevicePixels="True"
                                   UseLayoutRounding="True"
                                   BorderThickness="0"

@@ -10,6 +10,7 @@
         ResizeMode="NoResize">
 
     <Window.Resources>
+        
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
         <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
@@ -73,10 +74,24 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="Button" x:Key="IconButtonStyle">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="50">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
 
     </Window.Resources>
 
-    <Border Background="White"
+    <Border Background="WhiteSmoke"
             CornerRadius="15"
             Margin="20"
             BorderBrush="{StaticResource PrimaryColor}"
@@ -92,17 +107,31 @@
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0" Margin="0,0,0,2">
-               
 
-                <Button Content="✕"
-                        HorizontalAlignment="Right"
-                        VerticalAlignment="Top"
-                        Background="Transparent"
-                        BorderThickness="0"
-                        FontSize="18"
-                        Foreground="{StaticResource TextLight}"
-                        Cursor="Hand"
-                        IsCancel="True"/>
+
+                <Button Content="✖" 
+Width="30" Height="30"
+FontSize="16"
+HorizontalAlignment="Right"
+                            ToolTip="Exit"
+ IsCancel="True">
+
+                <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+
+                            <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+
+                                    <Setter Property="Background" Value="#FFEBEE"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                </Button>
+               
             </Grid>
 
            
@@ -172,13 +201,13 @@
 
                     <StackPanel Grid.Column="0" Margin="0,0,15,0">
                         <TextBlock Text="Select Article" FontWeight="SemiBold" Foreground="{StaticResource PrimaryColor}" Margin="0,0,0,5"/>
-                        <ComboBox x:Name="cmbItems" Height="40" FontSize="14" Padding="10,0" Background="White"/>
+                        <ComboBox x:Name="cmbItems" Height="30" FontSize="14" Padding="10,0" Background="White"/>
                     </StackPanel>
 
                     <StackPanel Grid.Column="1" Margin="0,0,15,0">
                         <TextBlock Text="Special Price" FontWeight="SemiBold" Foreground="{StaticResource PrimaryColor}" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtSpecialPrice" 
-                                 Height="40" 
+                                 Height="30" 
                                  FontSize="14" 
                                  VerticalContentAlignment="Center" 
                                  Padding="5"

@@ -6,11 +6,10 @@ namespace Management_System_WPF.Models
     public class SaleByBuyerRow
     {
         public DateTime Date { get; set; }
-        public Dictionary<string, double?> BuyerValues { get; set; } = new();
-        public double? Total { get; set; }
-        public SaleByBuyerRow()
-        {
-            BuyerValues = new Dictionary<string, double?>(); 
-        }
+
+        // ✅ Use DECIMAL everywhere for money
+        public Dictionary<string, decimal?> BuyerValues { get; set; } = new();
+
+        public decimal? Total { get; set; }
     }
 }

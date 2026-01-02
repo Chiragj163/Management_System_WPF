@@ -3,93 +3,104 @@ using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
 
-public static class ItemsService
+namespace Management_System_WPF.Services
 {
-    private static string connectionString =
-        $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
-
-    // ---------------------- ADD ITEM ----------------------
-    public static void AddItem(Item item)
+    public static class ItemsService
     {
-        using (var conn = new SQLiteConnection(connectionString))
+        private static string connectionString =
+            $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
+
+        // ---------------------- ADD ITEM ----------------------
+        public static void AddItem(Item item)
         {
-            conn.Open();
-
-            string query = "INSERT INTO items (item_name, price) VALUES (@name, @price)";
-
-            using (var cmd = new SQLiteCommand(query, conn))
+            using (var conn = new SQLiteConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue("@name", item.Name);
-                cmd.Parameters.AddWithValue("@price", item.Price);
-                cmd.ExecuteNonQuery();
-            }
-        }
-    }
+                conn.Open();
 
-    // ---------------------- GET ALL ITEMS ----------------------
-    public static List<Item> GetAllItems()
-    {
-        List<Item> items = new List<Item>();
+                // ✅ ADDED: category
+                string query = "INSERT INTO items (item_name, price, category) VALUES (@name, @price, @category)";
 
-        using (var conn = new SQLiteConnection(connectionString))
-        {
-            conn.Open();
-
-            string query = "SELECT item_id, item_name, price FROM items";
-
-            using (var cmd = new SQLiteCommand(query, conn))
-            using (var reader = cmd.ExecuteReader())
-            {
-                while (reader.Read())
+                using (var cmd = new SQLiteCommand(query, conn))
                 {
-                    items.Add(new Item
-                    {
-                        Id = reader.GetInt32(0),
-                        Name = reader.GetString(1),
-                        Price = reader.GetDecimal(2)
-                    });
+                    cmd.Parameters.AddWithValue("@name", item.Name);
+                    cmd.Parameters.AddWithValue("@price", item.Price);
+                    // Handle null category by saving empty string
+                    cmd.Parameters.AddWithValue("@category", item.Category ?? "");
+                    cmd.ExecuteNonQuery();
                 }
             }
         }
 
-        return items;
-    }
-
-
-    // ---------------------- UPDATE ITEM ----------------------
-    public static void UpdateItem(Item item)
-    {
-        using (var conn = new SQLiteConnection(connectionString))
+        // ---------------------- GET ALL ITEMS ----------------------
+        public static List<Item> GetAllItems()
         {
-            conn.Open();
+            List<Item> items = new List<Item>();
 
-            string query = "UPDATE items SET item_name = @name, price = @price WHERE item_id = @id";
-
-            using (var cmd = new SQLiteCommand(query, conn))
+            using (var conn = new SQLiteConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue("@name", item.Name);
-                cmd.Parameters.AddWithValue("@price", item.Price);
-                cmd.Parameters.AddWithValue("@id", item.Id);
+                conn.Open();
 
-                cmd.ExecuteNonQuery();
+                // ✅ ADDED: category to SELECT
+                string query = "SELECT item_id, item_name, price, category FROM items";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        items.Add(new Item
+                        {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1),
+                            Price = reader.GetDecimal(2),
+                            // ✅ READ: category (Index 3). Check for DBNull to prevent crashes.
+                            Category = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                        });
+                    }
+                }
+            }
+
+            return items;
+        }
+
+
+        // ---------------------- UPDATE ITEM ----------------------
+        public static void UpdateItem(Item item)
+        {
+            using (var conn = new SQLiteConnection(connectionString))
+            {
+                conn.Open();
+
+                // ✅ ADDED: category to UPDATE
+                string query = "UPDATE items SET item_name = @name, price = @price, category = @category WHERE item_id = @id";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@name", item.Name);
+                    cmd.Parameters.AddWithValue("@price", item.Price);
+                    cmd.Parameters.AddWithValue("@category", item.Category ?? "");
+                    cmd.Parameters.AddWithValue("@id", item.Id);
+
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
-    }
 
 
-    // ---------------------- DELETE ITEM ----------------------
-    public static void DeleteItem(int id)
-    {
-        using (var conn = new SQLiteConnection(connectionString))
+        // ---------------------- DELETE ITEM ----------------------
+        public static void DeleteItem(int id)
         {
-            conn.Open();
-
-            string query = "DELETE FROM items WHERE item_id = @id";
-
-            using (var cmd = new SQLiteCommand(query, conn))
+            using (var conn = new SQLiteConnection(connectionString))
             {
-                cmd.Parameters.AddWithValue("@id", id);
-                cmd.ExecuteNonQuery();
+                conn.Open();
+
+                string query = "DELETE FROM items WHERE item_id = @id";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", id);
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
     }

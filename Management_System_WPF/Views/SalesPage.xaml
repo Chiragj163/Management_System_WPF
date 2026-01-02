@@ -62,12 +62,28 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="Button" x:Key="RemoveButtonStyle">
+        <Setter Property="Width" Value="25"/>
+        <Setter Property="Height" Value="25"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="#FFEBEE"/>
+        <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     </Page.Resources>
 
     <Grid>
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 
-            <Border Background="#F9F9F9"
+            <Border Background="#80F5F5F5"
                     CornerRadius="15"
                     Margin="0,0,20,20" 
                     VerticalAlignment="Center"
@@ -89,16 +105,30 @@
                         </StackPanel>
 
                         <Button Content="✖" 
-                                Style="{StaticResource IconButtonStyle}"
-                                Width="30" Height="30"
-                                FontSize="16"
-                                Foreground="{StaticResource TextLight}"
-                                HorizontalAlignment="Right"
-                                Click="ExitSalePage_Click"/>
+        Width="30" Height="30"
+        FontSize="16"
+        HorizontalAlignment="Right"
+                                ToolTip="Exit "
+        Click="ExitSalePage_Click">
+
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+
+                                    <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+
+                                            <Setter Property="Background" Value="#FFEBEE"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
                     </Grid>
 
-                    <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,50,0,0"/>
-
+                  
                     <Grid Grid.Row="1" Margin="25">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="350"/>
@@ -108,11 +138,11 @@
 
                         <StackPanel Grid.Column="0">
 
-                            <TextBlock Text="Buyer" Foreground="{StaticResource TextLight}"  Margin="0,0,0,5"/>
-                            <ComboBox x:Name="cmbBuyer" Style="{StaticResource InputStyle}" TabIndex="1"/>
+                            <TextBlock Text="Buyer" Foreground="{StaticResource TextDark}"  Margin="0,0,0,5"/>
+                            <ComboBox x:Name="cmbBuyer" Style="{StaticResource InputStyle}" ToolTip="Select Buyer Name" TabIndex="1" Height="30"/>
 
-                            <TextBlock Text="Article / Item" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="cmbItem" TabIndex="2" Style="{StaticResource InputStyle}"/>
+                            <TextBlock Text="Article / Item" Foreground="{StaticResource TextDark}" ToolTip="Select Article Name" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="cmbItem" TabIndex="2" Style="{StaticResource InputStyle}" Height="30"/>
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -122,16 +152,17 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Quantity" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
-                                    <TextBox x:Name="txtQuantity" TabIndex="3"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource InputStyle}" VerticalContentAlignment="Center"/>
+                                    <TextBlock Text="Quantity"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="txtQuantity" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource InputStyle}" VerticalContentAlignment="Center" Height="30"/>
 
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Date" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="Date" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
                                     <DatePicker x:Name="dpSaleDate"
-                                                  Height="40"
+                                                  Height="30"
                                                   FontSize="14"
+                                                Background="#80F5F5F5"
                                                   Margin="0,0,0,15"
                                                   SelectedDateFormat="Short"
                                                 TabIndex="4"
@@ -141,7 +172,7 @@
                                 </StackPanel>
                             </Grid>
 
-                            <Border Background="White" CornerRadius="8" Padding="15" Margin="0,10,0,20" BorderBrush="#EEE" BorderThickness="1">
+                            <Border Background="#80F5F5F5" CornerRadius="8" Padding="15" Margin="0,10,0,20" BorderBrush="#EEE" BorderThickness="1">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
@@ -154,10 +185,11 @@
                                             Background="#607D8B"
                                             Width="100" Height="35"
                                             TabIndex="5"
+                                             ToolTip="Calculate Total"
                                             Click="Calculate_Click"/>
 
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                                        <TextBlock Text="Total:" FontWeight="SemiBold" FontSize="16" Foreground="{StaticResource TextLight}" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Total:" FontWeight="SemiBold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,10,0"/>
                                         <TextBlock x:Name="txtTotal" Text="0.00" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}"/>
                                     </StackPanel>
                                 </Grid>
@@ -171,28 +203,47 @@
                                     Click="AddToCart_Click"/>
 
                             <Button Content="Save Entire Sale" 
-                                    Background="Transparent"
-                                    BorderThickness="1"
-                                    BorderBrush="{StaticResource PrimaryColor}"
-                                    Foreground="{StaticResource PrimaryColor}"
-                                    Height="40"
-                                    TabIndex="7"
-                                    Click="SaveSale_Click">
+        Height="40"
+        TabIndex="7"
+        Cursor="Hand"
+        Background="Transparent"
+                                    FontWeight="Bold"
+                                    FontSize="16"
+        BorderThickness="2"
+        Click="SaveSale_Click">
+
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}" 
-                                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                                BorderThickness="{TemplateBinding BorderThickness}"
-                                                CornerRadius="5">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                        <Border x:Name="border"
+                    Background="#FAF9F9" 
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="5"
+                    BorderBrush="{StaticResource PrimaryColor}"
+                    TextElement.Foreground="{StaticResource PrimaryColor}">
+
+                                            <ContentPresenter HorizontalAlignment="Center" 
+                                  VerticalAlignment="Center"/>
                                         </Border>
+
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+
+                                                <Setter TargetName="border" Property="BorderBrush" Value="#607D8B"/>
+                                                <Setter TargetName="border" Property="TextElement.Foreground" Value="#607D8B"/>
+
+                                                <Setter TargetName="border" Property="Background" Value="#FAF9F9"/>
+
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+
                                     </ControlTemplate>
                                 </Button.Template>
                             </Button>
 
                         </StackPanel>
 
-                        <Border Grid.Column="2" Background="White" CornerRadius="10" BorderBrush="#EEE" BorderThickness="1">
+                        <Border Grid.Column="2" Background="#80F5F5F5" CornerRadius="10" BorderBrush="#EEE" BorderThickness="1">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="85*"/>
@@ -204,9 +255,9 @@
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <Border Background="{StaticResource SecondaryColor}" CornerRadius="10,10,0,0" Padding="15" Grid.ColumnSpan="2">
+                                <Border Background="#80F5F5F5" CornerRadius="10,10,0,0" Padding="15" Grid.ColumnSpan="2">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text=" 🛒 Cart" FontSize="16" FontWeight="Bold"  Foreground="{StaticResource PrimaryColor}"/>
+                                        <TextBlock Text=" 🛒 Cart" FontSize="20" FontWeight="ExtraBold"  Foreground="{StaticResource PrimaryColor}"/>
                                     </StackPanel>
                                 </Border>
 
@@ -221,14 +272,14 @@
                                           GridLinesVisibility="Horizontal"
                                           HorizontalGridLinesBrush="#EEE"
                                           BorderThickness="0"
-                                          Background="White"
+                                          Background="#80F5F5F5"
                                           RowHeight="40"
                                           FontSize="14" Grid.ColumnSpan="2" Margin="0,51,0,0" Grid.RowSpan="2">
 
                                     <DataGrid.Resources>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="Background" Value="White"/>
-                                            <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
                                             <Setter Property="Padding" Value="10"/>
                                             <Setter Property="FontWeight" Value="SemiBold"/>
                                             <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -258,21 +309,8 @@
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Button Content="✖" 
-                                                            Width="25" Height="25"
-                                                            Background="#FFEBEE"
-                                                            Foreground="{StaticResource DangerColor}"
-                                                            BorderThickness="0"
-                                                            FontWeight="Bold"
-                                                            Cursor="Hand"
-                                                            Click="RemoveCartItem_Click">
-                                                        <Button.Template>
-                                                            <ControlTemplate TargetType="Button">
-                                                                <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                                                </Border>
-                                                            </ControlTemplate>
-                                                        </Button.Template>
-                                                    </Button>
+            Style="{StaticResource RemoveButtonStyle}"
+            Click="RemoveCartItem_Click"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>

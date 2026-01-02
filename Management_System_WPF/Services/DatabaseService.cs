@@ -27,21 +27,21 @@ namespace Management_System.Services
             conn.Open();
 
             string query = @"
-                SELECT 
-                    s.sale_id,
-                    s.buyer_id,
-                    b.name AS buyer_name,
-                    s.sale_date,
-                    s.total_amount,
-                    si.item_id,
-                    i.item_name,
-                    si.qty,
-                    si.price
-                FROM sales s
-                LEFT JOIN sale_items si ON s.sale_id = si.sale_id
-                LEFT JOIN items i ON si.item_id = i.item_id
-                LEFT JOIN buyers b ON s.buyer_id = b.buyer_id;
-            ";
+        SELECT 
+            s.sale_id,
+            s.buyer_id,
+            b.buyer_name AS buyer_name,
+            s.sale_date,
+            s.total_amount,
+            si.item_id,
+            i.item_name,
+            si.qty,
+            si.price
+        FROM sales s
+        LEFT JOIN sale_items si ON s.sale_id = si.sale_id
+        LEFT JOIN items i ON si.item_id = i.item_id
+        LEFT JOIN buyers b ON s.buyer_id = b.buyer_id;
+    ";
 
             using var cmd = new SQLiteCommand(query, conn);
             using var reader = cmd.ExecuteReader();
@@ -52,18 +52,22 @@ namespace Management_System.Services
                 {
                     SaleId = reader.GetInt32(0),
                     BuyerId = reader.GetInt32(1),
-                    BuyerName = reader.GetString(2),
+                    BuyerName = reader.IsDBNull(2) ? "[Deleted Buyer]" : reader.GetString(2),
                     SaleDate = DateTime.Parse(reader.GetString(3)),
-                    TotalAmount = reader.GetDouble(4),
+
+                    TotalAmount = reader.IsDBNull(4) ? 0m : Convert.ToDecimal(reader[4]),
 
                     ItemId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
                     ItemName = reader.IsDBNull(6) ? "" : reader.GetString(6),
                     Qty = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                    Price = reader.IsDBNull(8) ? 0 : reader.GetDouble(8)
+
+                    Price = reader.IsDBNull(8) ? 0m : Convert.ToDecimal(reader[8])
                 });
             }
 
+
             return list;
         }
+
     }
 }

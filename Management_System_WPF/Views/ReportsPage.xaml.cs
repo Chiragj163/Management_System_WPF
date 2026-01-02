@@ -26,8 +26,7 @@ namespace Management_System_WPF.Views
             cmbBuyer.SelectedValuePath = "BuyerId";
         }
 
-
-        // 1️⃣ ALL SALES → OPEN BuyerReportPage IN FULL SCREEN
+        // ================= ALL SALES =================
         private void AllSales_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem == null)
@@ -38,29 +37,38 @@ namespace Management_System_WPF.Views
 
             var buyer = (Buyer)cmbBuyer.SelectedItem;
 
-            // 🔥 Make layout fullscreen (hide side menu, remove margin)
+            if (!BuyersService.BuyerExists(buyer.BuyerId))
+            {
+                MessageBox.Show("Selected buyer no longer exists.");
+                LoadBuyers();
+                return;
+            }
+
             var main = (MainWindow)Application.Current.MainWindow;
             main.ShowFullScreenPage();
 
-            // Navigate to BuyerReportPage
-            NavigationService.Navigate(new BuyerReportPage(buyer.BuyerId, buyer.Name));
+            // ✅ CORRECT PAGE
+            NavigationService.Navigate(
+                new BuyerReportPage(buyer.BuyerId, buyer.Name)
+            );
         }
 
-        // 2️⃣ SALES BY ARTICLES – (decide if you want fullscreen here or not)
+
+        // ================= SALES BY ARTICLES =================
         private void SalesByArticles_Click(object sender, RoutedEventArgs e)
         {
-            // If you want ArticleReport full-screen too, uncomment:
-            // ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
-
             NavigationService.Navigate(new ArticleReportPage());
         }
 
-        // 3️⃣ SALES BY BUYER (matrix) – same note as above
+        // ================= SALES BY BUYER MATRIX =================
         private void SalesByBuyer_Click(object sender, RoutedEventArgs e)
         {
-            // If you want matrix report full-screen:
-            // ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
+            var main = (MainWindow)Application.Current.MainWindow;
 
+            // 🔥 Enable full screen layout (hide side menu, remove margins)
+            main.ShowFullScreenPage();
+
+            // Navigate to month-wise Sale By Buyer matrix
             NavigationService.Navigate(new SaleByBuyerPage());
         }
 
@@ -71,7 +79,8 @@ namespace Management_System_WPF.Views
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            NavigationService.GoBack();
+            if (NavigationService.CanGoBack)
+                NavigationService.GoBack();
         }
     }
 }

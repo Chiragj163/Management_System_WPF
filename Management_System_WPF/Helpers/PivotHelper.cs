@@ -1,122 +1,205 @@
 ﻿using Management_System_WPF.Models;
-using System.Data;
+using Management_System_WPF.Services;
 using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Data;
+using System.Linq;
 
 namespace Management_System_WPF.Helpers
 {
     public static class PivotHelper
     {
-        public static DataTable CreatePivotTableWithTotals(List<SalesRaw> raw)
+        // =========================================================
+        // SALES + RETURNS PIVOT WITH TOTALS
+        // =========================================================
+        public static DataTable CreatePivotTableWithTotals(
+            List<SalesRaw> sales,
+            List<SalesRaw> returns)
         {
             DataTable dt = new DataTable();
 
-            // ✅ NO DATA SAFETY
-            if (raw == null || raw.Count == 0)
+            sales ??= new List<SalesRaw>();
+            returns ??= new List<SalesRaw>();
+
+            if (sales.Count == 0 && returns.Count == 0)
             {
                 dt.Columns.Add("Date", typeof(string));
-                DataRow row = dt.NewRow();
-                row["Date"] = "No sales found";
-                dt.Rows.Add(row);
+                dt.Rows.Add("No sales found");
                 return dt;
             }
 
-            var items = raw
+            // =====================================================
+            // ITEMS FROM SALES + RETURNS
+            // =====================================================
+            var items = sales
                 .Select(x => x.ItemName)
-                .Where(x => !string.IsNullOrEmpty(x))
+                .Union(returns.Select(r => r.ItemName))
+                .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Distinct()
+                .OrderBy(x => x)
                 .ToList();
 
+            // =====================================================
+            // COLUMNS
+            // =====================================================
             dt.Columns.Add("Date", typeof(string));
-
             foreach (var item in items)
-                dt.Columns.Add(item, typeof(decimal));
+                dt.Columns.Add(item, typeof(string)); // string for display
 
-            // ---------------- NORMAL SALES ROWS ----------------
-            var grouped = raw.GroupBy(x => x.Date);
+            // =====================================================
+            // 1️⃣ DAILY SALES ROWS
+            // =====================================================
+            var groupedByDate = sales
+                .GroupBy(x => x.Date)
+                .OrderBy(x => x.Key);
 
-            foreach (var group in grouped)
+            foreach (var group in groupedByDate)
             {
                 DataRow row = dt.NewRow();
 
-                if (DateTime.TryParse(group.Key, out DateTime date))
-                    row["Date"] = date.ToString("dd-MM-yyyy");
-                else
-                    row["Date"] = group.Key;
+                row["Date"] = DateTime.TryParse(group.Key.ToString(), out DateTime d)
+                    ? d.ToString("dd-MM-yyyy")
+                    : group.Key.ToString();
 
                 foreach (var item in items)
                 {
-                    int qty = group.Where(x => x.ItemName == item).Sum(x => x.Qty);
-                    row[item] = qty == 0 ? DBNull.Value : qty;
+                    int qty = group
+                        .Where(x => x.ItemName == item)
+                        .Sum(x => x.Qty);
+
+                    row[item] = qty == 0 ? "" : qty.ToString();
                 }
 
                 dt.Rows.Add(row);
             }
 
-            // ---------------- TOTAL QTY ----------------
+            // =====================================================
+            // 2️⃣ TOTAL QTY ROW
+            // =====================================================
             DataRow totalQtyRow = dt.NewRow();
             totalQtyRow["Date"] = "Total Qty";
 
+            var totalQtys = new Dictionary<string, int>();
+
             foreach (var item in items)
             {
-                int total = raw.Where(x => x.ItemName == item).Sum(x => x.Qty);
-                totalQtyRow[item] = total == 0 ? DBNull.Value : total;
+                int total = sales
+                    .Where(x => x.ItemName == item)
+                    .Sum(x => x.Qty);
+
+                totalQtys[item] = total;
+                totalQtyRow[item] = total == 0 ? "" : total.ToString();
             }
 
             dt.Rows.Add(totalQtyRow);
 
-            // ---------------- UNIT PRICE ----------------
+            // =====================================================
+            // 3️⃣ UNIT PRICE ROW
+            // =====================================================
             DataRow unitPriceRow = dt.NewRow();
             unitPriceRow["Date"] = "Unit Price";
 
+            var unitPrices = new Dictionary<string, decimal>();
+            var dbItems = ItemsService.GetAllItems();
+
             foreach (var item in items)
-                unitPriceRow[item] = raw.First(x => x.ItemName == item).Price;
+            {
+                var sale = sales.FirstOrDefault(x => x.ItemName == item);
+                decimal price = sale?.Price ?? 0;
+                // ✅ Fallback: If not sold this month, get current price from Master DB
+                if (price == 0)
+                {
+                    var dbItem = dbItems.FirstOrDefault(x => x.Name == item);
+                    if (dbItem != null) price = dbItem.Price;
+                }
+
+                unitPrices[item] = price;
+                unitPriceRow[item] = price == 0 ? "" : price.ToString("0.##");
+            }
 
             dt.Rows.Add(unitPriceRow);
 
-            // ---------------- TOTAL PRICE ----------------
+            // =====================================================
+            // 4️⃣ LESS RETURN ROW (ONLY IF RETURNS EXIST)
+            // =====================================================
+            var returnValues = new Dictionary<string, decimal>();
+            bool hasAnyReturn = returns.Any(r => r.Qty > 0);
+
+            if (hasAnyReturn)
+            {
+                DataRow returnRow = dt.NewRow();
+                returnRow["Date"] = "Less Return";
+
+                foreach (var item in items)
+                {
+                    int returnQty = returns
+                        .Where(r => r.ItemName == item)
+                        .Sum(r => r.Qty);
+
+                    if (returnQty > 0 && unitPrices[item] > 0)
+                    {
+                        decimal value = returnQty * unitPrices[item];
+                        returnValues[item] = value;
+                        returnRow[item] = $"-{value:0.##}";
+                    }
+                    else
+                    {
+                        returnValues[item] = 0;
+                        returnRow[item] = "";
+                    }
+                }
+
+                dt.Rows.Add(returnRow);
+            }
+            else
+            {
+                foreach (var item in items)
+                    returnValues[item] = 0;
+            }
+
+            // =====================================================
+            // 5️ TOTAL PRICE ROW (NET)
+            // =====================================================
+           
             DataRow totalPriceRow = dt.NewRow();
             totalPriceRow["Date"] = "Total Price";
 
             foreach (var item in items)
             {
-                if (totalQtyRow[item] == DBNull.Value)
-                    totalPriceRow[item] = DBNull.Value;
+                decimal gross = 0;
+
+                // Calculate Gross Sales (if any)
+                if (totalQtys.ContainsKey(item) && totalQtys[item] > 0 && unitPrices.ContainsKey(item))
+                {
+                    gross = totalQtys[item] * unitPrices[item];
+                }
+
+                // Get Return Value (default to 0 if missing)
+                decimal retValue = returnValues.ContainsKey(item) ? returnValues[item] : 0;
+
+                // Calculate Net
+                decimal net = gross - retValue;
+
+                // ✅ FIX: Show value if there is Gross Sales OR Return Value
+                // (Previously it might have only checked totalQtys > 0)
+                if (gross > 0 || retValue > 0)
+                {
+                    totalPriceRow[item] = net.ToString("0.##");
+                }
                 else
-                    totalPriceRow[item] =
-                        Convert.ToDecimal(totalQtyRow[item]) *
-                        Convert.ToDecimal(unitPriceRow[item]);
+                {
+                    totalPriceRow[item] = "";
+                }
             }
 
             dt.Rows.Add(totalPriceRow);
 
-            // ---------------- GRAND TOTAL ----------------
-            DataRow grandTotalRow = dt.NewRow();
-            grandTotalRow["Date"] = "Grand Total";
-
-            decimal grandTotal = 0;
-
-            foreach (var item in items)
-            {
-                if (totalPriceRow[item] != DBNull.Value)
-                    grandTotal += Convert.ToDecimal(totalPriceRow[item]);
-            }
-
-            // ✅ SAFE ASSIGNMENT
-            if (items.Count > 0)
-            {
-                grandTotalRow[items[0]] = grandTotal;
-
-                for (int i = 1; i < items.Count; i++)
-                    grandTotalRow[items[i]] = DBNull.Value;
-            }
-
-            dt.Rows.Add(grandTotalRow);
-
             return dt;
         }
 
+        // =========================================================
+        // ITEM ROW-WISE TABLE
+        // =========================================================
         public static DataTable CreateItemRowWiseTable(List<SalesRaw> raw)
         {
             DataTable dt = new DataTable();
@@ -133,8 +216,8 @@ namespace Management_System_WPF.Helpers
                 DataRow row = dt.NewRow();
 
                 row["Date"] = DateTime.TryParse(r.Date.ToString(), out DateTime d)
-                                ? d.ToString("dd-MMM-yyyy")
-                                : r.Date.ToString();
+                    ? d.ToString("dd-MMM-yyyy")
+                    : r.Date.ToString();
 
                 row["Item"] = r.ItemName;
                 row["Qty"] = r.Qty;
@@ -142,7 +225,6 @@ namespace Management_System_WPF.Helpers
                 dt.Rows.Add(row);
             }
 
-            // 🔹 GRAND TOTAL ROW
             DataRow totalRow = dt.NewRow();
             totalRow["Item"] = "TOTAL";
             totalRow["Qty"] = raw.Sum(x => x.Qty);
@@ -150,6 +232,10 @@ namespace Management_System_WPF.Helpers
 
             return dt;
         }
+
+        // =========================================================
+        // SALES MATRIX WITH TOTALS
+        // =========================================================
         public static DataTable CreateSalesMatrixWithTotals(List<SalesRaw> raw)
         {
             DataTable dt = new DataTable();
@@ -157,17 +243,18 @@ namespace Management_System_WPF.Helpers
             if (raw == null || raw.Count == 0)
                 return dt;
 
-            // DISTINCT ITEMS
-            var items = raw.Select(x => x.ItemName).Distinct().OrderBy(x => x).ToList();
+            var items = raw
+                .Select(x => x.ItemName)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
 
-            // COLUMNS
             dt.Columns.Add("Date", typeof(string));
             foreach (var item in items)
                 dt.Columns.Add(item, typeof(int));
 
-            dt.Columns.Add("Total", typeof(int)); // ✅ ROW TOTAL COLUMN
+            dt.Columns.Add("Total", typeof(int));
 
-            // GROUP BY DATE
             var groupedByDate = raw.GroupBy(x => x.Date).OrderBy(x => x.Key);
 
             foreach (var dateGroup in groupedByDate)
@@ -197,7 +284,6 @@ namespace Management_System_WPF.Helpers
                 dt.Rows.Add(row);
             }
 
-            // ================= TOTAL ROW =================
             DataRow totalRow = dt.NewRow();
             totalRow["Date"] = "Total";
 
@@ -213,12 +299,10 @@ namespace Management_System_WPF.Helpers
                 grandTotal += colTotal;
             }
 
-            totalRow["Total"] = grandTotal; // ✅ GRAND TOTAL
+            totalRow["Total"] = grandTotal;
             dt.Rows.Add(totalRow);
 
             return dt;
         }
-
-
     }
 }

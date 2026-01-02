@@ -2,108 +2,193 @@
 using System.Windows.Controls;
 using Management_System_WPF.Models;
 using Management_System_WPF.Services;
+using System.Collections.Generic;
+using System.Linq;
+using System;
+using System.Windows.Data; // Required for CollectionView
 
 namespace Management_System_WPF.Views
 {
     public partial class InventoryPage : Page
     {
-        private Item selectedItem = null; // <-- TRACK SELECTED ITEM FOR EDITING
+        private Item selectedItem = null;
+        private List<Item> _allItems = new();
 
         public InventoryPage()
         {
             InitializeComponent();
+            LoadCategories();
             LoadItems();
+        }
+
+        private void LoadCategories()
+        {
+            var categories = new List<string> { "Double Station", "Vertical", "Rotary" };
+
+            // Input ComboBox
+            cmbCategory.ItemsSource = categories;
+
+            // Filter ComboBox
+            var filterOptions = new List<string> { "All" };
+            filterOptions.AddRange(categories);
+            cmbFilterCategory.ItemsSource = filterOptions;
+            cmbFilterCategory.SelectedIndex = 0;
         }
 
         private void LoadItems()
         {
-            dgItems.ItemsSource = ItemsService.GetAllItems();
+            _allItems = ItemsService.GetAllItems();
+            dgItems.ItemsSource = _allItems;
+
+            // Apply filtering immediately after loading (in case inputs are pre-filled)
+            ApplyFilters();
         }
 
-        // SAVE or UPDATE BUTTON
+        // ============================================
+        // ✅ NEW: UNIFIED FILTERING LOGIC
+        // ============================================
+
+        private void txtSearchItem_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private void FilterCategory_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private void ApplyFilters()
+        {
+            // Ensure data exists before filtering
+            if (dgItems.ItemsSource == null) return;
+
+            // Get the Default View (WPF's way of filtering without reloading the list)
+            var view = CollectionViewSource.GetDefaultView(dgItems.ItemsSource);
+            if (view == null) return;
+
+            view.Filter = item =>
+            {
+                var product = item as Item;
+                if (product == null) return false;
+
+                // 1. Check Category
+                bool matchesCategory = true;
+                if (cmbFilterCategory.SelectedItem != null)
+                {
+                    string selectedCat = cmbFilterCategory.SelectedItem.ToString();
+                    if (!string.IsNullOrEmpty(selectedCat) && selectedCat != "All")
+                    {
+                        // Case-insensitive comparison
+                        matchesCategory = string.Equals(product.Category, selectedCat, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+
+                // 2. Check Search Text (Name)
+                bool matchesText = true;
+                if (!string.IsNullOrWhiteSpace(txtSearchItem.Text))
+                {
+                    // Case-insensitive search
+                    matchesText = product.Name.IndexOf(txtSearchItem.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+                }
+
+                // Show item ONLY if BOTH conditions are true
+                return matchesCategory && matchesText;
+            };
+        }
+
+        // ============================================
+        // CRUD OPERATIONS (Existing Code Preserved)
+        // ============================================
+
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtItemName.Text))
-            {
-                MessageBox.Show("Enter item name");
-                return;
-            }
+            // 1. Basic Validation
+            if (string.IsNullOrWhiteSpace(txtItemName.Text)) { MessageBox.Show("Enter item name"); return; }
+            if (!decimal.TryParse(txtItemPrice.Text, out decimal price)) { MessageBox.Show("Enter valid price"); return; }
+            if (string.IsNullOrWhiteSpace(cmbCategory.Text)) { MessageBox.Show("Select category"); return; }
 
-            if (!decimal.TryParse(txtItemPrice.Text, out decimal price))
-            {
-                MessageBox.Show("Enter valid price");
-                return;
-            }
+            string itemName = txtItemName.Text.Trim(); // Trim whitespace
+            string category = cmbCategory.Text;
 
-            // ---------- UPDATE EXISTING ----------
+            // 2. CHECK FOR DUPLICATES (Case-Insensitive)
+            // We check against _allItems which is already loaded in memory
+            bool exists = _allItems.Any(x => x.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
+
             if (selectedItem != null)
             {
-                selectedItem.Name = txtItemName.Text;
+                // UPDATE LOGIC
+                // Check duplicate ONLY if name changed (allow saving same name if editing price/category)
+                if (!selectedItem.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase) && exists)
+                {
+                    MessageBox.Show("An article with this name already exists!", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                selectedItem.Name = itemName;
                 selectedItem.Price = price;
-
-                ItemsService.UpdateItem(selectedItem);  // CALL UPDATE SERVICE
-                MessageBox.Show("Item Updated Successfully!");
-
+                selectedItem.Category = category;
+                ItemsService.UpdateItem(selectedItem);
+                MessageBox.Show("Item Updated!");
                 selectedItem = null;
                 btnSave.Content = "Save Article";
             }
             else
             {
-                // ---------- ADD NEW ----------
-                var item = new Item
+                // ADD NEW LOGIC
+                if (exists)
                 {
-                    Name = txtItemName.Text,
-                    Price = price
-                };
+                    MessageBox.Show("An article with this name already exists!", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
+                var item = new Item { Name = itemName, Price = price, Category = category };
                 ItemsService.AddItem(item);
-                MessageBox.Show("Item Added Successfully!");
+                MessageBox.Show("Item Added!");
             }
 
-            LoadItems();
+            // Reload and Re-apply filters
+            _allItems = ItemsService.GetAllItems();
+            dgItems.ItemsSource = _allItems;
+            ApplyFilters();
 
-            txtItemName.Text = "";
-            txtItemPrice.Text = "";
+            ResetForm();
         }
 
-        // ------------------ EDIT ITEM ------------------
         private void EditItem(Item item)
         {
             if (item == null) return;
-
-            selectedItem = item;  // Store selected item
-
+            selectedItem = item;
             txtItemName.Text = item.Name;
             txtItemPrice.Text = item.Price.ToString();
-
-            btnSave.Content = "Update Article"; // Change button text
+            cmbCategory.Text = item.Category;
+            btnSave.Content = "Update Article";
         }
 
         private void EditItem_Click(object sender, RoutedEventArgs e)
         {
             var item = (sender as Button).DataContext as Item;
-            if (item != null)
-                EditItem(item);
+            if (item != null) EditItem(item);
         }
 
-        // ------------------ DELETE ITEM ------------------
         private void DeleteItem(Item item)
         {
             if (item == null) return;
-
             if (MessageBox.Show("Delete this article?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 ItemsService.DeleteItem(item.Id);
-                LoadItems();
+
+                // Refresh list and keep filters active
+                _allItems = ItemsService.GetAllItems();
+                dgItems.ItemsSource = _allItems;
+                ApplyFilters();
             }
         }
 
-        // ------------------ OPTIONS MENU ------------------
         private void Options_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
             Item item = button.DataContext as Item;
-
             ContextMenu menu = new ContextMenu();
 
             MenuItem edit = new MenuItem { Header = "Edit Article ✏" };
@@ -114,19 +199,23 @@ namespace Management_System_WPF.Views
 
             menu.Items.Add(edit);
             menu.Items.Add(delete);
-
             menu.IsOpen = true;
         }
 
-        // EXIT BUTTON
         private void ExitInventoryPage_Click(object sender, RoutedEventArgs e)
         {
             var mainWindow = Window.GetWindow(this) as MainWindow;
-            if (mainWindow != null)
-            {
-                mainWindow.MainFrame.Content = null;
-            }
+            if (mainWindow != null) mainWindow.MainFrame.Content = null;
         }
 
+        private void ResetForm()
+        {
+            txtItemName.Text = "";
+            txtItemPrice.Text = "";
+            cmbCategory.SelectedIndex = -1;
+            cmbCategory.Text = "";
+            selectedItem = null;
+            btnSave.Content = "Save Article";
+        }
     }
 }

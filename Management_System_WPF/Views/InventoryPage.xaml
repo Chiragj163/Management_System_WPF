@@ -9,6 +9,7 @@
       Background="Transparent">
 
     <Page.Resources>
+        <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
         <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
@@ -65,12 +66,12 @@
     </Page.Resources>
 
     <Grid>
-       
 
-        <Border Background="#F9F9F9"
+
+        <Border Background="#80F5F5F5"
                 CornerRadius="15"
-                Margin="0,0,0,20"
-                MaxWidth="1000"               
+                Margin="0,0,20,20"
+                          
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
 
@@ -91,15 +92,31 @@
                     </StackPanel>
 
                     <Button Content="✖" 
-                            Style="{StaticResource IconButtonStyle}"
-                            Width="35" Height="35"
-                            FontSize="18"
-                            Foreground="{StaticResource TextLight}"
-                            HorizontalAlignment="Right"
-                            Click="ExitInventoryPage_Click"/>
+Width="30" Height="30"
+FontSize="16"
+HorizontalAlignment="Right"
+                           ToolTip="Exit" 
+ Click="ExitInventoryPage_Click">
+
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource IconButtonStyle}">
+
+                                <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource DangerColor}"/>
+
+                                        <Setter Property="Background" Value="#FFEBEE"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                   
                 </Grid>
 
-                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,55,0,0"/>
+
 
                 <Grid Grid.Row="1" Margin="25">
                     <Grid.ColumnDefinitions>
@@ -109,27 +126,35 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                       
 
-                        <TextBlock Text="Article Name" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtItemName" Style="{StaticResource InputStyle}"/>
+                        <TextBlock Text="Article Name" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtItemName" ToolTip="Add Article Name" Background="White"  Height="30" Style="{StaticResource InputStyle}"/>
 
-                        <TextBlock Text="Article Price" Foreground="{StaticResource TextLight}" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtItemPrice" Style="{StaticResource InputStyle}"/>
+                        <TextBlock Text="Article Price" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
+                        <TextBox x:Name="txtItemPrice" ToolTip="Add Price" Background="White"  Height="30" Style="{StaticResource InputStyle}"/>
+                        <TextBlock Text="Category" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
+                        <ComboBox x:Name="cmbCategory" 
+           IsEditable="False"
+             Background="White"
+            Height="30" 
+             Padding="5,0"
+           ToolTip="Select Category"
+              VerticalContentAlignment="Center"
+          FontSize="14"/>
 
                         <Button x:Name="btnSave"
-                                Content="Save Article"
-                                Style="{StaticResource PrimaryButton}"
+                                 Content="Save Article"
+                                 Style="{StaticResource PrimaryButton}"
                                 Height="45"
-                                Margin="0,10,0,0"
-                                Click="SaveItem_Click"/>
+                                 Margin="0,25,0,0"
+                                 Click="SaveItem_Click"/>
                     </StackPanel>
 
                     <Border Grid.Column="2" 
-                            Background="White" 
-                            CornerRadius="10" 
-                            BorderBrush="#EEE" 
-                            BorderThickness="1">
+        Background="White" 
+        CornerRadius="10" 
+        BorderBrush="#EEE" 
+        BorderThickness="1">
 
                         <Grid>
                             <Grid.RowDefinitions>
@@ -137,25 +162,85 @@
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            
+                            <Border Grid.Row="0" Background="{StaticResource SecondaryColor}" CornerRadius="10,10,0,0" Padding="15,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                       
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+
+                                   
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
+                                        <TextBlock Text="Category:" 
+                               VerticalAlignment="Center" 
+                               Margin="0,0,5,0" 
+                                                  
+                               Foreground="{StaticResource TextDark}"
+                               FontSize="14"/>
+
+                                        <ComboBox x:Name="cmbFilterCategory" 
+                              Width="140" 
+                              Height="30"
+                              VerticalContentAlignment="Center"
+                              SelectionChanged="FilterCategory_Changed"/>
+                                    </StackPanel>
+
+                                    <Border Grid.Column="2" 
+                        Background="White" 
+                        CornerRadius="15" 
+                        Padding="10,5" 
+                        Width="200"
+                        BorderBrush="#B2DFDB"
+                        BorderThickness="1">
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Path Data="M15.5,14L14.71,13.21C15.5,12 16,10.5 16,9C16,5.13 12.87,2 9,2C5.13,2 2,5.13 2,9C2,12.87 5.13,16 9,16C10.5,16 12,15.5 13.21,14.71L14,15.5V16L19,21L21,19L16,14M9,14C6.24,14 4,11.76 4,9C4,6.24 6.24,4 9,4C11.76,4 14,6.24 14,9C14,11.76 11.76,14 9,14Z" 
+                              Fill="{StaticResource TextLight}"
+                              Width="14" Height="14"
+                              Stretch="Uniform"
+                              VerticalAlignment="Center"
+                                                  
+                              Margin="0,0,8,0"/>
+
+                                            <TextBox x:Name="txtSearchItem"
+                                 Grid.Column="1"
+                                 BorderThickness="0"
+                                 Background="Transparent"
+                                 VerticalContentAlignment="Center"
+                                                     ToolTip="Search Item"
+                                 FontSize="14"
+                                 Foreground="{StaticResource TextDark}"
+                                 Tag="Search Item..."
+                                 TextChanged="txtSearchItem_TextChanged"/>
+                                        </Grid>
+                                    </Border>
+                                </Grid>
+                            </Border>
+
                             <DataGrid x:Name="dgItems"
-                                      Grid.Row="1"
-                                      AutoGenerateColumns="False"
-                                      CanUserAddRows="False"
-                                      CanUserResizeRows="False"
-                                      HeadersVisibility="Column"
-                                      GridLinesVisibility="Horizontal"
-                                      HorizontalGridLinesBrush="#EEE"
-                                      BorderThickness="0"
-                                      Background="White"
-                                      RowHeight="50"
-                                      FontSize="15"
-                                      VerticalScrollBarVisibility="Auto">
+                  Grid.Row="1"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  CanUserResizeRows="False"
+                  HeadersVisibility="Column"
+                  GridLinesVisibility="Horizontal"
+                  HorizontalGridLinesBrush="#EEE"
+                  BorderThickness="0"
+                  Background="White"
+                  RowHeight="50"
+                  FontSize="15"
+                  VerticalScrollBarVisibility="Auto">
 
                                 <DataGrid.Resources>
                                     <Style TargetType="DataGridColumnHeader">
                                         <Setter Property="Background" Value="White"/>
-                                        <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
                                         <Setter Property="Padding" Value="15,10"/>
                                         <Setter Property="FontWeight" Value="SemiBold"/>
                                         <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -178,34 +263,19 @@
                                 </DataGrid.Resources>
 
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Name" 
-                                                        Binding="{Binding Name}" 
-                                                        Width="*"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="{StaticResource TextDark}"/>
-
-                                    <DataGridTextColumn Header="Price" 
-                                                        Binding="{Binding Price}" 
-                                                        Width="150"
-                                                        Foreground="{StaticResource TextDark}"/>
+                                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" FontWeight="SemiBold" Foreground="{StaticResource TextDark}"/>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="150" Foreground="{StaticResource TextDark}"/>
+                                    <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="150" Foreground="{StaticResource TextDark}"/>
 
                                     <DataGridTemplateColumn Width="80">
                                         <DataGridTemplateColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Width="36" Height="36"
-                                                        Background="#E0F7FA"
-                                                        Cursor="Hand"
-                                                        Click="Options_Click">
-
+                                                <Button Width="36" Height="36" Background="#E0F7FA" Cursor="Hand" Click="Options_Click">
                                                     <Button.Template>
                                                         <ControlTemplate TargetType="Button">
                                                             <Border Background="{TemplateBinding Background}" CornerRadius="18">
                                                                 <Path Data="M3,17.25V21h3.75L17.81,9.94l-3.75-3.75L3,17.25z M20.71,7.04c0.39-0.39,0.39-1.02,0-1.41l-2.34-2.34c-0.39-0.39-1.02-0.39-1.41,0l-1.83,1.83l3.75,3.75L20.71,7.04z"
-                                                                      Fill="{StaticResource PrimaryColor}"
-                                                                      Width="16" Height="16"
-                                                                      Stretch="Uniform"
-                                                                      HorizontalAlignment="Center"
-                                                                      VerticalAlignment="Center"/>
+                                                  Fill="{StaticResource PrimaryColor}" Width="16" Height="16" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                             </Border>
                                                         </ControlTemplate>
                                                     </Button.Template>
@@ -213,7 +283,6 @@
                                             </DataTemplate>
                                         </DataGridTemplateColumn.CellTemplate>
                                     </DataGridTemplateColumn>
-
                                 </DataGrid.Columns>
                             </DataGrid>
                         </Grid>

@@ -5,7 +5,7 @@
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
       mc:Ignorable="d"
       Title="AllSalesPage"
-      d:DesignHeight="2000" d:DesignWidth="1000"
+      d:DesignHeight="1100" d:DesignWidth="1000"
       Background="Transparent">
 
     <Page.Resources>
@@ -84,9 +84,9 @@
     </Page.Resources>
 
     <Grid>
-       
 
-        <Border Background="#F9F9F9"
+
+        <Border Background="#80F5F5F5"
                 CornerRadius="15"
                 Margin="5"
                 MaxWidth="2000"
@@ -130,7 +130,7 @@
                             
          HorizontalAlignment="Right"
          Style="{StaticResource PrimaryButton}"
-         Background="#546E7A"
+         Background="{StaticResource TextDark}"
          Click="ToggleFilter_Click"/>
 
 
@@ -138,7 +138,7 @@
                 <Button Grid.Column="1"
         Style="{StaticResource IconButtonStyle}"
         Width="40" Height="40"
-                       
+                       Margin="5,10,0,10"
         HorizontalAlignment="Left"
                        
         ToolTip="Go Back"
@@ -149,60 +149,115 @@
           Stretch="Uniform"/>
                 </Button>
 
-                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,60,0,0"/>
+
 
                 <Border x:Name="FilterPanel" 
-                        Grid.Row="1" 
-                        Visibility="Collapsed"
-                        Background="#ECEFF1" 
-                        Padding="15,10"
-                        Margin="25,0,25,15"
-                        CornerRadius="8">
+        Grid.Row="1" 
+        Visibility="Collapsed"
+        Background="White" 
+        CornerRadius="10"
+        Margin="25,0,25,20"
+        Padding="20,15"
+        BorderBrush="#EEE"
+        BorderThickness="1">
 
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                    </Border.Effect>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="Search:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
-                            <TextBox x:Name="txtSearch" 
-                                     Width="200" 
-                                     Style="{StaticResource FilterInputStyle}"
-                                     TextChanged="Filter_Changed"
-                                     ToolTip="Search Buyer or Item"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                            <TextBlock Text="Search Buyer / Item" 
+                       FontSize="12" FontWeight="SemiBold" 
+                       Foreground="{StaticResource TextLight}" 
+                       Margin="0,0,0,6"/>
+
+                            <Grid>
+                                <TextBox x:Name="txtSearch" 
+                         Width="250"
+                         Style="{StaticResource FilterInputStyle}"
+                         Padding="30,0,10,0"
+                         TextChanged="Filter_Changed"/>
+
+                                <Path Data="M15.5,14L14.71,14L14.43,13.73C15.41,12.59 16,11.11 16,9.5C16,5.91 13.09,3 9.5,3C5.91,3 3,5.91 3,9.5C3,13.09 5.91,16 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71L14,15.5L19,20.49L20.49,19L15.5,14ZM9.5,14C7.01,14 5,11.99 5,9.5C5,7.01 7.01,5 9.5,5C11.99,5 14,7.01 14,9.5C14,11.99 11.99,14 9.5,14Z"
+                      Fill="{StaticResource TextLight}"
+                      Width="16" Height="16"
+                      Stretch="Uniform"
+                      HorizontalAlignment="Left"
+                      Margin="8,0,0,0"
+                      IsHitTestVisible="False"/>
+                            </Grid>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
-                            <TextBlock Text="From:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
+                        <StackPanel Grid.Column="1" Margin="0,0,15,0">
+                            <TextBlock Text="From Date" 
+                       FontSize="12" FontWeight="SemiBold" 
+                       Foreground="{StaticResource TextLight}" 
+                       Margin="0,0,0,6"/>
                             <DatePicker x:Name="dpFrom" 
-                                        Width="140"
-                                        Style="{StaticResource FilterInputStyle}"
-                                        SelectedDateChanged="Filter_Changed"/>
+                        Width="140"
+                        Style="{StaticResource FilterInputStyle}"
+                        SelectedDateChanged="Filter_Changed"/>
                         </StackPanel>
 
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                            <TextBlock Text="To:" VerticalAlignment="Center" Margin="0,0,5,0" FontWeight="SemiBold" Foreground="{StaticResource TextLight}"/>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="To Date" 
+                       FontSize="12" FontWeight="SemiBold" 
+                       Foreground="{StaticResource TextLight}" 
+                       Margin="0,0,0,6"/>
                             <DatePicker x:Name="dpTo" 
-                                        Width="140"
-                                        Style="{StaticResource FilterInputStyle}"
-                                        SelectedDateChanged="Filter_Changed"/>
+                        Width="140"
+                        Style="{StaticResource FilterInputStyle}"
+                        SelectedDateChanged="Filter_Changed"/>
                         </StackPanel>
 
-                        <Button Content="Clear"
-                                Width="60" Height="35"
-                                Background="{StaticResource DangerColor}"
-                                Style="{StaticResource PrimaryButton}"
-                                ToolTip="Clear Filters"
-                                Margin="10,0,0,0"
-                                
-                                Click="ClearFilter_Click"/>
-                    </StackPanel>
-                </Border>
+                        <Button Grid.Column="4"
+                VerticalAlignment="Bottom"
+                Click="ClearFilter_Click"
+                Background="Transparent"
+                BorderThickness="0"
+                Cursor="Hand"
+                Height="40">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="15,0">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
+                                  Fill="{StaticResource DangerColor}"
+                                  Width="14" Height="14"
+                                  Stretch="Uniform"
+                                  Margin="0,0,8,0"/>
+                                            <TextBlock Text="Reset Filters" 
+                                       Foreground="{StaticResource DangerColor}" 
+                                       FontWeight="SemiBold"
+                                       FontSize="14"/>
+                                        </StackPanel>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#FFEBEE"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
+                    </Grid>
+                </Border>
                 <Border Grid.Row="2" 
                         Margin="25,10,25,25"
-                        Background="White" 
+                        Background="#80F5F5F5" 
                         CornerRadius="10" 
                         BorderBrush="#EEE" 
-                        BorderThickness="1">
+                        BorderThickness="0">
 
                     <DataGrid x:Name="dgSales"
           Grid.Row="2"
@@ -212,10 +267,10 @@
           HeadersVisibility="Column"
           FrozenColumnCount="1"
           GridLinesVisibility="All"
-          HorizontalGridLinesBrush="#EEE"
-          VerticalGridLinesBrush="#EEE"
+          HorizontalGridLinesBrush="Gray"
+          VerticalGridLinesBrush="Gray"
           BorderThickness="0"
-          Background="White"
+          Background="Transparent"
           FontSize="16"
           ColumnHeaderHeight="45"
           AlternationCount="2"
@@ -229,7 +284,7 @@
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                <Setter Property="BorderBrush" Value="#B2DFDB"/>
+                                <Setter Property="BorderBrush" Value="Gray"/>
                                 <Setter Property="Padding" Value="10"/>
                             </Style>
                             <Style TargetType="DataGridCell">
@@ -246,23 +301,25 @@
                      Width="*"
                      ElementStyle="{StaticResource CenteredTextColumn}"
                      FontWeight="Bold"
-                     Foreground="{StaticResource TextLight}"/>
+                    />
 
                             <DataGridTextColumn Header="Customer Name"
                             Binding="{Binding BuyerName}"
                             Width="*" 
                             ElementStyle="{StaticResource CenteredTextColumn}"
-                            FontWeight="SemiBold"
-                            Foreground="{StaticResource TextDark}"/>
+                            FontWeight="Bold"
+                           />
 
                             <DataGridTextColumn Header="Article"
                             Binding="{Binding ItemName}"
                             Width="*"
+                                                 FontWeight="Bold"
                             ElementStyle="{StaticResource CenteredTextColumn}"/>
 
                             <DataGridTextColumn Header="Quantity"
                             Binding="{Binding Quantity}"
                             Width="*"
+                            FontWeight="Bold"
                             ElementStyle="{StaticResource CenteredTextColumn}"/>
 
                             <DataGridTextColumn Header="Amount"
@@ -270,7 +327,7 @@
                             Width="*"
                             ElementStyle="{StaticResource CenteredTextColumn}"
                             FontWeight="Bold"
-                            Foreground="{StaticResource PrimaryColor}"/>
+                           />
                            
 
                             <DataGridTemplateColumn Header="Action" Width="*">

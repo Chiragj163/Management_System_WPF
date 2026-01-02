@@ -85,5 +85,19 @@ namespace Management_System_WPF.Services
 
             return buyers;
         }
+        public static bool BuyerExists(int buyerId)
+        {
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+
+            string query = "SELECT COUNT(*) FROM buyers WHERE buyer_id = @id";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@id", buyerId);
+
+            long count = (long)cmd.ExecuteScalar();
+            return count > 0;
+        }
+
     }
 }

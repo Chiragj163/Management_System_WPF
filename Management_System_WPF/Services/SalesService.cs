@@ -100,17 +100,23 @@ ORDER BY s.sale_id DESC;
             {
                 list.Add(new SaleRecord
                 {
-                    SaleItemId = reader.GetInt32(0),
-                    SaleId = reader.GetInt32(1),
-                    BuyerId = reader.GetInt32(2),
-                    BuyerName = reader.GetString(3),
-                    ItemId = reader.GetInt32(4),
-                    ItemName = reader.GetString(5),
-                    Qty = reader.GetInt32(6),
-                    Price = reader.GetDouble(7),
-                    Amount = reader.GetDouble(8),
-                    SaleDate = DateTime.Parse(reader.GetString(9))
+                    SaleItemId = Convert.ToInt32(reader["sale_item_id"]),
+                    SaleId = Convert.ToInt32(reader["sale_id"]),
+                    BuyerId = Convert.ToInt32(reader["buyer_id"]),
+                    BuyerName = reader["buyer_name"]?.ToString() ?? "",
+
+                    SaleDate = DateTime.Parse(reader["sale_date"].ToString()),
+
+                    ItemId = Convert.ToInt32(reader["item_id"]),
+                    ItemName = reader["item_name"]?.ToString() ?? "",
+                    Qty = Convert.ToInt32(reader["qty"]),
+                    Price = Convert.ToDecimal(reader["price"]),
+                    Amount = Convert.ToDecimal(reader["amount"]),
+
+                  
+                    
                 });
+
 
             }
 
@@ -152,19 +158,20 @@ ORDER BY s.sale_id DESC;
             {
                 list.Add(new SaleRecord
                 {
-                    SaleId = reader.GetInt32(0),
-                    BuyerId = reader.GetInt32(1),
-                    BuyerName = reader.GetString(2),
+                    SaleId = Convert.ToInt32(reader["sale_id"]),
+                    BuyerId = Convert.ToInt32(reader["buyer_id"]),
+                    BuyerName = reader["buyer_name"]?.ToString() ?? "",
 
-                    SaleDate = DateTime.Parse(reader.GetString(3)),
-                    TotalAmount = reader.GetDouble(4),
+                    SaleDate = DateTime.Parse(reader["sale_date"].ToString()),
+                    
 
-                    ItemId = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                    ItemName = reader.IsDBNull(6) ? "" : reader.GetString(6),
-                    Qty = reader.IsDBNull(7) ? 0 : reader.GetInt32(7),
-                    Price = reader.IsDBNull(8) ? 0 : reader.GetDouble(8)
+                    ItemId = reader["item_id"] == DBNull.Value ? 0 : Convert.ToInt32(reader["item_id"]),
+                    ItemName = reader["item_name"]?.ToString() ?? "",
+                    Qty = reader["qty"] == DBNull.Value ? 0 : Convert.ToInt32(reader["qty"]),
+                    Price = reader["price"] == DBNull.Value ? 0 : Convert.ToDecimal(reader["price"])
                 });
             }
+
 
             return list;
         }
@@ -197,9 +204,10 @@ ORDER BY s.sale_id DESC;
             while (reader.Read())
             {
                 // sale_date stored as TEXT in DB, so parse to DateTime
-                var date = DateTime.Parse(reader.GetString(0));
-                var buyerName = reader.GetString(1);
-                var total = Convert.ToDouble(reader["total"]);
+                var date = DateTime.Parse(reader["sale_date"].ToString());
+                var buyerName = reader["buyer_name"]?.ToString() ?? "Unknown";
+
+                var total = Convert.ToDecimal(reader["total"]);
 
                 if (!rows.TryGetValue(date, out var row))
                 {
@@ -218,7 +226,9 @@ ORDER BY s.sale_id DESC;
         public static List<SaleRecord> GetSalesByBuyer(string buyerName)
         {
             return GetSales()
-                .Where(r => r.BuyerName == buyerName)
+              .Where(r => !string.IsNullOrEmpty(r.BuyerName)
+         && r.BuyerName.Equals(buyerName, StringComparison.OrdinalIgnoreCase))
+
                 .ToList();
         }
 
@@ -439,8 +449,9 @@ ORDER BY s.sale_id DESC;
             {
                 list.Add(new SalesRaw
                 {
-                    Date = reader.GetString(0),
-                    ItemName = reader.GetString(1),
+                    Date = reader["sale_date"].ToString(),
+                    ItemName = reader["item_name"].ToString(),
+
                     Qty = Convert.ToInt32(reader["qty"]),
                     Price = Convert.ToDecimal(reader["price"])
                 });
@@ -510,38 +521,96 @@ ORDER BY s.sale_id DESC;
 
             return list;
         }
-        public static List<(string Date, string Article, int Qty)> GetArticleSalesByMonth(int year, int month)
+        public static List<ArticleSaleModel> GetArticleSalesByMonth(int year, int month)
         {
-            var list = new List<(string, string, int)>();
+            var list = new List<ArticleSaleModel>();
 
-            using var conn = new SQLiteConnection(connectionString);
-            conn.Open();
-
-            string query = @"
-        SELECT 
-            s.sale_date,
-            i.item_name,
-            si.qty             -- ✅ THIS is what we need!
-        FROM sales s
-        JOIN sale_items si ON s.sale_id = si.sale_id
-        JOIN items i ON si.item_id = i.item_id
-        WHERE strftime('%Y', s.sale_date) = @year
-          AND strftime('%m', s.sale_date) = @month
-        ORDER BY s.sale_date;
-    ";
-
-            using var cmd = new SQLiteCommand(query, conn);
-            cmd.Parameters.AddWithValue("@year", year.ToString());
-            cmd.Parameters.AddWithValue("@month", month.ToString("D2"));
-
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
+            try
             {
-                list.Add((
-                    reader["sale_date"].ToString(),
-                    reader["item_name"].ToString(),
-                    Convert.ToInt32(reader["qty"])
-                ));
+                using (var conn = new SQLiteConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // ✅ FIX: Changed 'si.quantity' to 'si.qty' based on your old code
+                    string query = @"
+                SELECT 
+                    date(s.sale_date) as SaleDate, 
+                    i.item_name as Article, 
+                    COALESCE(SUM(si.qty), 0) as Qty  -- <-- FIXED COLUMN NAME
+                FROM sale_items si
+                JOIN sales s ON s.sale_id = si.sale_id
+                JOIN items i ON i.item_id = si.item_id
+                WHERE strftime('%Y', s.sale_date) = @year 
+                  AND strftime('%m', s.sale_date) = @month
+                GROUP BY date(s.sale_date), i.item_name";
+
+                    using (var cmd = new SQLiteCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@year", year.ToString());
+                        cmd.Parameters.AddWithValue("@month", month.ToString("00"));
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                list.Add(new ArticleSaleModel
+                                {
+                                    Date = reader["SaleDate"].ToString(),
+                                    Article = reader["Article"].ToString(),
+                                    // Safely handle conversion
+                                    Qty = Convert.ToInt32(reader["Qty"])
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error in GetArticleSalesByMonth: {ex.Message}");
+            }
+
+            return list;
+        }
+
+        public static List<ArticleSaleModel> GetArticleSalesTillNow()
+        {
+            var list = new List<ArticleSaleModel>();
+
+            try
+            {
+                using (var conn = new SQLiteConnection(connectionString))
+                {
+                    conn.Open();
+
+                    // ✅ FIX: Changed 'si.quantity' to 'si.qty' here too
+                    string query = @"
+                SELECT 
+                    'Total' as SaleDate, 
+                    i.item_name as Article, 
+                    COALESCE(SUM(si.qty), 0) as Qty -- <-- FIXED COLUMN NAME
+                FROM sale_items si
+                JOIN items i ON i.item_id = si.item_id
+                GROUP BY i.item_name";
+
+                    using (var cmd = new SQLiteCommand(query, conn))
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new ArticleSaleModel
+                            {
+                                Date = "Total",
+                                Article = reader["Article"].ToString(),
+                                Qty = Convert.ToInt32(reader["Qty"])
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error in GetArticleSalesTillNow: {ex.Message}");
             }
 
             return list;
@@ -852,37 +921,7 @@ ORDER BY s.sale_id DESC;
             tx.Commit();
         }
 
-        public static List<ArticleSaleRaw> GetArticleSalesTillNow()
-        {
-            using var conn = GetConnection();
-            conn.Open();
-
-            string query = @"
-        SELECT 
-            i.item_name AS Article,
-            SUM(si.qty) AS Qty
-        FROM sale_items si
-        INNER JOIN items i ON i.item_id = si.item_id
-        GROUP BY i.item_name
-        ORDER BY i.item_name;
-    ";
-
-            using var cmd = new SQLiteCommand(query, conn);
-            using var reader = cmd.ExecuteReader();
-
-            List<ArticleSaleRaw> result = new();
-
-            while (reader.Read())
-            {
-                result.Add(new ArticleSaleRaw
-                {
-                    Article = reader["Article"].ToString(),
-                    Qty = Convert.ToInt32(reader["Qty"])
-                });
-            }
-
-            return result;
-        }
+        
 
         public static void UpdateSaleDate(int saleId, DateTime newDate)
         {
@@ -900,6 +939,26 @@ ORDER BY s.sale_id DESC;
             cmd.Parameters.AddWithValue("@saleId", saleId);
 
             cmd.ExecuteNonQuery();
+        }
+
+
+        public static decimal GetItemPriceFromMaster(string itemName)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+
+            string query = @"
+        SELECT price
+        FROM items
+        WHERE item_name = @name
+        LIMIT 1;
+    ";
+
+            using var cmd = new SQLiteCommand(query, conn);
+            cmd.Parameters.AddWithValue("@name", itemName);
+
+            var result = cmd.ExecuteScalar();
+            return result == null ? 0 : Convert.ToDecimal(result);
         }
 
 

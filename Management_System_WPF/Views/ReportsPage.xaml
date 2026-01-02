@@ -112,25 +112,23 @@
     </Page.Resources>
 
     <Grid>
-        
 
-        <Border Background="#F9F9F9"
+
+        <Border Background="#80F5F5F5"
                 CornerRadius="15"
                 Padding="30"
-                MaxWidth="500"
+                
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center">
 
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="30" ShadowDepth="5" Opacity="0.3" Color="Black"/>
-            </Border.Effect>
+          
 
             <StackPanel>
 
                 <Grid Margin="0,0,0,25">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="Sale Report"
-                                   FontSize="24"
+                                   FontSize="28"
                                    FontWeight="Bold"
                                    Foreground="{StaticResource TextDark}"/>
                     </StackPanel>
@@ -138,12 +136,12 @@
                 </Grid>
                 
                 <TextBlock Text="Buyer Specific Reports" 
-                           FontSize="14" 
+                           FontSize="17" 
                            FontWeight="Bold" 
-                           Foreground="{StaticResource TextLight}" 
+                           Foreground="{StaticResource TextDark}" 
                            Margin="0,0,0,10"/>
 
-                 <Border Background="White" 
+                <Border Background="#80F5F5F5" 
                         BorderBrush="#E0E0E0" 
                         BorderThickness="1" 
                         CornerRadius="10" 
@@ -152,15 +150,17 @@
                             <TextBlock Text="Select Buyer to generate report:" 
                                    Foreground="{StaticResource TextDark}" 
                                    Margin="0,0,0,8"
-                                   FontSize="14"/>
+                                   FontSize="17"/>
 
                             <ComboBox x:Name="cmbBuyer" 
                                   Style="{StaticResource InputStyle}"
-                                  Height="40"
+                                  Height="30"
                                   Margin="0,0,0,15"/>
 
                             <Button Style="{StaticResource MenuButtonStyle}"
                                     Tag="View All Sales History"
+                                    FontWeight="Bold"
+                                     FontSize="17"
                                     Click="AllSales_Click">
                                     <Path Data="M16,11.78L20.24,4.45L21.97,5.45L16.74,14.5L10.23,10.75L5.46,19H22V21H2V3H4V17.54L9.5,8L16,11.78Z" Fill="{StaticResource PrimaryColor}" Width="20" Height="20" Stretch="Uniform"/>
                             </Button>
@@ -168,11 +168,13 @@
                 </Border>
                 <Separator Background="#E0E0E0" Margin="0,15,0,20"/>
                 <TextBlock Text="General Analytics" 
-                           FontSize="14" 
+                           FontSize="17" 
                            FontWeight="Bold" 
-                           Foreground="{StaticResource TextLight}" 
+                           Foreground="{StaticResource TextDark}" 
                            Margin="0,0,0,10"/>
                 <Button Content="Sales By Buyer "
+                        FontSize="17"
+                         FontWeight="Bold" 
                            Click="SalesByBuyer_Click"
                            Margin="0,0,0,10"
                            Style="{StaticResource PrimaryButton}"/>
@@ -180,6 +182,8 @@
 
                 <Button Style="{StaticResource MenuButtonStyle}"
                         Tag="Sales  by Article"
+                            FontWeight="Bold"
+                            FontSize="17"
                         Click="SalesByArticles_Click">
                         <Path Data="M13,12H20V13.5H13M13,9.5H20V11H13M13,14.5H20V16H13M21,4H3A2,2 0 0,0 1,6V19A2,2 0 0,0 3,21H21A2,2 0 0,0 23,19V6A2,2 0 0,0 21,4M21,19H12V6H21" Fill="{StaticResource PrimaryColor}" Width="20" Height="20" Stretch="Uniform"/>
                 </Button>

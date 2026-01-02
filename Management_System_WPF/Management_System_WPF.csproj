@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <Resource Include="Assets\bg.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>
 

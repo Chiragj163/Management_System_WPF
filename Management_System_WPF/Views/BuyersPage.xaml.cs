@@ -1,9 +1,12 @@
-﻿using Management_System_WPF.Models;
+﻿using System;
+using Management_System_WPF.Models;
 using Management_System_WPF.Services;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
+
 
 namespace Management_System_WPF.Views
 {
@@ -151,6 +154,26 @@ namespace Management_System_WPF.Views
                 win.ShowDialog();
             }
         }
+        private void txtSearchBuyer_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Get the default view of the DataGrid data
+            var view = CollectionViewSource.GetDefaultView(dgBuyers.ItemsSource);
 
+            if (view != null)
+            {
+                // Apply Filter
+                view.Filter = item =>
+                {
+                    if (string.IsNullOrEmpty(txtSearchBuyer.Text))
+                        return true; // Show all if search is empty
+
+                    // Assuming your Buyer model has a 'Name' property
+                    var buyer = item as Buyer; // Replace 'Buyer' with your actual class name
+
+                    return buyer != null &&
+                           buyer.Name.IndexOf(txtSearchBuyer.Text, StringComparison.OrdinalIgnoreCase) >= 0;
+                };
+            }
+        }
     }
 }

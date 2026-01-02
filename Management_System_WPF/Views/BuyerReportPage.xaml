@@ -14,7 +14,6 @@
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
         <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
         <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
-
         <Style TargetType="Button" x:Key="PrimaryButton">
             <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -51,9 +50,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="6">
+                         BorderBrush="{TemplateBinding BorderBrush}" 
+                         BorderThickness="{TemplateBinding BorderThickness}" 
+                         CornerRadius="6">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -88,18 +87,12 @@
     </Page.Resources>
 
     <Grid>
-       
-
-        <Border Background="#F9F9F9"
+        <Border Background="#803498DB"
                 CornerRadius="15"
                 Margin="5"
                 MaxWidth="2000"
-                HorizontalAlignment="Center"
+                HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
-
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="Black"/>
-            </Border.Effect>
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -108,204 +101,263 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Grid Grid.Row="0" Margin="15,10,15,5" HorizontalAlignment="Center">
+                <Grid Grid.Row="0" Margin="25,10,25,10" HorizontalAlignment="Center">
                     <StackPanel>
                         <TextBlock x:Name="txtBuyerName"
                                    Text="Buyer Name" 
-                                   FontSize="28" 
+                                   FontSize="30" 
                                    FontWeight="Bold" 
-                                   Foreground="{StaticResource TextDark}"/>
-                       
+                                   Foreground="Black"/>
                     </StackPanel>
-
-                   
                 </Grid>
-                <StackPanel>
+
                 <Button Grid.Column="1"
-Style="{StaticResource IconButtonStyle}"
-Width="40" Height="40"
-HorizontalAlignment="Left"
-ToolTip="Go Back"
-Click="Back_Click">
+                        Style="{StaticResource IconButtonStyle}"
+                        Width="40" Height="40"
+                        HorizontalAlignment="Left"
+                        Margin="5,10,0,10"
+                        ToolTip="Go Back"
+                        Click="Back_Click">
                     <Path Data="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"
-  Fill="{StaticResource TextDark}"
-  Width="20" Height="20"
-  Stretch="Uniform"/>
+                          Fill="Black"
+                          Width="20" Height="20"
+                          Stretch="Uniform"/>
                 </Button>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="70,10,0,10" VerticalAlignment="Center">
+                    <Button x:Name="btnPrevMonth"
+                            Content="◄ Prev"
+                            Style="{StaticResource SecondaryButton}"
+                            Height="35" Width="80"
+                            Click="PrevMonth_Click"/>
+
+                    <TextBlock x:Name="txtMonthName"
+                               Text="October 2025" 
+                               FontSize="18" 
+                               FontWeight="Bold" 
+                               Foreground="Black"
+                               VerticalAlignment="Center"
+                               Margin="20,0"/>
+
+                    <Button x:Name="btnNextMonth"
+                            Content="Next ►"
+                            Style="{StaticResource SecondaryButton}"
+                            Height="35" Width="80"
+                            Click="NextMonth_Click"/>
                 </StackPanel>
-                <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,5,0,0"/>
 
-                <Grid Grid.Row="1" Margin="25,15,25,15">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="2" HorizontalAlignment="Right" Margin="0,10,30,10" Orientation="Horizontal">
 
-                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button x:Name="btnPrevMonth"
-                                Content="◄ Prev"
-                                Style="{StaticResource SecondaryButton}"
-                                Height="35" Width="80"
-                                Click="PrevMonth_Click"/>
+                    <StackPanel x:Name="ActionButtonsPanel" 
+                Orientation="Horizontal" 
+                Visibility="Collapsed">
+                        <Button Content="↩ Return"
+            Style="{StaticResource PrimaryButton}"
+            Background="#D32F2F"
+            Height="35" Width="100"
+            Margin="0,0,10,0"
+            Click="Return_Click"/>
+                        <Button Content="💵 Payment"
+                Style="{StaticResource PrimaryButton}"
+                Background="#FF9800"
+                Height="35" Width="100"
+                Margin="0,0,10,0"
+                Click="Payment_Click"/>
 
-                        <TextBlock x:Name="txtMonthName"
-                                   Text="October 2025" 
-                                   FontSize="18" 
-                                   FontWeight="Bold" 
-                                   Foreground="{StaticResource PrimaryColor}"
-                                   VerticalAlignment="Center"
-                                   Margin="20,0"/>
-
-                        <Button x:Name="btnNextMonth"
-                                Content="Next ►"
-                                Style="{StaticResource SecondaryButton}"
-                                Height="35" Width="80"
-                                Click="NextMonth_Click"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
                         <Button Content="🖨 Print"
-                                Style="{StaticResource PrimaryButton}"
-                                Background="#607D8B"
-                                Height="35" Width="100"
-                                Margin="0,0,10,0"
-                                Click="Print_Click"/>
+                Style="{StaticResource PrimaryButton}"
+                Background="#607D8B"
+                Height="35" Width="100"
+                Margin="0,0,10,0"
+                Click="Print_Click"/>
 
                         <Button Content="📊 Excel"
-                                Style="{StaticResource PrimaryButton}"
-                                Background="#4CAF50"
-                                Height="35" Width="100"
-                                Margin="0,0,10,0"
-                                Click="ExportExcel_Click"/>
+                Style="{StaticResource PrimaryButton}"
+                Background="#4CAF50"
+                Height="35" Width="100"
+                Margin="0,0,10,0"
+                Click="ExportExcel_Click"/>
 
                         <Button x:Name="btnFilter"
-                                Content="🔍 Filter"
-                                Style="{StaticResource PrimaryButton}"
-                                Height="35" Width="100"
-                                Click="Filter_Click"/>
+                Content="🔍 Filter"
+                Style="{StaticResource PrimaryButton}"
+                Height="35" Width="100"
+                Margin="0,0,10,0"
+                Click="Filter_Click"/>
                     </StackPanel>
-                </Grid>
 
-                <Border Grid.Row="2" 
-                        Margin="15,0,15,25"
-                        Background="White" 
-                        CornerRadius="10" 
-                        BorderBrush="#EEE" 
-                        BorderThickness="1">
+                    <Button x:Name="btnMenu"
+            Content="☰ Menu"
+            Style="{StaticResource PrimaryButton}"
+            Background="#34495E"
+            Height="35" Width="100"
+            ToolTip="Show/Hide Actions"
+            Click="ToggleMenu_Click"/>
 
-                    <DataGrid x:Name="dgBuyerReport"
-                              AutoGenerateColumns="False"
-                              CanUserAddRows="False"
-                              SelectionMode="Single"
-                              SelectionUnit="Cell"
-                              HeadersVisibility="Column"
-                              GridLinesVisibility="All"
-                              
-                              
-                              Background="White"
-                              RowHeight="32"
-                              FontSize="14"
-                              ColumnHeaderHeight="36">
-
-                        <DataGrid.ColumnHeaderStyle>
-                            <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
-                                <Setter Property="FontSize" Value="16"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                <Setter Property="BorderBrush" Value="#B2DFDB"/>
-                                <Setter Property="Padding" Value="6"/>
-                            </Style>
-                        </DataGrid.ColumnHeaderStyle>
-
-                        <DataGrid.CellStyle>
-                            <Style TargetType="DataGridCell">
-                                <Setter Property="TextBlock.TextAlignment" Value="Center"/>
-                                <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="Padding" Value="3"/>
-                                <Setter Property="BorderBrush" Value="#DADADA"/>
-                                <Setter Property="BorderThickness" Value="1"/>
-
-                                <!-- Prevent cell selection color override -->
-                                <Setter Property="Foreground"
-                Value="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow},
-                                Path=Foreground}"/>
-
-                                <Style.Triggers>
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="Transparent"/>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.CellStyle>
+                </StackPanel>
 
 
+                <Border Grid.Row="2" Margin="15,0,15,25" BorderThickness="0">
 
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
 
-                                <Setter Property="FontSize" Value="14"/>
-                                <Setter Property="Foreground" Value="Black"/>
+                        <StackPanel VerticalAlignment="Top">
 
-                                <Style.Triggers>
+                            <Border CornerRadius="10,10,0,0" 
+                    BorderBrush="#EEE" 
+                    BorderThickness="0"
+                    Background="#803498DB">
 
-                                    <!-- ================= TOTAL / PRICE ROWS FIRST ================= -->
+                                <DataGrid x:Name="dgBuyerReport"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          SelectionMode="Single"
+                          SelectionUnit="Cell"
+                          HeadersVisibility="Column"
+                          GridLinesVisibility="All"
+                          Background="Transparent"
+                          RowHeight="32"
+                          FontSize="14"
+                          ColumnHeaderHeight="36"
+                          BorderThickness="0">
 
-                                    <DataTrigger Binding="{Binding Date}" Value="Total Qty">
-                                        <Setter Property="Background" Value="#E6E6E6"/>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground" Value="Black"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
-                                    </DataTrigger>
+                                    <DataGrid.ColumnHeaderStyle>
+                                        <Style TargetType="DataGridColumnHeader">
+                                            <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
+                                            <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                            <Setter Property="FontSize" Value="16"/>
+                                            <Setter Property="FontWeight" Value="Bold"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                                            <Setter Property="BorderBrush" Value="#B2DFDB"/>
+                                            <Setter Property="Padding" Value="6"/>
+                                        </Style>
+                                    </DataGrid.ColumnHeaderStyle>
 
-                                    <DataTrigger Binding="{Binding Date}" Value="Unit Price">
-                                        <Setter Property="Background" Value="#FFF9C4"/>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="Foreground" Value="Black"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
-                                    </DataTrigger>
+                                    <DataGrid.CellStyle>
+                                        <Style TargetType="DataGridCell">
+                                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                                            <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                            <Setter Property="Padding" Value="3"/>
+                                            <Setter Property="BorderBrush" Value="#DADADA"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=Foreground}"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.CellStyle>
 
-                                    <DataTrigger Binding="{Binding Date}" Value="Total Price">
-                                        <Setter Property="Background" Value="#26A69A"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
-                                    </DataTrigger>
+                                    <DataGrid.RowStyle>
+                                        <Style TargetType="DataGridRow">
+                                            <Setter Property="FontSize" Value="14"/>
+                                            <Setter Property="Foreground" Value="Black"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Date}" Value="Total Qty">
+                                                    <Setter Property="Background" Value="#E6E6E6"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="IsHitTestVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Date}" Value="Less Return">
+                                                    <Setter Property="Background" Value="Red"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="IsHitTestVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Date}" Value="Unit Price">
+                                                    <Setter Property="Background" Value="#FFF9C4"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="IsHitTestVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Date}" Value="Total Price">
+                                                    <Setter Property="Background" Value="#26A69A"/>
+                                                    <Setter Property="Foreground" Value="White"/>
+                                                    <Setter Property="FontWeight" Value="Bold"/>
+                                                    <Setter Property="IsHitTestVisible" Value="False"/>
+                                                </DataTrigger>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#E0F2F1"/>
+                                                </Trigger>
+                                                <Trigger Property="IsSelected" Value="True">
+                                                    <Setter Property="Background" Value="#B2DFDB"/>
+                                                    <Setter Property="FontWeight" Value="SemiBold"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.RowStyle>
+                                </DataGrid>
+                            </Border>
 
-                                    <DataTrigger Binding="{Binding Date}" Value="Grand Total">
-                                        <Setter Property="Background" Value="#004D40"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="FontSize" Value="16"/>
-                                        <Setter Property="FontWeight" Value="Bold"/>
-                                        <Setter Property="IsHitTestVisible" Value="False"/>
-                                    </DataTrigger>
+                            <Border
+        CornerRadius="0,0,10,10" 
+        >
 
-                                    <!-- ================= NORMAL ROWS ================= -->
+                                <StackPanel >
 
-                                    <!-- Hover -->
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#E0F2F1"/>
-                                    </Trigger>
+                                    <Border Background="#00695C" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                    <!-- Selected row -->
-                                    <Trigger Property="IsSelected" Value="True">
-                                        <Setter Property="Background" Value="#B2DFDB"/>
-                                        <Setter Property="Foreground" Value="Black"/>
-                                        <Setter Property="FontWeight" Value="SemiBold"/>
-                                    </Trigger>
+                                            <Border Grid.Column="0" Padding="10" BorderBrush="Black" BorderThickness="0,0,1,0">
+                                                <TextBlock Text="Grand Total" Foreground="White" FontSize="16" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
 
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
+                                            <Border Grid.Column="1" Padding="10" MinWidth="130">
+                                                <TextBlock x:Name="txtTotalSales" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
 
+                                    <Border Background="#BF360C" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
+                                            <Border Grid.Column="0" Padding="10" BorderBrush="Black" BorderThickness="0,0,1,0">
+                                                <TextBlock Text="Less Amount" Foreground="White" FontSize="16" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
 
-                    </DataGrid>
+                                            <Border Grid.Column="1" Padding="10" MinWidth="130">
+                                                <TextBlock x:Name="txtPayment" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <Border Background="#004D40" CornerRadius="2"  BorderBrush="Black" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="150"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <Border Grid.Column="0" Padding="10" BorderBrush="Black" BorderThickness="0,0,1,0">
+                                                <TextBlock Text="Due Amount" Foreground="White" FontSize="16" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+
+                                            <Border Grid.Column="1" Padding="10" >
+                                                <TextBlock x:Name="txtBalance" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
                 </Border>
-
                 <Border x:Name="FilterPanel"
                         Grid.Row="1" Grid.RowSpan="2"
                         Visibility="Collapsed"

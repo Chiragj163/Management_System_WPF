@@ -20,7 +20,7 @@
 
             <Grid.Background>
 
-                <ImageBrush ImageSource="Assets/bg.jpg" Stretch="UniformToFill"/>
+                <ImageBrush ImageSource="/Assets/bg.jpg" Stretch="UniformToFill"/>
 
             </Grid.Background>
 
@@ -40,7 +40,7 @@
                       Grid.ColumnSpan="2"
                       Height="70"
                       VerticalAlignment="Top"
-                      Background="#80000000"
+                      Background="Transparent"
                       MouseLeftButtonDown="TopBar_MouseDown">
 
 
@@ -82,8 +82,9 @@
                                 Height="40"
                                 FontSize="22"
                                 Foreground="White"
-                                Background="#55000000"
+                                Background="Transparent"
                                 BorderThickness="0"
+                                
                                 Cursor="Hand"
                                 Click="Minimize_Click"/>
 
@@ -92,7 +93,7 @@
                                 Height="40"
                                 FontSize="18"
                                 Foreground="White"
-                                Background="#55000000"
+                                Background="Transparent"
                                 BorderThickness="0"
                                 Cursor="Hand"
                                 Click="Maximize_Click"/>
@@ -102,7 +103,7 @@
                                 Height="40"
                                 FontSize="18"
                                 Foreground="White"
-                                Background="#55FF0000"
+                                Background="Transparent"
                                 BorderThickness="0"
                                 Cursor="Hand"
                                 Click="Exit_Click"/>
@@ -123,7 +124,7 @@
                                 <Setter Property="Margin" Value="0,20,0,0"/>
                                 <Setter Property="FontSize" Value="25"/>
                                 <Setter Property="Background" Value="#FF3CB4A7"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
                                 <Setter Property="Cursor" Value="Hand"/>
                                 <Setter Property="BorderThickness" Value="0"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Management_System_WPF.Helpers;
 
 namespace Management_System_WPF.Views
 {
@@ -24,7 +25,7 @@ namespace Management_System_WPF.Views
                 .ToList();
             cmbBuyer.DisplayMemberPath = "Name";
 
-            cmbItem.ItemsSource = ItemsService.GetAllItems();
+            cmbItem.ItemsSource = ItemsService.GetAllItems().OrderBy(a=>a.Name).ToList();
             cmbItem.DisplayMemberPath = "Name";
 
             dpSaleDate.SelectedDate = DateTime.Now;
@@ -254,23 +255,35 @@ namespace Management_System_WPF.Views
 
         private void dpSaleDate_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // 🚫 Do NOT block normal keys
-            // Allow Tab, Backspace, Numbers, Numpad, Enter
-            if (e.Key == Key.Tab ||
-                e.Key == Key.Back ||
+            // 1. Handle TAB Key for Internal Navigation (Day -> Month -> Year -> Exit)
+            if (e.Key == Key.Tab)
+            {
+                if (HandleDatePartSelection(sender as DatePicker))
+                {
+                    e.Handled = true; // We moved the selection internally, so stop focus from leaving
+                    return;
+                }
+                // If HandleDatePartSelection returns false (Year was already selected),
+                // we let e.Handled = false, allowing the Tab to move to the next control naturally.
+            }
+
+            // 2. Ignore other editing keys (Allow typing)
+            if (e.Key == Key.Back ||
                 e.Key == Key.Delete ||
                 (e.Key >= Key.D0 && e.Key <= Key.D9) ||
-                (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9))
+                (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
+                e.Key == Key.OemQuestion || e.Key == Key.OemQuotes || e.Key == Key.OemMinus)
             {
                 return;
             }
 
+            // 3. Arrow Key Logic (Change Value)
             if (dpSaleDate.SelectedDate == null)
                 dpSaleDate.SelectedDate = DateTime.Today;
 
             DateTime current = dpSaleDate.SelectedDate.Value;
 
-            // Ctrl + Up / Down → Month change
+            // Ctrl + Arrows (Month)
             if (Keyboard.Modifiers == ModifierKeys.Control)
             {
                 if (e.Key == Key.Up)
@@ -286,7 +299,7 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Up / Down → Day change
+            // Normal Arrows (Day)
             if (e.Key == Key.Up)
             {
                 dpSaleDate.SelectedDate = current.AddDays(1);
@@ -297,6 +310,57 @@ namespace Management_System_WPF.Views
                 dpSaleDate.SelectedDate = current.AddDays(-1);
                 e.Handled = true;
             }
+        }
+        private bool HandleDatePartSelection(DatePicker dp)
+        {
+            if (dp == null) return false;
+
+            // 1. Get the internal TextBox of the DatePicker
+            var tb = (System.Windows.Controls.Primitives.DatePickerTextBox)dp.Template.FindName("PART_TextBox", dp);
+            if (tb == null) return false;
+
+            string text = tb.Text;
+            if (string.IsNullOrEmpty(text)) return false;
+
+            // 2. Find separators (assumes dd/MM/yyyy or dd-MM-yyyy)
+            int firstSep = text.IndexOfAny(new char[] { '/', '-', '.' });
+            if (firstSep == -1) return false; // No separators found
+
+            int secondSep = text.IndexOfAny(new char[] { '/', '-', '.' }, firstSep + 1);
+            if (secondSep == -1) return false;
+
+            // 3. Define ranges
+            int dayStart = 0;
+            int dayLen = firstSep;
+
+            int monthStart = firstSep + 1;
+            int monthLen = secondSep - monthStart;
+
+            int yearStart = secondSep + 1;
+            int yearLen = text.Length - yearStart;
+
+            // 4. Check what is currently selected and move to next
+            if (tb.SelectionLength == text.Length || tb.SelectionLength == 0)
+            {
+                // If everything or nothing is selected -> Select DAY
+                tb.Select(dayStart, dayLen);
+                return true;
+            }
+            else if (tb.SelectionStart == dayStart && tb.SelectionLength == dayLen)
+            {
+                // If Day is selected -> Select MONTH
+                tb.Select(monthStart, monthLen);
+                return true;
+            }
+            else if (tb.SelectionStart == monthStart && tb.SelectionLength == monthLen)
+            {
+                // If Month is selected -> Select YEAR
+                tb.Select(yearStart, yearLen);
+                return true;
+            }
+
+            // If Year is already selected, return false to let Focus leave the control
+            return false;
         }
         private void txtQuantity_KeyDown(object sender, KeyEventArgs e)
         {
