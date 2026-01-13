@@ -1,12 +1,13 @@
-﻿using Management_System_WPF.Models;
+﻿using Management_System_WPF.Helpers;
+using Management_System_WPF.Models;
 using Management_System_WPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using Management_System_WPF.Helpers;
 
 namespace Management_System_WPF.Views
 {
@@ -83,7 +84,10 @@ namespace Management_System_WPF.Views
         private void cmbBuyer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadEffectivePrice();
+
         }
+
+
 
         private void cmbItem_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -241,6 +245,13 @@ namespace Management_System_WPF.Views
 
             cart.Clear();
             RefreshCartDisplay();
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                cmbBuyer.Focus();
+               // cmbBuyer.IsDropDownOpen = true;
+                
+            }), System.Windows.Threading.DispatcherPriority.Background);
+
         }
 
 
@@ -255,60 +266,106 @@ namespace Management_System_WPF.Views
 
         private void dpSaleDate_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // 1. Handle TAB Key for Internal Navigation (Day -> Month -> Year -> Exit)
+            // Ensure we're working with the DatePicker's internal TextBox (where editing happens)
+            if (dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) is not DatePickerTextBox dateTextBox)
+                return;
+
+            // The DatePickerTextBox does not have a 'Child' property.
+            // Instead, just use 'dateTextBox' directly as a TextBox.
+            var textBox = dateTextBox as TextBox;
+
+            if (textBox == null) return;
+
+            // 1. Handle Tab key for navigating between Day → Month → Year
             if (e.Key == Key.Tab)
             {
-                if (HandleDatePartSelection(sender as DatePicker))
+                if (TryNavigateDatePartWithTab(textBox))
                 {
-                    e.Handled = true; // We moved the selection internally, so stop focus from leaving
-                    return;
+                    e.Handled = true;
                 }
-                // If HandleDatePartSelection returns false (Year was already selected),
-                // we let e.Handled = false, allowing the Tab to move to the next control naturally.
-            }
-
-            // 2. Ignore other editing keys (Allow typing)
-            if (e.Key == Key.Back ||
-                e.Key == Key.Delete ||
-                (e.Key >= Key.D0 && e.Key <= Key.D9) ||
-                (e.Key >= Key.NumPad0 && e.Key <= Key.NumPad9) ||
-                e.Key == Key.OemQuestion || e.Key == Key.OemQuotes || e.Key == Key.OemMinus)
-            {
                 return;
             }
 
-            // 3. Arrow Key Logic (Change Value)
+            // 2. Allow standard editing keys (digits, backspace, delete, slash, etc.)
+            if (IsEditingKey(e.Key))
+            {
+                return; // Let the TextBox handle it naturally
+            }
+
+            // 3. Handle arrow keys for date adjustment
+            if (e.Key is Key.Up or Key.Down)
+            {
+                EnsureSelectedDate();
+
+                var current = dpSaleDate.SelectedDate.Value;
+
+                DateTime newDate = (e.Key, Keyboard.Modifiers) switch
+                {
+                    (Key.Up, ModifierKeys.Control) => current.AddMonths(1),
+                    (Key.Down, ModifierKeys.Control) => current.AddMonths(-1),
+                    (Key.Up, _) => current.AddDays(1),
+                    (Key.Down, _) => current.AddDays(-1),
+                    _ => current
+                };
+
+                if (newDate != current)
+                {
+                    dpSaleDate.SelectedDate = newDate;
+                    e.Handled = true;
+                }
+            }
+        }
+
+        private void EnsureSelectedDate()
+        {
             if (dpSaleDate.SelectedDate == null)
+            {
                 dpSaleDate.SelectedDate = DateTime.Today;
-
-            DateTime current = dpSaleDate.SelectedDate.Value;
-
-            // Ctrl + Arrows (Month)
-            if (Keyboard.Modifiers == ModifierKeys.Control)
-            {
-                if (e.Key == Key.Up)
-                {
-                    dpSaleDate.SelectedDate = current.AddMonths(1);
-                    e.Handled = true;
-                }
-                else if (e.Key == Key.Down)
-                {
-                    dpSaleDate.SelectedDate = current.AddMonths(-1);
-                    e.Handled = true;
-                }
-                return;
             }
+        }
 
-            // Normal Arrows (Day)
-            if (e.Key == Key.Up)
+        private static bool IsEditingKey(Key key) => key switch
+        {
+            Key.Back or Key.Delete => true,
+            >= Key.D0 and <= Key.D9 => true,
+            >= Key.NumPad0 and <= Key.NumPad9 => true,
+            Key.OemQuestion or Key.OemQuotes or Key.OemMinus or Key.Divide => true, // / ' - 
+            _ => false
+        };
+
+        private static bool TryNavigateDatePartWithTab(TextBox textBox)
+        {
+            // Assuming the format is dd/MM/yyyy or similar, and user selects parts manually
+            // This detects current selection and moves to next logical part
+
+            string text = textBox.Text;
+            int caret = textBox.CaretIndex;
+            int selectionStart = textBox.SelectionStart;
+            int selectionLength = textBox.SelectionLength;
+
+            // Find positions of separators (assuming / as separator)
+            int firstSlash = text.IndexOf('/');
+            int secondSlash = text.Length > firstSlash + 1 ? text.IndexOf('/', firstSlash + 1) : -1;
+
+            if (firstSlash == -1 || secondSlash == -1) return false;
+
+            // Determine current part: Day (0 to firstSlash), Month (firstSlash+1 to secondSlash), Year (after secondSlash)
+            if (selectionStart + selectionLength <= firstSlash)
             {
-                dpSaleDate.SelectedDate = current.AddDays(1);
-                e.Handled = true;
+                // Currently in Day → move to Month
+                textBox.Select(firstSlash + 1, secondSlash - firstSlash - 1);
+                return true;
             }
-            else if (e.Key == Key.Down)
+            else if (selectionStart + selectionLength <= secondSlash)
             {
-                dpSaleDate.SelectedDate = current.AddDays(-1);
-                e.Handled = true;
+                // Currently in Month → move to Year
+                textBox.Select(secondSlash + 1, text.Length - secondSlash - 1);
+                return true;
+            }
+            else
+            {
+                // Already in Year → let Tab exit normally
+                return false;
             }
         }
         private bool HandleDatePartSelection(DatePicker dp)
@@ -376,6 +433,8 @@ namespace Management_System_WPF.Views
            // dpSaleDate.SelectedDate = DateTime.Today; // ✅ FIX
             cmbItem.Focus();                // keyboard-friendly
         }
+       
+
 
 
     }

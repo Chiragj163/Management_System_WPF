@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Windows.Documents;
 
 namespace Management_System_WPF.Helpers
 {
@@ -44,8 +45,8 @@ namespace Management_System_WPF.Helpers
             // =====================================================
             dt.Columns.Add("Date", typeof(string));
             foreach (var item in items)
-                dt.Columns.Add(item, typeof(string)); // string for display
-
+                dt.Columns.Add(item, typeof(string));
+            // string for display
             // =====================================================
             // 1️⃣ DAILY SALES ROWS
             // =====================================================
@@ -57,146 +58,104 @@ namespace Management_System_WPF.Helpers
             {
                 DataRow row = dt.NewRow();
 
-                row["Date"] = DateTime.TryParse(group.Key.ToString(), out DateTime d)
+                row["Date"] = DateTime.TryParse(group.Key, out DateTime d)
                     ? d.ToString("dd-MM-yyyy")
-                    : group.Key.ToString();
+                    : group.Key;
 
                 foreach (var item in items)
                 {
-                    int qty = group
+                    var values = group
                         .Where(x => x.ItemName == item)
-                        .Sum(x => x.Qty);
+                        .Select(x => x.Qty.ToString())
+                        .ToList();
 
-                    row[item] = qty == 0 ? "" : qty.ToString();
+                    row[item] = values.Count == 0 ? "" : string.Join(Environment.NewLine, values);
                 }
 
                 dt.Rows.Add(row);
             }
 
+
             // =====================================================
-            // 2️⃣ TOTAL QTY ROW
+            // 2️⃣ LESS RETURN ROW
+            // =====================================================
+            bool hasAnyReturn = returns.Any(r => r.Qty > 0);
+            var returnQtys = items.ToDictionary(item => item, item =>
+                returns.Where(r => r.ItemName == item).Sum(r => r.Qty));
+            if (hasAnyReturn) { 
+                DataRow returnRow = dt.NewRow();
+            returnRow["Date"] = "Less Return";
+
+            foreach (var item in items)
+                returnRow[item] = returnQtys[item] > 0 ? $"-{returnQtys[item]}" : "";
+
+            dt.Rows.Add(returnRow);
+            }
+            else
+            { foreach (var item in items) returnQtys[item] = 0; }
+
+            // =====================================================
+            // 3️⃣ TOTAL QTY ROW (SAFE)
             // =====================================================
             DataRow totalQtyRow = dt.NewRow();
             totalQtyRow["Date"] = "Total Qty";
 
-            var totalQtys = new Dictionary<string, int>();
+            var soldQtys = items.ToDictionary(item => item,
+                item => sales.Where(s => s.ItemName == item).Sum(s => s.Qty));
+
+            var netQtys = items.ToDictionary(item => item,
+                item => soldQtys[item] - returnQtys[item]);
 
             foreach (var item in items)
-            {
-                int total = sales
-                    .Where(x => x.ItemName == item)
-                    .Sum(x => x.Qty);
-
-                totalQtys[item] = total;
-                totalQtyRow[item] = total == 0 ? "" : total.ToString();
-            }
+                totalQtyRow[item] = netQtys[item] != 0 ? netQtys[item].ToString() : "";
 
             dt.Rows.Add(totalQtyRow);
 
+
             // =====================================================
-            // 3️⃣ UNIT PRICE ROW
+            // 4️⃣ UNIT PRICE ROW (SAFE)
             // =====================================================
             DataRow unitPriceRow = dt.NewRow();
             unitPriceRow["Date"] = "Unit Price";
 
+            var dbItems = ItemsService.GetAllItems() ?? new List<Item>();
             var unitPrices = new Dictionary<string, decimal>();
-            var dbItems = ItemsService.GetAllItems();
 
             foreach (var item in items)
             {
-                var sale = sales.FirstOrDefault(x => x.ItemName == item);
-                decimal price = sale?.Price ?? 0;
-                // ✅ Fallback: If not sold this month, get current price from Master DB
-                if (price == 0)
-                {
-                    var dbItem = dbItems.FirstOrDefault(x => x.Name == item);
-                    if (dbItem != null) price = dbItem.Price;
-                }
+                decimal price =
+                    sales.FirstOrDefault(s => s.ItemName == item)?.Price ??
+                    dbItems.FirstOrDefault(d => d.Name == item)?.Price ?? 0;
 
                 unitPrices[item] = price;
-                unitPriceRow[item] = price == 0 ? "" : price.ToString("0.##");
+                unitPriceRow[item] = price > 0 ? price.ToString("X 0.##") : "";
             }
 
             dt.Rows.Add(unitPriceRow);
 
-            // =====================================================
-            // 4️⃣ LESS RETURN ROW (ONLY IF RETURNS EXIST)
-            // =====================================================
-            var returnValues = new Dictionary<string, decimal>();
-            bool hasAnyReturn = returns.Any(r => r.Qty > 0);
-
-            if (hasAnyReturn)
-            {
-                DataRow returnRow = dt.NewRow();
-                returnRow["Date"] = "Less Return";
-
-                foreach (var item in items)
-                {
-                    int returnQty = returns
-                        .Where(r => r.ItemName == item)
-                        .Sum(r => r.Qty);
-
-                    if (returnQty > 0 && unitPrices[item] > 0)
-                    {
-                        decimal value = returnQty * unitPrices[item];
-                        returnValues[item] = value;
-                        returnRow[item] = $"-{value:0.##}";
-                    }
-                    else
-                    {
-                        returnValues[item] = 0;
-                        returnRow[item] = "";
-                    }
-                }
-
-                dt.Rows.Add(returnRow);
-            }
-            else
-            {
-                foreach (var item in items)
-                    returnValues[item] = 0;
-            }
 
             // =====================================================
-            // 5️ TOTAL PRICE ROW (NET)
+            // 5️⃣ TOTAL PRICE ROW (SAFE)
             // =====================================================
-           
             DataRow totalPriceRow = dt.NewRow();
             totalPriceRow["Date"] = "Total Price";
 
             foreach (var item in items)
             {
-                decimal gross = 0;
+                int qty = netQtys[item];
+                decimal price = unitPrices[item];
 
-                // Calculate Gross Sales (if any)
-                if (totalQtys.ContainsKey(item) && totalQtys[item] > 0 && unitPrices.ContainsKey(item))
-                {
-                    gross = totalQtys[item] * unitPrices[item];
-                }
-
-                // Get Return Value (default to 0 if missing)
-                decimal retValue = returnValues.ContainsKey(item) ? returnValues[item] : 0;
-
-                // Calculate Net
-                decimal net = gross - retValue;
-
-                // ✅ FIX: Show value if there is Gross Sales OR Return Value
-                // (Previously it might have only checked totalQtys > 0)
-                if (gross > 0 || retValue > 0)
-                {
-                    totalPriceRow[item] = net.ToString("0.##");
-                }
+                if (qty != 0 && price > 0)
+                    totalPriceRow[item] = (qty * price).ToString("₹ 0.##");
                 else
-                {
                     totalPriceRow[item] = "";
-                }
             }
 
             dt.Rows.Add(totalPriceRow);
 
+
             return dt;
         }
-
         // =========================================================
         // ITEM ROW-WISE TABLE
         // =========================================================

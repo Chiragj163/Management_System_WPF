@@ -8,6 +8,7 @@
   		<SelfContained>true</SelfContained>
   		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
   		<UseWPF>true</UseWPF>
+  		<ApplicationIcon>checklist.ico</ApplicationIcon>
 	</PropertyGroup>
 
 
@@ -20,6 +21,7 @@
     <Content Include="Database\factory.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="checklist.ico" />
   </ItemGroup>
 
   <ItemGroup>

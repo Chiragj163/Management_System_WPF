@@ -59,7 +59,7 @@ namespace Management_System_WPF.Views
 
             ContextMenu menu = new ContextMenu();
 
-            MenuItem edit = new MenuItem { Header = "Manage Buyer" };
+            MenuItem edit = new MenuItem { Header = "Manage Buyer ✏" };
             edit.Click += (s, ev) =>
             {
                 var win = new BuyerSpecialPriceWindow(buyer)
@@ -136,13 +136,20 @@ namespace Management_System_WPF.Views
                 BuyersService.UpdateBuyer(selectedBuyer);
 
                 selectedBuyer = null;
-                btnSave.Content = "Save Buyer"; // Reset UI
+                btnSave.Content = "Save Buyer";
             }
 
             txtBuyerName.Text = "";
             LoadBuyers();
-            Keyboard.ClearFocus();
+
+            // ✅ MOVE CURSOR BACK TO TEXTBOX
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtBuyerName.Focus();
+                txtBuyerName.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Input);
         }
+
         private void Buyer_DoubleClick(object sender, MouseButtonEventArgs e)
         {
             if (dgBuyers.SelectedItem is Buyer buyer)

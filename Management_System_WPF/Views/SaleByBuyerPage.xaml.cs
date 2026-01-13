@@ -19,51 +19,76 @@ namespace Management_System_WPF.Views
 {
     public partial class SaleByBuyerPage : Page
     {
-       
+        private DateTime _filterFrom;
+        private DateTime _filterTo;
+        private bool _isRangeFilter = false;
+        private Dictionary<string, string> _articleCategoryMap = new();
         private DateTime _currentMonth;
 
         public SaleByBuyerPage()
         {
             InitializeComponent();
 
-           
-
           
 
+
+
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            LoadCategories();
             LoadReport(_currentMonth); // ✅ FIX
         }
 
 
 
-
-
-        // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
-
-        private void LoadReport(DateTime month)
+        private void LoadCategories()
         {
-            var allSales = SalesService.GetSales();
+            var items = ItemsService.GetAllItems();
 
+            // ItemName → Category
+            _articleCategoryMap = items
+                .Where(i => !string.IsNullOrWhiteSpace(i.Name))
+                .ToDictionary(i => i.Name, i => i.Category);
 
+            var categories = new List<string> { "All" };
+            categories.AddRange(
+                items
+                    .Select(i => i.Category)
+                    .Where(c => !string.IsNullOrWhiteSpace(c))
+                    .Distinct()
+                    .OrderBy(c => c)
+            );
 
+            cmbCategory.ItemsSource = categories;
+            cmbCategory.SelectedIndex = 0;
+        }
+        private List<SaleRecord> ApplyCategoryFilter(List<SaleRecord> sales)
+        {
+            if (cmbCategory.SelectedItem == null ||
+                cmbCategory.SelectedItem.ToString() == "All")
+                return sales;
 
-            var sales = allSales
-                .Where(s => s.SaleDate.Month == month.Month && s.SaleDate.Year == month.Year)
-                .ToList();
+            string selectedCategory = cmbCategory.SelectedItem.ToString();
 
+            return sales.Where(s =>
+                _articleCategoryMap.ContainsKey(s.ItemName) &&
+                _articleCategoryMap[s.ItemName] == selectedCategory
+            ).ToList();
+        }
+
+        private void BuildBuyerReport(List<SaleRecord> sales, string title)
+
+        {
             if (!sales.Any())
             {
-                MessageBox.Show("No records found for this month");
+                MessageBox.Show("No records found");
                 dgBuyerSales.ItemsSource = null;
                 dgBuyerSales.Columns.Clear();
-                txtTitle.Text = month.ToString("MMMM yyyy");
-                UpdateMonthButtons();
+                txtTitle.Text = title;
                 return;
             }
 
-            txtTitle.Text = month.ToString("MMMM yyyy");
+            txtTitle.Text = title;
 
-            // ✅ NORMALIZED BUYERS
             var buyers = sales
                 .Select(s => s.BuyerName?.Trim())
                 .Where(b => !string.IsNullOrWhiteSpace(b))
@@ -77,32 +102,32 @@ namespace Management_System_WPF.Views
                 .ToList();
 
             var rows = new List<SaleByBuyerRow>();
+
             sales = sales
-    .Where(s => !string.IsNullOrWhiteSpace(s.BuyerName))
-    .ToList();
+                .Where(s => !string.IsNullOrWhiteSpace(s.BuyerName))
+                .ToList();
 
             foreach (var date in dates)
             {
                 var row = new SaleByBuyerRow { Date = date };
                 decimal rowTotal = 0m;
 
-
                 foreach (var buyer in buyers)
                 {
                     decimal total = sales
-                        .Where(x => x.BuyerName?.Trim().Equals(buyer, StringComparison.OrdinalIgnoreCase) == true
+                        .Where(x => x.BuyerName!.Trim().Equals(buyer, StringComparison.OrdinalIgnoreCase)
                                  && x.SaleDate.Date == date)
                         .Sum(x => x.Qty * x.Price);
 
                     row.BuyerValues[buyer] = total > 0 ? total : null;
-
                     if (total > 0) rowTotal += total;
                 }
 
                 row.Total = rowTotal > 0 ? rowTotal : null;
                 rows.Add(row);
             }
-            // ================= TOTAL ROW =================
+
+            // TOTAL ROW
             var totalRow = new SaleByBuyerRow { Date = DateTime.MinValue };
             decimal grandTotal = 0m;
 
@@ -119,16 +144,86 @@ namespace Management_System_WPF.Views
             totalRow.Total = grandTotal;
             rows.Add(totalRow);
 
-
-            // ✅ SAFE REFRESH ORDER
             dgBuyerSales.ItemsSource = null;
             dgBuyerSales.Columns.Clear();
             BuildDynamicColumns(buyers);
             dgBuyerSales.ItemsSource = rows;
+        }
 
+
+        // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
+
+        private void LoadReport(DateTime month)
+        {
+            _isRangeFilter = false;
+
+            var sales = SalesService.GetSales()
+                .Where(s => s.SaleDate.Month == month.Month &&
+                            s.SaleDate.Year == month.Year)
+                .ToList();
+            sales = ApplyCategoryFilter(sales);
+            BuildBuyerReport(sales, month.ToString("MMMM yyyy"));
             UpdateMonthButtons();
         }
 
+        private void LoadReportByRange(DateTime from, DateTime to)
+        {
+            _isRangeFilter = true;
+            _filterFrom = from;
+            _filterTo = to;
+
+            var sales = SalesService.GetSales()
+                .Where(s => s.SaleDate.Date >= from.Date &&
+                            s.SaleDate.Date <= to.Date)
+                .ToList();
+
+            sales = ApplyCategoryFilter(sales);
+
+            BuildBuyerReport(
+                sales,
+                $"{from:dd MMM yyyy} - {to:dd MMM yyyy}"
+            );
+        }
+
+        private void FilterThisMonth_Click(object sender, RoutedEventArgs e)
+        {
+            var now = DateTime.Now;
+            _currentMonth = new DateTime(now.Year, now.Month, 1);
+            LoadReport(_currentMonth);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterSixMonths_Click(object sender, RoutedEventArgs e)
+        {
+            LoadReportByRange(DateTime.Today.AddMonths(-6), DateTime.Today);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterYear_Click(object sender, RoutedEventArgs e)
+        {
+            var now = DateTime.Now;
+            LoadReportByRange(
+                new DateTime(now.Year, 1, 1),
+                new DateTime(now.Year, 12, 31)
+            );
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterCustom_Click(object sender, RoutedEventArgs e)
+        {
+            if (!dpFrom.SelectedDate.HasValue || !dpTo.SelectedDate.HasValue)
+            {
+                MessageBox.Show("Please select both dates");
+                return;
+            }
+
+            LoadReportByRange(dpFrom.SelectedDate.Value, dpTo.SelectedDate.Value);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            FilterPanel.Visibility =
+                FilterPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
 
 
         // BUILD TABLE COLUMNS
@@ -393,6 +488,18 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
 
         // BUTTON: PRINT
 
+        private void Filter_Category_Click(object sender, SelectionChangedEventArgs e)
+        {
+            // Re-apply current report with selected category
+            if (_isRangeFilter)
+            {
+                LoadReportByRange(_filterFrom, _filterTo);
+            }
+            else
+            {
+                LoadReport(_currentMonth);
+            }
+        }
 
 
         private void Back_Click(object sender, RoutedEventArgs e)

@@ -55,9 +55,9 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}" 
-                                BorderBrush="{TemplateBinding BorderBrush}" 
-                                BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="6">
+                            BorderBrush="{TemplateBinding BorderBrush}" 
+                            BorderThickness="{TemplateBinding BorderThickness}" 
+                            CornerRadius="6">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -86,6 +86,57 @@
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F0F0F0"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ScrollThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="2.5"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
+            <Setter Property="Foreground" Value="#B0BEC5" />
+            <Setter Property="Background" Value="Transparent" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid x:Name="GridRoot" Background="Transparent" SnapsToDevicePixels="true">
+                            <Track x:Name="PART_Track" IsDirectionReversed="true" Focusable="false">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollThumb}" Background="{TemplateBinding Foreground}" />
+                                </Track.Thumb>
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" />
+                                </Track.IncreaseRepeatButton>
+                            </Track>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="8"/>
+                    <Setter Property="MinWidth" Value="8"/>
+                </Trigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="MinHeight" Value="8"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -152,11 +203,11 @@ Click="Back_Click">
                     
                 </StackPanel>
                 <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
-                    <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#78909C" FontWeight="SemiBold"/>
+                    <TextBlock Text="Category:" VerticalAlignment="Center"  FontSize="16" Margin="0,0,10,0" Foreground="Black" FontWeight="SemiBold"/>
                     <ComboBox x:Name="cmbFilterCategory" 
-Width="150" 
-Height="35"
-Margin="0,0,30,0"
+Width="145" 
+Height="33"
+Margin="0,0,10,0"
 VerticalContentAlignment="Center"
 FontSize="14"
 SelectionChanged="FilterCategory_Changed"/>
@@ -166,8 +217,17 @@ SelectionChanged="FilterCategory_Changed"/>
                     <Button Content="📊 Excel"
              Style="{StaticResource PrimaryButton}"
              Background="#4CAF50"
+                            Margin="0,0,10,0"
              Height="35" Width="80"
              Click="ExportExcel_Click"/>
+                    <Button x:Name="btnFilter"
+        Content="🔍 Filter"
+        Style="{StaticResource PrimaryButton}"
+        Height="35"
+        Width="100"
+        Click="Filter_Click"/>
+
+
                 </StackPanel>
                 <Border Grid.Row="2" 
                         Margin="15,0,15,5"
@@ -181,17 +241,20 @@ SelectionChanged="FilterCategory_Changed"/>
                               FrozenColumnCount="1"
                               CanUserAddRows="False"
                               HeadersVisibility="Column"                             
-                              RowHeight="30"
+                              
+                              MinRowHeight="30"
                               FontSize="15"
+                              IsReadOnly="True"
+                              CanUserSortColumns="False"
                               SelectionUnit="Cell"
                               SelectionMode="Single"
                               ColumnHeaderHeight="40"
                               GridLinesVisibility="All"
-                              HorizontalGridLinesBrush="Gray"
-                              VerticalGridLinesBrush="Gray"
+                              HorizontalGridLinesBrush="Transparent"
+                              VerticalGridLinesBrush="Transparent"
                               BorderThickness="1"                             
                               Background="#80FFFFFF"
-                              BorderBrush="Transparent"
+                              
                               SelectedCellsChanged="dgArticles_SelectedCellsChanged">
 
                         <DataGrid.Resources>
@@ -201,17 +264,19 @@ SelectionChanged="FilterCategory_Changed"/>
                                 <Setter Property="FontSize" Value="15"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                <Setter Property="BorderBrush" Value="#9E9E9E"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,2"/>
+                                <Setter Property="BorderThickness" Value="1,1,1,1"/>
+                                <Setter Property="BorderBrush" Value="Gray"/>
+                                <Setter Property="Margin" Value="1.5"/>
                                 <Setter Property="Padding" Value="5"/>
                             </Style>
 
                             <Style TargetType="DataGridCell">
                                 <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                <Setter Property="BorderThickness" Value="0,0,1,1"/>
-                                <Setter Property="BorderBrush" Value="#B5B5B5"/>
+                                <Setter Property="BorderThickness" Value="1,1,1,1"/>
+                                <Setter Property="BorderBrush" Value="Gray"/>
+                                <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                                <Setter Property="Margin" Value="1.5"/>
                                 <Setter Property="Padding" Value="5"/>
                                 <Style.Triggers>
                                     <Trigger Property="IsSelected" Value="True">
@@ -268,6 +333,48 @@ SelectionChanged="FilterCategory_Changed"/>
                                    Foreground="{StaticResource TextDark}"
                                    TextAlignment="Center"
                                    Margin="0,0,0,10"/>
+                        
+                        <StackPanel Grid.Column="3"  Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">     
+                            <TextBlock Text="Category:" VerticalAlignment="Center"  FontSize="16" Margin="0,0,10,0" Foreground="Black" FontWeight="SemiBold"/>
+                        <ComboBox x:Name="cmbSaleTillNowFilterCategory" 
+Width="145" 
+Height="28"
+Margin="0,0,10,0"
+VerticalContentAlignment="Center"
+FontSize="14"
+SelectionChanged="FilterCategory_ChangedSaleTillNow"/>
+                            
+                            
+                            </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="10">
+                            <ComboBox x:Name="cmbYearFilter"
+          Width="120" Height="20"
+          Margin="0,0,20,0"
+          SelectionChanged="cmbYearFilter_Changed">
+                            </ComboBox>
+
+                           
+
+                            <ComboBox x:Name="cmbMonthFilter"
+              Width="120" Height="20"
+              Margin="5"
+              SelectionChanged="MonthFilter_Changed">
+                                <ComboBoxItem Content="All"/>
+                                <ComboBoxItem Content="January"/>
+                                <ComboBoxItem Content="February"/>
+                                <ComboBoxItem Content="March"/>
+                                <ComboBoxItem Content="April"/>
+                                <ComboBoxItem Content="May"/>
+                                <ComboBoxItem Content="June"/>
+                                <ComboBoxItem Content="July"/>
+                                <ComboBoxItem Content="August"/>
+                                <ComboBoxItem Content="September"/>
+                                <ComboBoxItem Content="October"/>
+                                <ComboBoxItem Content="November"/>
+                                <ComboBoxItem Content="December"/>
+                            </ComboBox>
+                        </StackPanel>
+
 
                         <DataGrid Grid.Row="1"
                                   x:Name="dgSalesTillNow"
@@ -326,6 +433,51 @@ SelectionChanged="FilterCategory_Changed"/>
 
                         </DataGrid>
                     </Grid>
+                </Border>
+                <Border x:Name="FilterPanel"
+         Grid.Row="1" Grid.RowSpan="2"
+         Visibility="Collapsed"
+         Background="White"
+         BorderBrush="{StaticResource PrimaryColor}"
+         BorderThickness="1"
+         CornerRadius="8"
+         Padding="20"
+         Width="320"
+         HorizontalAlignment="Right"
+         VerticalAlignment="Top"
+         Margin="0,55,25,0">
+
+
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2"/>
+                    </Border.Effect>
+
+                    <StackPanel>
+                        <Grid Margin="0,0,0,15">
+                            <TextBlock Text="Filter Sales" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                            <Button Content="✖" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Foreground="Gray" Click="Filter_Click"/>
+                        </Grid>
+
+                        <Button Content="This Month" Click="FilterThisMonth_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
+                        <Button Content="Last 6 Months" Click="FilterSixMonths_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
+                        <Button Content="This Year" Click="FilterYear_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,15"/>
+
+                        <Separator Background="#EEE" Margin="0,0,0,15"/>
+
+                        <TextBlock Text="Custom Range" FontWeight="SemiBold" Foreground="{StaticResource TextLight}" Margin="0,0,0,10"/>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="10"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <DatePicker x:Name="dpFrom" Grid.Column="0" Height="35"/>
+                            <DatePicker x:Name="dpTo" Grid.Column="2" Height="35"/>
+                        </Grid>
+
+                        <Button Content="Apply Filter" Click="FilterCustom_Click" Style="{StaticResource PrimaryButton}" Height="40"/>
+                    </StackPanel>
                 </Border>
 
             </Grid>

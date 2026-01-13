@@ -216,6 +216,14 @@ namespace Management_System_WPF.Views
             cmbCategory.Text = "";
             selectedItem = null;
             btnSave.Content = "Save Article";
+
+            // ✅ FORCE CURSOR BACK TO ITEM NAME
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtItemName.Focus();
+                txtItemName.SelectAll();
+            }), System.Windows.Threading.DispatcherPriority.Input);
         }
+
     }
 }

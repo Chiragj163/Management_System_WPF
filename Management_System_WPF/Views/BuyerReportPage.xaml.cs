@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Security.Policy;
 using System.Windows;
 using System.Windows.Controls;
@@ -31,7 +32,7 @@ namespace Management_System_WPF.Views
         public BuyerReportPage(int id, string buyerName = "")
         {
             InitializeComponent();
-
+            dgBuyerReport.AutoGeneratingColumn += DgBuyerReport_AutoGeneratingColumn;
             buyerId = id;
             if (!string.IsNullOrWhiteSpace(buyerName))
                 txtBuyerName.Text = buyerName;
@@ -39,7 +40,73 @@ namespace Management_System_WPF.Views
 
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             LoadBuyerData();
+            LoadCategories();
+
         }
+        private void LoadCategories()
+        {
+            try
+            {
+                var items = ItemsService.GetAllItems();
+
+                var categories = new List<string> { "All" };
+                categories.AddRange(items.Select(x => x.Category)
+                                         .Distinct()
+                                         .OrderBy(x => x));
+
+                cmbCategory.ItemsSource = categories;
+                cmbCategory.SelectedIndex = 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading categories: " + ex.Message);
+            }
+        }
+        private void CategoryFilter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyCategoryFilter();
+        }
+        private void ApplyCategoryFilter()
+        {
+            if (cmbCategory.SelectedItem == null) return;
+
+            string selectedCategory = cmbCategory.SelectedItem.ToString();
+
+            // Rebuild main month view (sales + returns)
+            var sales = _cachedSales;
+            var returns = _cachedReturns;
+
+            // Filter by CATEGORY
+            if (selectedCategory != "All")
+            {
+                var allItems = ItemsService.GetAllItems()
+                               .ToDictionary(i => i.Name, i => i.Category);
+
+                sales = sales.Where(s =>
+                    allItems.ContainsKey(s.ItemName) &&
+                    allItems[s.ItemName] == selectedCategory
+                ).ToList();
+
+                returns = returns.Where(r =>
+                    allItems.ContainsKey(r.ItemName) &&
+                    allItems[r.ItemName] == selectedCategory
+                ).ToList();
+            }
+
+            // Create new filtered pivot
+            DataTable pivot = PivotHelper.CreatePivotTableWithTotals(sales, returns);
+
+            BindPivotToGrid(pivot);
+
+            // Update totals
+            decimal total = sales.Sum(x => x.Qty * x.Price);
+            decimal returnTotal = returns.Sum(r => r.Qty * SalesService.GetItemPriceFromMaster(r.ItemName));
+
+            decimal net = total - returnTotal;
+
+            txtTotalSales.Text = $"₹ {net:N2}";
+        }
+
 
         // =========================================================
         // MAIN LOAD (MONTH MODE)
@@ -75,6 +142,8 @@ namespace Management_System_WPF.Views
 
             txtMonthName.Text = _currentMonth.ToString("MMMM yyyy");
             UpdateMonthNavigationButtons();
+            ApplyCategoryFilter();
+
         }
 
         // =========================================================
@@ -122,6 +191,10 @@ namespace Management_System_WPF.Views
             txtTotalSales.Text = $"₹ {sales:N2}";
             txtPayment.Text = $"₹ {payment:N2}";
             txtBalance.Text = $"₹ {sales - payment:N2}";
+
+            PaymentPanel.Visibility = payment > 0
+       ? Visibility.Visible
+       : Visibility.Collapsed;
         }
 
         // =========================================================
@@ -315,9 +388,9 @@ namespace Management_System_WPF.Views
         }
 
 
-        // =========================================================
+       
         // PRINT
-        // =========================================================
+        
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             var pd = new PrintDialog();
@@ -325,8 +398,8 @@ namespace Management_System_WPF.Views
                 return;
 
             // Get printer page size
-            double pageWidth = pd.PrintableAreaWidth;
-            double pageHeight = pd.PrintableAreaHeight;
+            double pageWidth = 793.7; 
+            double pageHeight = 1122.5;
 
             // Build a document specifically for printing
             FlowDocument doc = BuildInvoiceDocumentForPrint(pageWidth, pageHeight);
@@ -336,47 +409,36 @@ namespace Management_System_WPF.Views
                 $"Report - {txtBuyerName.Text}"
             );
         }
+        private string FormatDecimal(decimal value)
+        {
+            return value % 1 == 0
+                ? ((int)value).ToString()           
+                : value.ToString("0.##");           
+        }
 
         private FlowDocument BuildInvoiceDocumentForPrint(double pageWidth, double pageHeight)
         {
-            // Create a new FlowDocument dedicated to print layout
+            int ROWS_PER_PAGE = 26;   // your requirement
+
+            double spacingSize = 1;
+            double marginSize = 0;
+
             var doc = new FlowDocument
             {
-                FontFamily = new FontFamily("Calibri"),
-                FontSize = 10,
+                FontFamily = new FontFamily("Arial"),
+                FontSize = 15,
                 TextAlignment = TextAlignment.Left,
                 PageWidth = pageWidth,
                 PageHeight = pageHeight,
-                PagePadding = new Thickness(30),
+                PagePadding = new Thickness(marginSize),
                 ColumnGap = 0,
-                ColumnWidth = pageWidth - 60 // width minus left/right padding
+                ColumnWidth = pageWidth
             };
 
-            // ============ 1. TITLE & SUBTITLE ============
-            var buyerName = (txtBuyerName.Text ?? string.Empty).Trim();
-            var monthName = (txtMonthName.Text ?? string.Empty).Trim();
+            // ========= FETCH DATA (your original logic preserved) =========
 
-            var titlePara = new Paragraph(new Run(buyerName.ToUpperInvariant()))
-            {
-                FontSize = 24,
-                FontWeight = FontWeights.Bold,
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 5)
-            };
-            doc.Blocks.Add(titlePara);
+            var buyerName = (txtBuyerName.Text ?? string.Empty).Trim().ToUpperInvariant();
 
-            var subHeader = new Paragraph(
-                new Run($"{monthName} | Generated: {DateTime.Now:dd-MM-yyyy}")
-            )
-            {
-                FontSize = 12,
-                Foreground = Brushes.Gray,
-                TextAlignment = TextAlignment.Center,
-                Margin = new Thickness(0, 0, 0, 20)
-            };
-            doc.Blocks.Add(subHeader);
-           
-            // ============ 2. FETCH & GROUP DATA ============
             var sales = SalesService.GetSalesBetweenDates(
                 buyerId,
                 _currentMonth,
@@ -394,64 +456,54 @@ namespace Management_System_WPF.Views
                 doc.Blocks.Add(new Paragraph(new Run("No sales or returns for this month.")));
                 return doc;
             }
-           
 
-            // ✅ SAFE dates from both sales + returns
+            // DATES
             var dates = new List<DateTime>();
             foreach (var s in sales)
-            {
-                if (DateTime.TryParse(s.Date, out DateTime saleDate))
-                    dates.Add(saleDate.Date);
-            }
+                if (DateTime.TryParse(s.Date, out var d)) dates.Add(d.Date);
+
             foreach (var r in returnsList)
-            {
-                if (DateTime.TryParse(r.Date, out DateTime retDate))
-                    dates.Add(retDate.Date);
-            }
-            dates = dates.Distinct().OrderBy(d => d).ToList();
+                if (DateTime.TryParse(r.Date, out var d)) dates.Add(d.Date);
+
+            dates = dates.Distinct().OrderBy(x => x).ToList();
+
             var returnTotals = returnsList
-                
-                 .GroupBy(r => r.ItemName.Trim())// ← NORMALIZE: trim + uppercase
+                .GroupBy(r => r.ItemName.Trim())
                 .ToDictionary(g => g.Key.ToUpperInvariant(), g => g.Sum(x => x.Qty));
 
-            // 4. Group by item WITH NET TOTALS AND DateQty (SAFE parsing)
-            // Get ALL unique items from sales OR returns (FIXED)
+            // ITEMS LIST
             var allItemNames = sales.Select(s => s.ItemName)
-                .Concat(returnsList.Select(r => r.ItemName))
-                .Distinct()
-                .OrderBy(name => name)
-                .ToList();
+               .Concat(returnsList.Select(r => r.ItemName))
+               .Distinct()
+               .OrderBy(name => name)
+               .ToList();
 
             var items = allItemNames.Select(itemName =>
             {
-                // Sales data (0 if no sales)
                 var salesForItem = sales.Where(s => s.ItemName == itemName);
-                decimal unitPrice =
-    salesForItem.Any()
-        ? salesForItem.First().Price
-        : SalesService.GetItemPriceFromMaster(itemName);
 
+                decimal unitPrice = salesForItem.Any()
+                    ? salesForItem.First().Price
+                    : SalesService.GetItemPriceFromMaster(itemName);
 
                 int totalQty = salesForItem.Sum(s => s.Qty);
 
-                // Returns data
                 int totalReturns = returnTotals.TryGetValue(
-    itemName.Trim().ToUpperInvariant(), out int r
-) ? r : 0;
+                    itemName.Trim().ToUpperInvariant(), out var rt)
+                    ? rt : 0;
 
                 int netQty = totalQty - totalReturns;
                 decimal netAmount = netQty * unitPrice;
 
-                // DateQty (sales only)
-                var dateQty = new Dictionary<DateTime, int>();
-                foreach (var sale in salesForItem)
+                var dateQty = new Dictionary<DateTime, List<int>>();
+                foreach (var s in salesForItem)
                 {
-                    if (DateTime.TryParse(sale.Date, out DateTime saleDate))
+                    if (DateTime.TryParse(s.Date, out var sd))
                     {
-                        var dateKey = saleDate.Date;
-                        dateQty[dateKey] = dateQty.TryGetValue(dateKey, out int existing)
-                            ? existing + sale.Qty
-                            : sale.Qty;
+                        var dk = sd.Date;
+                        if (!dateQty.ContainsKey(dk))
+                            dateQty[dk] = new List<int>();
+                        dateQty[dk].Add(s.Qty);
                     }
                 }
 
@@ -465,168 +517,215 @@ namespace Management_System_WPF.Views
                     TotalAmount = netAmount,
                     DateQty = dateQty
                 };
-            }).Where(i => i.TotalQty > 0 || i.TotalReturns > 0) // only active items
-              .ToList();
+            }).Where(x => x.TotalQty > 0 || x.TotalReturns > 0).ToList();
 
+            int totalColumns = 1 + items.Count;
 
+            // ========= PAGINATION ENGINE =========
 
+            int totalDateRows = dates.Count;
+            int pageCount = (int)Math.Ceiling(totalDateRows / (double)ROWS_PER_PAGE);
 
+            int rowIndex = 0;
 
-
-            // ============ 3. TABLE SETUP ============
-            var table = new Table
+            for (int page = 1; page <= pageCount; page++)
             {
-                CellSpacing = 0
-            };
-            doc.Blocks.Add(table);
+                
+                // ----- PAGE HEADER (ONLY on first page) -----
+                if (page == 1)
+                    doc.Blocks.Add(BuildBuyerHeaderTable(buyerName, pageWidth));
 
-            // Ensure column collection initialized
-            table.Columns.Clear();
 
-            // Date column (fixed width)
-            const double dateColumnWidth = 90; // adjust as needed
-            table.Columns.Add(new TableColumn { Width = new GridLength(dateColumnWidth) });
+                // ----- MAIN GRID TABLE -----
+                var table = BuildNewPageTable(items, pageWidth);
+                doc.Blocks.Add(table);
 
-            // Item columns: equally share remaining width
-            double remainingWidth = Math.Max(0, doc.ColumnWidth - dateColumnWidth);
-            double perItemWidth = items.Count > 0 ? remainingWidth / items.Count : remainingWidth;
+                var body = new TableRowGroup();
+                table.RowGroups.Add(body);
 
-            foreach (var _ in items)
-            {
-                table.Columns.Add(new TableColumn
+                // ----- ADD 26 rows max -----
+                for (int i = 0; i < ROWS_PER_PAGE && rowIndex < totalDateRows; i++, rowIndex++)
                 {
-                    Width = new GridLength(perItemWidth)
-                });
+                    var date = dates[rowIndex];
+                    var row = new TableRow();
+                    body.Rows.Add(row);
+
+                    AddExcelCell(row, date.ToString("dd-MMM-yy"), true, false);
+
+                    foreach (var item in items)
+                    {
+                        string qty = item.DateQty.TryGetValue(date, out var list)
+                            ? string.Join("\n", list)
+                            : "";
+
+                        AddExcelCell(row, qty, true, false);
+                    }
+                }
+
+                // ---- If not last page → NO totals, continue loop ----
+                if (page != pageCount)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run("\n"))); // small gap
+                    continue;
+                }
+
+                // ========= LAST PAGE — ADD TOTALS =========
+
+                bool hasAnyReturns = returnTotals.Any(x => x.Value > 0);
+
+                if (hasAnyReturns)
+                {
+                    var returnRow = new TableRow();
+                    body.Rows.Add(returnRow);
+                    AddExcelCell(returnRow, "Return", true, true);
+
+                    foreach (var item in items)
+                    {
+                        int retQty = returnTotals.TryGetValue(item.Item.Trim().ToUpperInvariant(), out var rq)
+                            ? rq : 0;
+                        AddExcelCell(returnRow, retQty == 0 ? "" : "-" + rq, true, false);
+                    }
+                }
+
+                // Qty row
+                var qtyRow = new TableRow();
+                body.Rows.Add(qtyRow);
+                AddExcelCell(qtyRow, "Qty", true, true);
+                foreach (var item in items)
+                    AddExcelCell(qtyRow, item.NetQty.ToString(), true, false);
+
+                // Price row
+                var priceRow = new TableRow();
+                body.Rows.Add(priceRow);
+                AddExcelCell(priceRow, "Price", true, true);
+                foreach (var item in items)
+                    AddExcelCell(priceRow, "X " + FormatDecimal(item.UnitPrice), true, false);
+
+                // Total Amount row
+                var amountRow = new TableRow();
+                body.Rows.Add(amountRow);
+                AddExcelCell(amountRow, "Total", true, true);
+                foreach (var item in items)
+                    AddExcelCell(amountRow, FormatDecimal(item.TotalAmount), true, false);
+
+                // --- Summary rows ---
+                decimal grandTotal = items.Sum(x => x.TotalAmount);
+                decimal payment = PaymentService.GetPayment(
+                    buyerId,
+                    _currentMonth.Year,
+                    _currentMonth.Month
+                );
+                decimal balance = grandTotal - payment;
+
+                AddSummaryRow(body, "Grand Total", grandTotal, totalColumns, Brushes.LightCyan, true);
+                if (payment > 0)
+                {
+                    AddSummaryRow(body, "Less Amount", payment, totalColumns, Brushes.LightCyan, true);
+                    AddSummaryRow(body, "Due Amount", balance, totalColumns, Brushes.LightCyan, true);
+                }
             }
 
-            // ============ 4. TABLE HEADER ============
+            return doc;
+        }
+        private Table BuildBuyerHeaderTable(string buyerName, double pageWidth)
+        {
+            var table = new Table
+            {
+                CellSpacing = 1,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0)
+            };
+
+            table.Columns.Add(new TableColumn { Width = new GridLength(pageWidth) });
+
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
+
+            var row = new TableRow();
+            group.Rows.Add(row);
+
+            var para = new Paragraph(new Run(buyerName))
+            {
+                FontSize = 20,
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0)
+            };
+
+            var cell = new TableCell(para)
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Background = Brushes.LightCyan,
+                Padding = new Thickness(5)
+            };
+
+            row.Cells.Add(cell);
+
+            return table;
+        }
+        private Table BuildNewPageTable(IEnumerable<object> items, double pageWidth)
+        {
+            double spacingSize = 1;
+
+            var table = new Table
+            {
+                BorderBrush = Brushes.Black,
+                CellSpacing = spacingSize,
+                BorderThickness = new Thickness(0),
+                Background = Brushes.White,
+                Margin = new Thickness(0)
+            };
+
+            table.Columns.Clear();
+
+            // Fixed date column width
+            const double dateColumnWidth = 60;
+            table.Columns.Add(new TableColumn { Width = new GridLength(dateColumnWidth) });
+
+            var itemList = items.ToList();
+            int itemCount = itemList.Count;
+
+            if (itemCount > 0)
+            {
+                double totalGapSpace = (itemCount + 2) * spacingSize;
+                double availableWidth = pageWidth - dateColumnWidth - totalGapSpace;
+                availableWidth = Math.Max(1, availableWidth);
+
+                double perItemWidth = availableWidth / itemCount;
+
+                for (int i = 0; i < itemCount; i++)
+                    table.Columns.Add(new TableColumn { Width = new GridLength(perItemWidth) });
+            }
+
+            // Header row
             var headerGroup = new TableRowGroup();
             table.RowGroups.Add(headerGroup);
 
             var headerRow = new TableRow();
             headerGroup.Rows.Add(headerRow);
 
-            AddExcelCell(headerRow, "Date", isBold: true, isHeader: true);
+            AddExcelCell(headerRow, "Date", true, true);
 
-            foreach (var item in items)
+            foreach (var item in itemList)
             {
-                AddExcelCell(headerRow, item.Item, isBold: true, isHeader: true);
+                // Use reflection to read "Item" property from anonymous type
+                string itemName = (string)item.GetType().GetProperty("Item").GetValue(item);
+                AddExcelCell(headerRow, itemName, true, true);
             }
 
-            // ============ 5. TABLE BODY ============
-            var body = new TableRowGroup();
-            table.RowGroups.Add(body);
-
-            foreach (var date in dates)
-            {
-                var row = new TableRow();
-                body.Rows.Add(row);
-
-                string dateStr = date.ToString("dd-MM-yyyy");
-                AddExcelCell(row, dateStr, isBold: false, isHeader: false);
-
-                foreach (var item in items)
-                {
-                    string qty = item.DateQty.TryGetValue(date, out int q) ? q.ToString() : string.Empty;
-                    AddExcelCell(row, qty, isBold: false, isHeader: false);
-                }
-            }
-
-            // Spacer
-            body.Rows.Add(new TableRow());
-            // Return Qty row (between Total Qty and Unit Price)
-            var returnRow = new TableRow();
-            body.Rows.Add(returnRow);
-
-            AddExcelCell(returnRow, "Return", isBold: true, isHeader: true);
-
-            foreach (var item in items)
-            {
-                int returnQty = returnTotals.TryGetValue(item.Item.Trim().ToUpperInvariant(), out var rq)
-                    ? rq : 0;
-                string text = returnQty == 0 ? string.Empty : $"-{returnQty}";
-                AddExcelCell(returnRow, text, isBold: true, isHeader: false);
-            }
-
-            // Total Qty row
-            var qtyRow = new TableRow();
-            body.Rows.Add(qtyRow);
-
-            AddExcelCell(qtyRow, "Total Qty", isBold: true, isHeader: true);
-            foreach (var item in items)
-            {
-                AddExcelCell(qtyRow, item.TotalQty.ToString(), isBold: true, isHeader: false);
-            }
-           
-
-           
-            // Unit Price row
-            var priceRow = new TableRow();
-            body.Rows.Add(priceRow);
-            AddExcelCell(priceRow, "Unit Price", isBold: true, isHeader: true);
-            foreach (var item in items)
-            {
-                AddExcelCell(priceRow, item.UnitPrice.ToString("X 0.00"), isBold: false, isHeader: false);
-            }
-            // Total Amount row (now shows NET totals)
-            var amountRow = new TableRow();
-            body.Rows.Add(amountRow);
-            AddExcelCell(amountRow, "Total", isBold: true, isHeader: true);
-            foreach (var item in items)
-            {
-                AddExcelCell(amountRow, item.TotalAmount.ToString("₹0.00"), isBold: true, isHeader: false);
-            }
-
-
-            // ============ 6. GRAND TOTAL ============
-            // ===== GRAND TOTAL ROW (1 label + 1 big value cell) =====
-            // Grand Total (now sums NET totals ✓)
-            decimal grandTotal = items.Sum(x => x.TotalAmount);  // FIXED: now correct net total
-
-
-            var grandTotalRow = new TableRow();
-            body.Rows.Add(grandTotalRow);
-
-            int totalColumns = 1 + items.Count;
-
-            // 1) First column: "Grand Total" label
-            var labelCell = new TableCell(new Paragraph(new Run("Grand Total")))
-            {
-                TextAlignment = TextAlignment.Center,
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(0.8),
-                Padding = new Thickness(6, 4, 6, 4),
-                Background = Brushes.DarkGreen,
-                Foreground = Brushes.White,
-                FontWeight = FontWeights.Bold
-            };
-            grandTotalRow.Cells.Add(labelCell);
-
-            // 2) ONE BIG CELL spanning all remaining columns for the value
-            var valueCell = new TableCell(new Paragraph(new Run($"₹ {grandTotal:0,0.00}")))
-            {
-                TextAlignment = TextAlignment.Center,
-                BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(0.8),
-                Padding = new Thickness(6, 4, 6, 4),
-                Background = Brushes.DarkGreen,
-                Foreground = Brushes.White,
-                FontWeight = FontWeights.Bold,
-                ColumnSpan = totalColumns - 1  // spans ALL remaining columns
-            };
-            grandTotalRow.Cells.Add(valueCell);
-
-
-            return doc;
+            return table;
         }
+
 
         private void AddExcelCell(TableRow row, string text, bool isBold, bool isHeader)
         {
             var p = new Paragraph(new Run(text ?? string.Empty))
             {
-                Margin = new Thickness(0),
+                Margin = new Thickness(1,1,1,1),
                 TextAlignment = TextAlignment.Center,
-                FontSize = 11,
+                FontSize = 13.5,
                 FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal
             };
 
@@ -634,8 +733,8 @@ namespace Management_System_WPF.Views
             {
                 TextAlignment = TextAlignment.Center,
                 BorderBrush = Brushes.Black,
-                BorderThickness = new Thickness(0.8),
-                Padding = new Thickness(6, 4, 6, 4)
+                BorderThickness = new Thickness(1),  // Increased for double-line effect
+                Padding = new Thickness(1, 2, 1, 2)
             };
 
             if (isHeader)
@@ -644,6 +743,44 @@ namespace Management_System_WPF.Views
             row.Cells.Add(cell);
         }
 
+          private void AddSummaryRow(
+    TableRowGroup body,
+    string label,
+    decimal value,
+    int columnSpan,
+    Brush background,
+    bool bold = true)
+        {
+            var row = new TableRow();
+            body.Rows.Add(row);
+
+            // Label cell
+            row.Cells.Add(new TableCell(new Paragraph(new Run(label)))
+            {
+                TextAlignment = TextAlignment.Center,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1.5),
+                Padding = new Thickness(2),
+                FontSize = 14,
+                Background = background,
+                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = Brushes.Black
+            });
+
+            // Value cell
+            row.Cells.Add(new TableCell(new Paragraph(new Run($"₹ {value:0,0.00}")))
+            {
+                ColumnSpan = columnSpan - 1,
+                TextAlignment = TextAlignment.Center,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1.5),
+                FontSize=17,
+                Padding = new Thickness(2),
+                Background = background,
+                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = Brushes.Black
+            });
+        }
         // =========================================================
         // EXCEL
         // =========================================================
@@ -719,7 +856,12 @@ namespace Management_System_WPF.Views
                 NavigationService.GoBack();
             }
         }
+        private void DgBuyerReport_AutoGeneratingColumn(object sender, DataGridAutoGeneratingColumnEventArgs e)
+        {
+            e.Column.CanUserSort = false;
+        }
 
+      
 
     }
 }

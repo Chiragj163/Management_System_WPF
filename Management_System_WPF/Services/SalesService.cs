@@ -1,9 +1,10 @@
 ﻿using Management_System_WPF.Models;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SQLite;
 using System.Linq;
-using System.Data;
+using System.Windows;
 
 
 namespace Management_System_WPF.Services
@@ -531,18 +532,22 @@ ORDER BY s.sale_id DESC;
                 {
                     conn.Open();
 
-                    // ✅ FIX: Changed 'si.quantity' to 'si.qty' based on your old code
+                    // 🔥 IMPORTANT: NO SUM, NO GROUP BY
                     string query = @"
-                SELECT 
-                    date(s.sale_date) as SaleDate, 
-                    i.item_name as Article, 
-                    COALESCE(SUM(si.qty), 0) as Qty  -- <-- FIXED COLUMN NAME
-                FROM sale_items si
-                JOIN sales s ON s.sale_id = si.sale_id
-                JOIN items i ON i.item_id = si.item_id
-                WHERE strftime('%Y', s.sale_date) = @year 
-                  AND strftime('%m', s.sale_date) = @month
-                GROUP BY date(s.sale_date), i.item_name";
+               SELECT 
+    date(s.sale_date) as SaleDate,
+    i.item_name as Article,
+    si.qty as Qty,
+    b.buyer_name as BuyerName
+FROM sale_items si
+JOIN sales s ON s.sale_id = si.sale_id
+JOIN buyers b ON b.buyer_id = s.buyer_id
+JOIN items i ON i.item_id = si.item_id
+WHERE strftime('%Y', s.sale_date) = @year
+  AND strftime('%m', s.sale_date) = @month
+ORDER BY s.sale_date;
+
+            ";
 
                     using (var cmd = new SQLiteCommand(query, conn))
                     {
@@ -557,8 +562,8 @@ ORDER BY s.sale_id DESC;
                                 {
                                     Date = reader["SaleDate"].ToString(),
                                     Article = reader["Article"].ToString(),
-                                    // Safely handle conversion
-                                    Qty = Convert.ToInt32(reader["Qty"])
+                                    Qty = Convert.ToInt32(reader["Qty"]),
+                                    BuyerName = reader["BuyerName"].ToString()
                                 });
                             }
                         }
@@ -572,8 +577,7 @@ ORDER BY s.sale_id DESC;
 
             return list;
         }
-
-        public static List<ArticleSaleModel> GetArticleSalesTillNow()
+        public static List<ArticleSaleModel> GetArticleSalesByDateRange(DateTime from, DateTime to)
         {
             var list = new List<ArticleSaleModel>();
 
@@ -583,15 +587,71 @@ ORDER BY s.sale_id DESC;
                 {
                     conn.Open();
 
-                    // ✅ FIX: Changed 'si.quantity' to 'si.qty' here too
+                    // 🔥 SAME LOGIC AS MONTH — NO SUM, NO GROUP
                     string query = @"
                 SELECT 
-                    'Total' as SaleDate, 
-                    i.item_name as Article, 
-                    COALESCE(SUM(si.qty), 0) as Qty -- <-- FIXED COLUMN NAME
+                    date(s.sale_date) AS SaleDate,
+                    i.item_name AS Article,
+                    si.qty AS Qty,
+                    b.buyer_name AS BuyerName
                 FROM sale_items si
+                JOIN sales s ON s.sale_id = si.sale_id
+                JOIN buyers b ON b.buyer_id = s.buyer_id
                 JOIN items i ON i.item_id = si.item_id
-                GROUP BY i.item_name";
+                WHERE date(s.sale_date) BETWEEN @from AND @to
+                ORDER BY s.sale_date;
+            ";
+
+                    using (var cmd = new SQLiteCommand(query, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@from", from.ToString("yyyy-MM-dd"));
+                        cmd.Parameters.AddWithValue("@to", to.ToString("yyyy-MM-dd"));
+
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                list.Add(new ArticleSaleModel
+                                {
+                                    Date = reader["SaleDate"].ToString(),
+                                    Article = reader["Article"].ToString(),
+                                    Qty = Convert.ToInt32(reader["Qty"]),
+                                    BuyerName = reader["BuyerName"].ToString()
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show($"Error in GetArticleSalesByDateRange: {ex.Message}");
+            }
+
+            return list;
+        }
+
+
+        public static List<ArticleSaleModel> GetArticleSalesTillNowRaw()
+        {
+            var list = new List<ArticleSaleModel>();
+
+            try
+            {
+                using (var conn = new SQLiteConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+    SELECT 
+        s.sale_date AS SaleDate,
+        i.item_name AS Article,
+        si.qty AS Qty
+    FROM sale_items si
+    JOIN items i ON i.item_id = si.item_id
+    JOIN sales s ON s.sale_id = si.sale_id
+";
+
 
                     using (var cmd = new SQLiteCommand(query, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -600,7 +660,7 @@ ORDER BY s.sale_id DESC;
                         {
                             list.Add(new ArticleSaleModel
                             {
-                                Date = "Total",
+                                Date = reader["SaleDate"].ToString(),
                                 Article = reader["Article"].ToString(),
                                 Qty = Convert.ToInt32(reader["Qty"])
                             });
@@ -610,11 +670,12 @@ ORDER BY s.sale_id DESC;
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Error in GetArticleSalesTillNow: {ex.Message}");
+                MessageBox.Show($"Error in GetArticleSalesTillNow: {ex.Message}");
             }
 
             return list;
         }
+
         public static bool HasSalesInMonth(int year, int month)
         {
             using var conn = new SQLiteConnection(connectionString);

@@ -11,12 +11,29 @@ namespace Management_System_WPF.Views
     public partial class AllSalesPage : Page
     {
         private List<SaleRecord> _allSales = new();
+        private Dictionary<string, string> _articleCategoryMap = new();
 
         public AllSalesPage()
         {
             InitializeComponent();
             txtTitle.Text = "All Sales";
+            LoadCategories();
+
             LoadSales();
+        }
+        private void LoadCategories()
+        {
+            var items = ItemsService.GetAllItems();
+
+            // Article → Category map
+            _articleCategoryMap = items
+                .ToDictionary(i => i.Name, i => i.Category);
+
+            var categories = new List<string> { "All" };
+            categories.AddRange(items.Select(i => i.Category).Distinct().OrderBy(x => x));
+
+            cmbCategory.ItemsSource = categories;
+            cmbCategory.SelectedIndex = 0;
         }
 
         private void LoadSales()
@@ -43,6 +60,7 @@ namespace Management_System_WPF.Views
             txtSearch.Clear();
             dpFrom.SelectedDate = null;
             dpTo.SelectedDate = null;
+            cmbCategory.SelectedIndex = 0;
             dgSales.ItemsSource = _allSales;
         }
 
@@ -50,28 +68,46 @@ namespace Management_System_WPF.Views
         {
             IEnumerable<SaleRecord> filtered = _allSales;
 
+            // 🔍 Search
             string search = txtSearch.Text?.Trim().ToLower();
             if (!string.IsNullOrEmpty(search))
             {
                 filtered = filtered.Where(s =>
-                    s.BuyerName.ToLower().Contains(search) ||
-                    s.ItemName.ToLower().Contains(search));
+                    (!string.IsNullOrWhiteSpace(s.BuyerName) &&
+                     s.BuyerName.ToLower().Contains(search)) ||
+                    (!string.IsNullOrWhiteSpace(s.ItemName) &&
+                     s.ItemName.ToLower().Contains(search)));
             }
 
+            // 📅 From Date
             if (dpFrom.SelectedDate != null)
             {
                 filtered = filtered.Where(s =>
                     s.SaleDate.Date >= dpFrom.SelectedDate.Value.Date);
             }
 
+            // 📅 To Date
             if (dpTo.SelectedDate != null)
             {
                 filtered = filtered.Where(s =>
                     s.SaleDate.Date <= dpTo.SelectedDate.Value.Date);
             }
 
+            // 🗂 Category
+            if (cmbCategory.SelectedItem != null &&
+                cmbCategory.SelectedItem.ToString() != "All")
+            {
+                string selectedCategory = cmbCategory.SelectedItem.ToString();
+
+                filtered = filtered.Where(s =>
+                    _articleCategoryMap.TryGetValue(s.ItemName, out var cat) &&
+                    string.Equals(cat, selectedCategory, StringComparison.OrdinalIgnoreCase));
+            }
+
             dgSales.ItemsSource = filtered.ToList();
         }
+
+
 
         // ⚙ OPTIONS MENU
         private void Options_Click(object sender, RoutedEventArgs e)
@@ -90,6 +126,7 @@ namespace Management_System_WPF.Views
                     $"Item: {sale.ItemName}\n" +
                     $"Qty: {sale.Quantity}\n" +
                     $"Amount: ₹{sale.Amount}\n" +
+                    $"Category: {_articleCategoryMap.GetValueOrDefault(sale.ItemName, "N/A")}\n" +
                     $"Date: {sale.SaleDate:dd/MM/yyyy}",
                     "Sale Details");
             };

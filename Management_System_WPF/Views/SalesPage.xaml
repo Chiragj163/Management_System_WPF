@@ -138,11 +138,11 @@
 
                         <StackPanel Grid.Column="0">
 
-                            <TextBlock Text="Buyer" Foreground="{StaticResource TextDark}"  Margin="0,0,0,5"/>
+                            <TextBlock Text="Buyer" Foreground="{StaticResource TextDark}" FontSize="16"   Margin="0,0,0,5"/>
                             <ComboBox x:Name="cmbBuyer" Style="{StaticResource InputStyle}" ToolTip="Select Buyer Name" TabIndex="1" Height="30"/>
 
-                            <TextBlock Text="Article / Item" Foreground="{StaticResource TextDark}" ToolTip="Select Article Name" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="cmbItem" TabIndex="2" Style="{StaticResource InputStyle}" Height="30"/>
+                            <TextBlock Text="Article / Item" Foreground="{StaticResource TextDark}" FontSize="16" ToolTip="Select Article Name" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="cmbItem"  SelectionChanged="cmbBuyer_SelectionChanged" TabIndex="2" Style="{StaticResource InputStyle}" Height="30"/>
 
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -152,13 +152,13 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Quantity"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="Quantity" FontSize="16"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
                                     <TextBox x:Name="txtQuantity" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource InputStyle}" VerticalContentAlignment="Center" Height="30"/>
 
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Date" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                                    <TextBlock Text="Date" Foreground="{StaticResource TextDark}" FontSize="16" Margin="0,0,0,5"/>
                                     <DatePicker x:Name="dpSaleDate"
                                                   Height="30"
                                                   FontSize="14"

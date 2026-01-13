@@ -127,12 +127,12 @@ HorizontalAlignment="Right"
 
                     <StackPanel Grid.Column="0">
 
-                        <TextBlock Text="Article Name" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                        <TextBlock Text="Article Name" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtItemName" ToolTip="Add Article Name" Background="White"  Height="30" Style="{StaticResource InputStyle}"/>
 
-                        <TextBlock Text="Article Price" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
+                        <TextBlock Text="Article Price" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
                         <TextBox x:Name="txtItemPrice" ToolTip="Add Price" Background="White"  Height="30" Style="{StaticResource InputStyle}"/>
-                        <TextBlock Text="Category" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
+                        <TextBlock Text="Category" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,15,0,5"/>
                         <ComboBox x:Name="cmbCategory" 
            IsEditable="False"
              Background="White"

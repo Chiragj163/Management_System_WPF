@@ -14,6 +14,7 @@ using System.Windows.Data;
 using System.Drawing;
 
 
+
 namespace Management_System_WPF.Views
 {
     public partial class ArticleReportPage : Page
@@ -34,14 +35,128 @@ namespace Management_System_WPF.Views
 
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
             LoadSalesTillNow();
+            cmbSaleTillNowFilterCategory.ItemsSource = cmbFilterCategory.ItemsSource;
+            cmbSaleTillNowFilterCategory.SelectedIndex = 0;
+
 
 
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
             txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+            LoadYearList();
 
             LoadArticleReport(_currentMonth);
         }
+        private void LoadYearList()
+        {
+            var raw = SalesService.GetArticleSalesTillNowRaw();
+
+            if (raw == null) return;
+
+            // Extract available years using the sale row dates
+            var years = raw
+                .Select(r =>
+                {
+                    if (DateTime.TryParse(r.Date, out DateTime dt))
+                        return dt.Year;
+                    return (int?)null;
+                })
+                .Where(y => y.HasValue)
+                .Select(y => y.Value)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToList();
+
+            cmbYearFilter.Items.Clear();
+            cmbYearFilter.Items.Add("All");
+
+            foreach (var y in years)
+                cmbYearFilter.Items.Add(y.ToString());
+
+            cmbYearFilter.SelectedIndex = 0;
+        }
+
+        private void LoadArticleReportByRange(DateTime from, DateTime to)
+        {
+            // 🔹 Fetch raw data for range
+            var raw = SalesService.GetArticleSalesByDateRange(from, to);
+
+            // 🔹 Apply category filter (reuse existing logic)
+            if (cmbFilterCategory.SelectedItem != null &&
+                cmbFilterCategory.SelectedItem.ToString() != "All")
+            {
+                string selectedFilter = cmbFilterCategory.SelectedItem.ToString();
+
+                raw = raw.Where(s =>
+                    _articleCategoryMap.ContainsKey(s.Article) &&
+                    _articleCategoryMap[s.Article] == selectedFilter
+                ).ToList();
+            }
+
+            var dates = raw.Select(r => r.Date).Distinct().ToList();
+            var articles = raw.Select(r => r.Article).Distinct().OrderBy(a => a).ToList();
+
+            List<ArticleSaleRow> rows = new();
+
+            foreach (var dateStr in dates)
+            {
+                if (!DateTime.TryParse(dateStr, out DateTime parsedDate))
+                    continue;
+
+                var row = new ArticleSaleRow
+                {
+                    Date = parsedDate
+                };
+
+                foreach (var art in articles)
+                {
+                    row.ArticleValues[art] = string.Empty;
+                    row.ArticleTooltips[art] = string.Empty;
+
+                    var entries = raw
+                        .Where(r => r.Date == dateStr && r.Article == art)
+                        .Select(r => new { r.Qty, r.BuyerName })
+                        .ToList();
+
+                    if (entries.Any())
+                    {
+                        int qtySum = entries.Sum(e => e.Qty);
+
+                        // Show only SUM inside the cell
+                        row.ArticleValues[art] = qtySum.ToString();
+
+                        // Tooltip still shows individual breakdown
+                        row.ArticleTooltips[art] = string.Join(
+                            Environment.NewLine,
+                            entries.Select(e => $"{e.Qty} → {e.BuyerName}")
+                        );
+                    }
+
+                }
+
+                rows.Add(row);
+            }
+
+            // 🔹 TOTAL ROW
+            var totalRow = new ArticleSaleRow { IsTotalRow = true };
+
+            foreach (var art in articles)
+            {
+                totalRow.ArticleValues[art] =
+                    raw.Where(r => r.Article == art).Sum(r => r.Qty).ToString();
+            }
+
+            rows.Add(totalRow);
+
+            // 🔹 Bind
+            BuildDynamicColumns(articles);
+            dgArticles.ItemsSource = rows;
+
+            // 🔹 Disable month navigation (range mode)
+            btnPrevMonth.IsEnabled = false;
+            btnNextMonth.IsEnabled = false;
+        }
+
         // 🔥 NEW: Load Categories & Map Logic
         private void LoadCategoriesAndMap()
         {
@@ -68,28 +183,30 @@ namespace Management_System_WPF.Views
         {
             // Reload the report. The LoadArticleReport function will check the combobox.
             LoadArticleReport(_currentMonth);
+           
         }
 
+        private void FilterCategory_ChangedSaleTillNow(object sender, SelectionChangedEventArgs e)
+        {
+           
+            LoadSalesTillNow();
+        }
+        // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
 
-        // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
-
-        private void LoadArticleReport(DateTime month)
+        private void LoadArticleReport(DateTime month)
         {
             var raw = SalesService.GetArticleSalesByMonth(month.Year, month.Month);
-            // 2. 🔥 APPLY FILTER HERE 🔥
-            if (cmbFilterCategory.SelectedItem != null)
+
+            // Category filter
+            if (cmbFilterCategory.SelectedItem != null &&
+                cmbFilterCategory.SelectedItem.ToString() != "All")
             {
                 string selectedFilter = cmbFilterCategory.SelectedItem.ToString();
 
-                if (selectedFilter != "All")
-                {
-                    // Filter the raw list. 
-                    // Keep the sale ONLY if its Article Name exists in our map AND matches the category.
-                    raw = raw.Where(sale =>
-                        _articleCategoryMap.ContainsKey(sale.Article) &&
-                        _articleCategoryMap[sale.Article] == selectedFilter
-                    ).ToList();
-                }
+                raw = raw.Where(s =>
+                    _articleCategoryMap.ContainsKey(s.Article) &&
+                    _articleCategoryMap[s.Article] == selectedFilter
+                ).ToList();
             }
 
             var dates = raw.Select(r => r.Date).Distinct().ToList();
@@ -97,8 +214,7 @@ namespace Management_System_WPF.Views
 
             List<ArticleSaleRow> rows = new();
 
-            // 🔹 DAILY ROWS
-            foreach (var dateStr in dates)
+            foreach (var dateStr in dates)
             {
                 if (!DateTime.TryParse(dateStr, out DateTime parsedDate))
                     continue;
@@ -108,37 +224,51 @@ namespace Management_System_WPF.Views
                     Date = parsedDate
                 };
 
-                foreach (var r in raw.Where(x => x.Date == dateStr))
+                foreach (var art in articles)
                 {
-                    row.ArticleValues[r.Article] =
-                      (row.ArticleValues.ContainsKey(r.Article)
-                        ? row.ArticleValues[r.Article] ?? 0
-                        : 0) + r.Qty;
+                    row.ArticleValues[art] = string.Empty;
+                    row.ArticleTooltips[art] = string.Empty;
+
+                    var entries = raw
+                        .Where(r => r.Date == dateStr && r.Article == art)
+                        .Select(r => new { r.Qty, r.BuyerName })
+                        .ToList();
+
+                    if (entries.Any())
+                    {
+                        int qtySum = entries.Sum(e => e.Qty);
+
+                        // Show only SUM inside the cell
+                        row.ArticleValues[art] = qtySum.ToString();
+
+                        // Tooltip still shows individual breakdown
+                        row.ArticleTooltips[art] = string.Join(
+                            Environment.NewLine,
+                            entries.Select(e => $"{e.Qty} → {e.BuyerName}")
+                        );
+                    }
+
                 }
 
                 rows.Add(row);
             }
 
-            // 🔹 TOTAL ROW (ONLY ONCE)
-            var totalRow = new ArticleSaleRow
-            {
-                IsTotalRow = true
-            };
+            // TOTAL ROW
+            var totalRow = new ArticleSaleRow { IsTotalRow = true };
 
             foreach (var art in articles)
             {
-                // Calculate Sum
-                int sum = rows.Sum(r => r.ArticleValues.ContainsKey(art) ? r.ArticleValues[art] ?? 0 : 0);
-                totalRow.ArticleValues[art] = sum;
+                totalRow.ArticleValues[art] =
+                    raw.Where(r => r.Article == art).Sum(r => r.Qty).ToString();
             }
-            // Calculate Grand Total for the "Total" column
-           // totalRow.Total = totalRow.ArticleValues.Values.Sum(x => x ?? 0);
+
             rows.Add(totalRow);
-            UpdateMonthNavigationButtons();
 
             BuildDynamicColumns(articles);
             dgArticles.ItemsSource = rows;
+            UpdateMonthNavigationButtons();
         }
+
 
 
 
@@ -152,29 +282,76 @@ namespace Management_System_WPF.Views
         {
             dgArticles.Columns.Clear();
 
-            // ✅ DATE COLUMN (ONLY ONCE)
-            dgArticles.Columns.Add(new DataGridTextColumn
+            // DATE COLUMN
+            dgArticles.Columns.Add(new DataGridTextColumn
             {
                 Header = "Date",
-                Binding = new Binding("DateDisplay"), // 👈 IMPORTANT
-                Width = 120,
+                Binding = new Binding("DateDisplay"),
+                Width = 120,
                 IsReadOnly = true
             });
 
-            // ARTICLE COLUMNS
-            foreach (var art in articles)
+            // ARTICLE COLUMNS
+            foreach (var art in articles)
             {
                 dgArticles.Columns.Add(new DataGridTextColumn
                 {
                     Header = art,
                     Binding = new Binding($"ArticleValues[{art}]"),
                     Width = 100,
-                    IsReadOnly = true
+                    IsReadOnly = true,
+                    ElementStyle = new Style(typeof(TextBlock))
+                    {
+                        Setters =
+    {
+        new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap),
+        new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center),
+        new Setter(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center),
+        new Setter(TextBlock.ToolTipProperty, null) ,// default: NO tooltip
+        // Tooltip binding when content exists
+new Setter(
+    TextBlock.ToolTipProperty,
+    new Binding($"ArticleTooltips[{art}]")
+)
+
+    },
+                        Triggers =
+    {
+        // ✅ SHOW tooltip only when value is NOT empty
+        new DataTrigger
+        {
+            Binding = new Binding($"ArticleValues[{art}]"),
+            Value = "",
+            Setters =
+            {
+                new Setter(TextBlock.ToolTipProperty, null)
+            }
+        },
+        new DataTrigger
+        {
+            Binding = new Binding($"ArticleValues[{art}]"),
+            Value = "{x:Null}",
+            Setters =
+            {
+                new Setter(TextBlock.ToolTipProperty, null)
+            }
+        },
+        new DataTrigger
+        {
+            Binding = new Binding($"ArticleValues[{art}]"),
+            Value = "",
+            Setters = { }
+        }
+    }
+                    }
+
                 });
+                
+
             }
 
-            // TOTAL COLUMN
-            dgArticles.Columns.Add(new DataGridTextColumn
+            // TOTAL COLUMN
+            dgArticles.Columns.Add(new DataGridTextColumn
             {
                 Header = "Total",
                 Binding = new Binding("Total"),
@@ -306,10 +483,16 @@ namespace Management_System_WPF.Views
                         foreach (var artName in allArticleNames)
                         {
                             decimal val = 0;
-                            if (r.ArticleValues.ContainsKey(artName) && r.ArticleValues[artName].HasValue)
+
+                            if (r.ArticleValues.ContainsKey(artName) &&
+                                !string.IsNullOrWhiteSpace(r.ArticleValues[artName]))
                             {
-                                val = Convert.ToDecimal(r.ArticleValues[artName].Value);
+                                val = r.ArticleValues[artName]
+                                    .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                                    .Select(x => decimal.Parse(x))
+                                    .Sum();
                             }
+
 
                             // Write Value
                             if (val > 0) ws.Cells[rowIdx, col].Value = val;
@@ -416,63 +599,230 @@ namespace Management_System_WPF.Views
             if (dgArticles.SelectedCells.Count == 0)
                 return;
 
-            var cell = dgArticles.SelectedCells[0];
-            var row = cell.Item as ArticleSaleRow;
+            var cellInfo = dgArticles.SelectedCells[0];
+            var row = cellInfo.Item as ArticleSaleRow;
 
-            // Ignore Date column
-            if (row == null || cell.Column.DisplayIndex == 0)
+            // ❌ Ignore invalid clicks
+            if (row == null || row.IsTotalRow || cellInfo.Column.DisplayIndex == 0)
                 return;
 
-            _selectedDate = row.Date;
-            _selectedArticle = cell.Column.Header.ToString();
+            string article = cellInfo.Column.Header.ToString();
+
+            // ❌ No data → no popup
+            if (!row.ArticleTooltips.ContainsKey(article) ||
+                string.IsNullOrWhiteSpace(row.ArticleTooltips[article]))
+                return;
+
+            // Parse tooltip data
+            var details = row.ArticleTooltips[article]
+                .Split('\n')
+                .Select(line =>
+                {
+                    var parts = line.Split("→");
+                    return (
+                        Qty: int.Parse(parts[0].Trim()),
+                        Buyer: parts[1].Trim()
+                    );
+                })
+                .ToList();
+
+            // Open popup
+            var popup = new BuyerDetailsWindow(
+                article,
+                row.DateDisplay,
+                details
+            )
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            popup.ShowDialog();
         }
 
 
 
-       
 
-        private void LoadSalesTillNow()
+
+
+        private void LoadSalesTillNow(DateTime? from = null, DateTime? to = null)
         {
-            var raw = SalesService.GetArticleSalesTillNow();
-
-            var articles = raw.Select(x => x.Article).Distinct().ToList();
-
-            dgSalesTillNow.Columns.Clear();
-
-            // First column
-            dgSalesTillNow.Columns.Add(new DataGridTextColumn
+            try
             {
-                Header = "Articles →",
-                Binding = new Binding("Key"),
-                Width = 160
-            });
+                // 1️⃣ Fetch raw rows (each sale with real date)
+                var raw = SalesService.GetArticleSalesTillNowRaw();
 
-            // Total row data
-            Dictionary<string, int> totals = new();
+                if (raw == null) return;
 
-            foreach (var art in articles)
-            {
-                int sum = raw.Where(x => x.Article == art).Sum(x => x.Qty);
-                totals[art] = sum;
+                // 2️⃣ Category Filter
+                if (cmbSaleTillNowFilterCategory.SelectedItem != null &&
+                    cmbSaleTillNowFilterCategory.SelectedItem.ToString() != "All")
+                {
+                    string selectedCategory = cmbSaleTillNowFilterCategory.SelectedItem.ToString();
+
+                    raw = raw.Where(x =>
+                        _articleCategoryMap.ContainsKey(x.Article) &&
+                        _articleCategoryMap[x.Article] == selectedCategory
+                    ).ToList();
+                }
+
+                // 3️⃣ Date Range Filter
+                if (from.HasValue && to.HasValue)
+                {
+                    raw = raw.Where(x =>
+                    {
+                        string[] formats = { "yyyy-MM-dd" };
+
+                        if (DateTime.TryParseExact(x.Date,
+                                                   formats,
+                                                   CultureInfo.InvariantCulture,
+                                                   DateTimeStyles.None,
+                                                   out DateTime dt))
+                        {
+                            return dt.Date >= from.Value.Date && dt.Date <= to.Value.Date;
+                        }
+                        return false;
+                    }).ToList();
+                }
+
+                // 4️⃣ Group AFTER FILTERING
+                var articles = raw.Select(x => x.Article).Distinct().OrderBy(a => a).ToList();
+
+                var totals = articles.ToDictionary(
+                    art => art,
+                    art => raw.Where(x => x.Article == art).Sum(x => x.Qty)
+                );
+
+                // 5️⃣ Build dynamic columns
+                dgSalesTillNow.Columns.Clear();
 
                 dgSalesTillNow.Columns.Add(new DataGridTextColumn
                 {
-                    Header = art,
-                    Binding = new Binding($"Value[{art}]"),
-                    Width = 100
+                    Header = "Articles →",
+                    Binding = new Binding("Key"),
+                    Width = 150
                 });
+
+                foreach (var art in articles)
+                {
+                    dgSalesTillNow.Columns.Add(new DataGridTextColumn
+                    {
+                        Header = art,
+                        Binding = new Binding($"Value[{art}]"),
+                        Width = 100
+                    });
+                }
+
+                // 6️⃣ Bind final grouped totals
+                dgSalesTillNow.ItemsSource = new[]
+                {
+            new { Key = "Total →", Value = totals }
+        };
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
+
+        private void cmbYearFilter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (cmbYearFilter.SelectedItem == null) return;
+
+            string selected = cmbYearFilter.SelectedItem.ToString();
+
+            if (selected == "All")
+            {
+                LoadSalesTillNow();
+                return;
             }
 
-            dgSalesTillNow.ItemsSource = new[]
+            int year = int.Parse(selected);
+
+            var start = new DateTime(year, 1, 1);
+            var end = new DateTime(year, 12, 31);
+
+            LoadSalesTillNow(start, end);
+        }
+
+       
+
+       
+
+        private void MonthFilter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            if (cmbMonthFilter.SelectedItem == null) return;
+
+            string selected = ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString();
+
+            if (selected == "All")
             {
-    new
-    {
-      Key = "Total →",
-      Value = totals
-    }
-  };
+                LoadSalesTillNow();
+                return;
+            }
+
+            int monthNumber = DateTime.ParseExact(selected, "MMMM", CultureInfo.InvariantCulture).Month;
+
+            var start = new DateTime(DateTime.Today.Year, monthNumber, 1);
+            var end = start.AddMonths(1).AddDays(-1);
+
+            LoadSalesTillNow(start, end);
         }
 
 
+        private void Filter_Click(object sender, RoutedEventArgs e)
+        {
+            FilterPanel.Visibility =
+                FilterPanel.Visibility == Visibility.Visible
+                ? Visibility.Collapsed
+                : Visibility.Visible;
+        }
+        private void FilterThisMonth_Click(object sender, RoutedEventArgs e)
+        {
+            var start = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            var end = start.AddMonths(1).AddDays(-1);
+
+            LoadArticleReportByRange(start, end);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterSixMonths_Click(object sender, RoutedEventArgs e)
+        {
+            var end = DateTime.Today;
+            var start = end.AddMonths(-6);
+
+            LoadArticleReportByRange(start, end);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterYear_Click(object sender, RoutedEventArgs e)
+        {
+            var start = new DateTime(DateTime.Today.Year, 1, 1);
+            var end = new DateTime(DateTime.Today.Year, 12, 31);
+
+            LoadArticleReportByRange(start, end);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+        private void FilterCustom_Click(object sender, RoutedEventArgs e)
+        {
+            if (dpFrom.SelectedDate == null || dpTo.SelectedDate == null)
+            {
+                MessageBox.Show("Please select both From and To dates",
+                    "Invalid Filter", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (dpFrom.SelectedDate > dpTo.SelectedDate)
+            {
+                MessageBox.Show("From date cannot be greater than To date",
+                    "Invalid Filter", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            LoadArticleReportByRange(dpFrom.SelectedDate.Value, dpTo.SelectedDate.Value);
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void dgArticles_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

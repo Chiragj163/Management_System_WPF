@@ -127,9 +127,9 @@ HorizontalAlignment="Right"
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0">
-                       
 
-                        <TextBlock Text="Buyer Name" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+
+                        <TextBlock Text="Buyer Name" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
                         <TextBox x:Name="txtBuyerName"  Height="30" Background="White"  ToolTip="Add Buyer Name" Style="{StaticResource InputStyle}"/>
 
                         <Button x:Name="btnSave"

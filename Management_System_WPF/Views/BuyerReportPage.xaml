@@ -147,10 +147,18 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" HorizontalAlignment="Right" Margin="0,10,30,10" Orientation="Horizontal">
-
+                    <TextBlock Text="Category :" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="Black" FontWeight="SemiBold"/>
+                    <ComboBox x:Name="cmbCategory" 
+Width="150" 
+Height="35"
+Margin="0,0,30,0"
+VerticalContentAlignment="Center"
+FontSize="14"
+SelectionChanged="CategoryFilter_Changed"/>
                     <StackPanel x:Name="ActionButtonsPanel" 
                 Orientation="Horizontal" 
                 Visibility="Collapsed">
+                       
                         <Button Content="↩ Return"
             Style="{StaticResource PrimaryButton}"
             Background="#D32F2F"
@@ -177,7 +185,7 @@
                 Height="35" Width="100"
                 Margin="0,0,10,0"
                 Click="ExportExcel_Click"/>
-
+                       
                         <Button x:Name="btnFilter"
                 Content="🔍 Filter"
                 Style="{StaticResource PrimaryButton}"
@@ -211,15 +219,20 @@
                                 <DataGrid x:Name="dgBuyerReport"
                           AutoGenerateColumns="False"
                           CanUserAddRows="False"
+                          IsReadOnly="True"
+                          CanUserSortColumns="False"                                  
                           SelectionMode="Single"
                           SelectionUnit="Cell"
                           HeadersVisibility="Column"
                           GridLinesVisibility="All"
-                          Background="Transparent"
-                          RowHeight="32"
+                          Background="{StaticResource SecondaryColor}"
+                          HorizontalGridLinesBrush="Transparent"
+                          VerticalGridLinesBrush="Transparent"
+                          MinRowHeight="32"
                           FontSize="14"
                           ColumnHeaderHeight="36"
-                          BorderThickness="0">
+                            BorderBrush="Black"              
+                          BorderThickness="1">
 
                                     <DataGrid.ColumnHeaderStyle>
                                         <Style TargetType="DataGridColumnHeader">
@@ -228,9 +241,11 @@
                                             <Setter Property="FontSize" Value="16"/>
                                             <Setter Property="FontWeight" Value="Bold"/>
                                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-                                            <Setter Property="BorderBrush" Value="#B2DFDB"/>
+                                            <Setter Property="BorderThickness" Value="1,1,1,1"/>
+                                            <Setter Property="BorderBrush" Value="Gray"/>
                                             <Setter Property="Padding" Value="6"/>
+                                           
+                                            <Setter Property="Margin" Value="1.5"/>
                                         </Style>
                                     </DataGrid.ColumnHeaderStyle>
 
@@ -239,7 +254,9 @@
                                             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                                             <Setter Property="VerticalContentAlignment" Value="Center"/>
                                             <Setter Property="Padding" Value="3"/>
-                                            <Setter Property="BorderBrush" Value="#DADADA"/>
+                                            <Setter Property="BorderBrush" Value="Gray"/>
+                                            <Setter Property="Margin" Value="1.5"/>
+                                            <Setter Property="Background" Value="Transparent"/>
                                             <Setter Property="BorderThickness" Value="1"/>
                                             <Setter Property="Foreground" Value="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, Path=Foreground}"/>
                                             <Style.Triggers>
@@ -296,7 +313,7 @@
 
                                 <StackPanel >
 
-                                    <Border Background="#00695C" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
+                                    <Border Background="#004D40" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="150"/>
@@ -308,14 +325,14 @@
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
 
-                                            <Border Grid.Column="1" Padding="10" MinWidth="130">
+                                            <Border Grid.Column="1" Padding="10"  MinWidth="130">
                                                 <TextBlock x:Name="txtTotalSales" Text="0.00" Foreground="White" FontSize="20" FontWeight="Bold" 
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                             </Border>
                                         </Grid>
                                     </Border>
-
-                                    <Border Background="#BF360C" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
+                                    <StackPanel x:Name="PaymentPanel">
+                                        <Border Background="#01889F" CornerRadius="2" Margin="0,0,0,1" BorderBrush="Black" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="150"/>
@@ -334,7 +351,7 @@
                                         </Grid>
                                     </Border>
 
-                                    <Border Background="#004D40" CornerRadius="2"  BorderBrush="Black" BorderThickness="1">
+                                        <Border Background="#BF360C" CornerRadius="2"  BorderBrush="Black" BorderThickness="1">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="150"/>
@@ -352,7 +369,7 @@
                                             </Border>
                                         </Grid>
                                     </Border>
-
+                                    </StackPanel>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

@@ -13,5 +13,6 @@ namespace Management_System_WPF.Models
         public string Date { get; set; }
         public string Article { get; set; }
         public int Qty { get; set; }
+        public string BuyerName { get; set; }
     }
 }

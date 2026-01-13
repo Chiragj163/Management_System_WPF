@@ -53,7 +53,7 @@ namespace Management_System_WPF.Services
                             Id = reader.GetInt32(0),
                             Name = reader.GetString(1),
                             Price = reader.GetDecimal(2),
-                            // ✅ READ: category (Index 3). Check for DBNull to prevent crashes.
+                           
                             Category = reader.IsDBNull(3) ? "" : reader.GetString(3)
                         });
                     }

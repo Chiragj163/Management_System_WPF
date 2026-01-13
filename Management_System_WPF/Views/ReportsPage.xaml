@@ -117,8 +117,8 @@
         <Border Background="#80F5F5F5"
                 CornerRadius="15"
                 Padding="30"
-                
-                HorizontalAlignment="Center"
+                 Margin="100,0,0,0"
+                HorizontalAlignment="Left"
                 VerticalAlignment="Center">
 
           
