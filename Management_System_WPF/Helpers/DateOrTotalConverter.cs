@@ -8,7 +8,6 @@ namespace Management_System_WPF.Helpers
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // If the value is the minimum date, we display "Total"
             if (value is DateTime date)
             {
                 if (date == DateTime.MinValue)

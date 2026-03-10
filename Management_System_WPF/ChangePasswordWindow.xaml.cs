@@ -8,32 +8,25 @@ namespace Management_System_WPF
         public ChangePasswordWindow()
         {
             InitializeComponent();
-            // Pre-fill current username for convenience
             txtNewUser.Text = Properties.Settings.Default.AppUsername;
         }
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             string currentSavedPass = Properties.Settings.Default.AppPassword;
-
-            // 1. Verify Old Password
             if (txtOldPass.Password != currentSavedPass)
             {
                 MessageBox.Show("Current password is incorrect.", "Security Check", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
-            // 2. Validate New Inputs
             if (string.IsNullOrWhiteSpace(txtNewUser.Text) || string.IsNullOrWhiteSpace(txtNewPass.Password))
             {
                 MessageBox.Show("Username and Password cannot be empty.", "Validation", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
-
-            // 3. Save New Credentials
             Properties.Settings.Default.AppUsername = txtNewUser.Text;
             Properties.Settings.Default.AppPassword = txtNewPass.Password;
-            Properties.Settings.Default.Save(); // Persist changes
+            Properties.Settings.Default.Save(); 
 
             MessageBox.Show("Credentials updated successfully! Please login with new details.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 

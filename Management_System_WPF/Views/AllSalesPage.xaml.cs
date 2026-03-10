@@ -25,7 +25,6 @@ namespace Management_System_WPF.Views
         {
             var items = ItemsService.GetAllItems();
 
-            // Article → Category map
             _articleCategoryMap = items
                 .ToDictionary(i => i.Name, i => i.Category);
 
@@ -42,14 +41,11 @@ namespace Management_System_WPF.Views
             dgSales.ItemsSource = _allSales;
         }
 
-        // 🔙 BACK
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             var main = (MainWindow)Application.Current.MainWindow;
             main.RestoreHomeLayout();
         }
-
-        // 🔍 FILTER LOGIC
         private void Filter_Changed(object sender, EventArgs e)
         {
             ApplyFilters();
@@ -67,8 +63,6 @@ namespace Management_System_WPF.Views
         private void ApplyFilters()
         {
             IEnumerable<SaleRecord> filtered = _allSales;
-
-            // 🔍 Search
             string search = txtSearch.Text?.Trim().ToLower();
             if (!string.IsNullOrEmpty(search))
             {
@@ -78,22 +72,16 @@ namespace Management_System_WPF.Views
                     (!string.IsNullOrWhiteSpace(s.ItemName) &&
                      s.ItemName.ToLower().Contains(search)));
             }
-
-            // 📅 From Date
             if (dpFrom.SelectedDate != null)
             {
                 filtered = filtered.Where(s =>
                     s.SaleDate.Date >= dpFrom.SelectedDate.Value.Date);
             }
-
-            // 📅 To Date
             if (dpTo.SelectedDate != null)
             {
                 filtered = filtered.Where(s =>
                     s.SaleDate.Date <= dpTo.SelectedDate.Value.Date);
             }
-
-            // 🗂 Category
             if (cmbCategory.SelectedItem != null &&
                 cmbCategory.SelectedItem.ToString() != "All")
             {
@@ -106,10 +94,6 @@ namespace Management_System_WPF.Views
 
             dgSales.ItemsSource = filtered.ToList();
         }
-
-
-
-        // ⚙ OPTIONS MENU
         private void Options_Click(object sender, RoutedEventArgs e)
         {
             Button btn = sender as Button;

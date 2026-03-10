@@ -10,9 +10,6 @@ namespace Management_System_WPF.Helpers
 {
     public static class PivotHelper
     {
-        // =========================================================
-        // SALES + RETURNS PIVOT WITH TOTALS
-        // =========================================================
         public static DataTable CreatePivotTableWithTotals(
             List<SalesRaw> sales,
             List<SalesRaw> returns)
@@ -28,10 +25,6 @@ namespace Management_System_WPF.Helpers
                 dt.Rows.Add("No sales found");
                 return dt;
             }
-
-            // =====================================================
-            // ITEMS FROM SALES + RETURNS
-            // =====================================================
             var items = sales
                 .Select(x => x.ItemName)
                 .Union(returns.Select(r => r.ItemName))
@@ -39,17 +32,9 @@ namespace Management_System_WPF.Helpers
                 .Distinct()
                 .OrderBy(x => x)
                 .ToList();
-
-            // =====================================================
-            // COLUMNS
-            // =====================================================
             dt.Columns.Add("Date", typeof(string));
             foreach (var item in items)
                 dt.Columns.Add(item, typeof(string));
-            // string for display
-            // =====================================================
-            // 1️⃣ DAILY SALES ROWS
-            // =====================================================
             var groupedByDate = sales
                 .GroupBy(x => x.Date)
                 .OrderBy(x => x.Key);
@@ -74,11 +59,6 @@ namespace Management_System_WPF.Helpers
 
                 dt.Rows.Add(row);
             }
-
-
-            // =====================================================
-            // 2️⃣ LESS RETURN ROW
-            // =====================================================
             bool hasAnyReturn = returns.Any(r => r.Qty > 0);
             var returnQtys = items.ToDictionary(item => item, item =>
                 returns.Where(r => r.ItemName == item).Sum(r => r.Qty));
@@ -93,10 +73,6 @@ namespace Management_System_WPF.Helpers
             }
             else
             { foreach (var item in items) returnQtys[item] = 0; }
-
-            // =====================================================
-            // 3️⃣ TOTAL QTY ROW (SAFE)
-            // =====================================================
             DataRow totalQtyRow = dt.NewRow();
             totalQtyRow["Date"] = "Total Qty";
 
@@ -111,10 +87,6 @@ namespace Management_System_WPF.Helpers
 
             dt.Rows.Add(totalQtyRow);
 
-
-            // =====================================================
-            // 4️⃣ UNIT PRICE ROW (SAFE)
-            // =====================================================
             DataRow unitPriceRow = dt.NewRow();
             unitPriceRow["Date"] = "Unit Price";
 
@@ -133,10 +105,6 @@ namespace Management_System_WPF.Helpers
 
             dt.Rows.Add(unitPriceRow);
 
-
-            // =====================================================
-            // 5️⃣ TOTAL PRICE ROW (SAFE)
-            // =====================================================
             DataRow totalPriceRow = dt.NewRow();
             totalPriceRow["Date"] = "Total Price";
 
@@ -156,9 +124,6 @@ namespace Management_System_WPF.Helpers
 
             return dt;
         }
-        // =========================================================
-        // ITEM ROW-WISE TABLE
-        // =========================================================
         public static DataTable CreateItemRowWiseTable(List<SalesRaw> raw)
         {
             DataTable dt = new DataTable();
@@ -192,9 +157,6 @@ namespace Management_System_WPF.Helpers
             return dt;
         }
 
-        // =========================================================
-        // SALES MATRIX WITH TOTALS
-        // =========================================================
         public static DataTable CreateSalesMatrixWithTotals(List<SalesRaw> raw)
         {
             DataTable dt = new DataTable();

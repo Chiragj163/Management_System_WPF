@@ -34,15 +34,13 @@ namespace Management_System_WPF.Views
 
             dpSaleDate.SelectedDate = DateTime.Now;
         }
-        // ======================================================
-        // 🔍 LIVE SEARCH FILTERING LOGIC (SAFE & CRASH-FREE)
-        // ======================================================
+       
         private void SearchableComboBox_KeyUp(object sender, KeyEventArgs e)
         {
             var cb = sender as ComboBox;
             if (cb == null || cb.ItemsSource == null) return;
 
-            // 1. Ignore navigation keys so the user can use arrows and Enter
+           
             if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Enter ||
                 e.Key == Key.Tab || e.Key == Key.Escape || e.SystemKey == Key.Down)
             {
@@ -54,14 +52,13 @@ namespace Management_System_WPF.Views
 
             string searchText = textBox.Text;
 
-            // 2. THE FIX: Use Dispatcher to delay the filter until WPF finishes its key press event!
-            // This prevents the application from crashing.
+           
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 var view = CollectionViewSource.GetDefaultView(cb.ItemsSource);
                 if (view == null) return;
 
-                // Apply the filter
+                
                 view.Filter = item =>
                 {
                     if (string.IsNullOrWhiteSpace(searchText)) return true;
@@ -70,10 +67,8 @@ namespace Management_System_WPF.Views
                     return displayValue.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
                 };
 
-                // Open the dropdown if there is text
+               
                 cb.IsDropDownOpen = !string.IsNullOrWhiteSpace(searchText);
-
-                // Keep the cursor at the end of the text so the user can type smoothly
                 textBox.CaretIndex = searchText.Length;
 
             }), System.Windows.Threading.DispatcherPriority.Background);
@@ -86,9 +81,6 @@ namespace Management_System_WPF.Views
             return prop?.GetValue(item)?.ToString() ?? "";
         }
 
-        // ======================================================
-        // 💰 LOAD EFFECTIVE PRICE (SPECIAL / NORMAL)
-        // ======================================================
         private void LoadEffectivePrice()
         {
             currentItemPrice = 0;
@@ -109,9 +101,7 @@ namespace Management_System_WPF.Views
             CalculateTotal();
         }
 
-        // ======================================================
-        // 🧮 CALCULATE TOTAL
-        // ======================================================
+      
         private void CalculateTotal()
         {
             if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
@@ -128,9 +118,7 @@ namespace Management_System_WPF.Views
             LoadEffectivePrice();
         }
 
-        // ======================================================
-        // 🖱️ SELECTION EVENTS
-        // ======================================================
+      
         private void cmbBuyer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadEffectivePrice();
@@ -152,9 +140,6 @@ namespace Management_System_WPF.Views
                 Calculate_Click(sender, e);
         }
 
-        // ======================================================
-        // 🛒 CART MANAGEMENT
-        // ======================================================
         private void AddToCart_Click(object sender, RoutedEventArgs e)
         {
             TryAddCurrentSelectionToCart();
@@ -255,9 +240,6 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // ======================================================
-        // 💾 SAVE SALE
-        // ======================================================
         private void SaveSale_Click(object sender, RoutedEventArgs e)
         {
             AutoAddPendingSelectionIfAny();
@@ -284,9 +266,6 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // ======================================================
-        // 🔄 RESET & EXIT
-        // ======================================================
         private void ResetForm()
         {
             cmbBuyer.SelectedIndex = -1;
@@ -321,21 +300,18 @@ namespace Management_System_WPF.Views
                 main.MainFrame.Content = null;
         }
 
-        // ======================================================
-        // 📅 DATE PICKER KEYBOARD NAVIGATION (TAB SUPPORT)
-        // ======================================================
         private void dpSaleDate_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            // 1. Get the internal TextBox of the DatePicker
+            
             var textBox = dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) as DatePickerTextBox;
             if (textBox == null) return;
 
             string text = textBox.Text;
 
-            // --- HANDLE TAB NAVIGATION ---
+           
             if (e.Key == Key.Tab && !string.IsNullOrWhiteSpace(text))
             {
-                // Find separators (works for dd/MM/yyyy, MM-dd-yyyy, etc.)
+              
                 char[] separators = { '/', '-', '.' };
                 int firstSep = text.IndexOfAny(separators);
                 int secondSep = firstSep > -1 ? text.IndexOfAny(separators, firstSep + 1) : -1;
@@ -344,51 +320,48 @@ namespace Management_System_WPF.Views
                 {
                     int selStart = textBox.SelectionStart;
                     int selLen = textBox.SelectionLength;
-
-                    // Define the character positions for Part 1 (Day), Part 2 (Month), Part 3 (Year)
                     int p1Start = 0, p1Len = firstSep;
                     int p2Start = firstSep + 1, p2Len = secondSep - firstSep - 1;
                     int p3Start = secondSep + 1, p3Len = text.Length - secondSep - 1;
 
-                    // SHIFT + TAB (Go Backwards)
+                  
                     if (Keyboard.Modifiers == ModifierKeys.Shift)
                     {
-                        if (selStart == p3Start && selLen == p3Len) // On Year -> Go to Month
+                        if (selStart == p3Start && selLen == p3Len) 
                         {
                             textBox.Select(p2Start, p2Len);
                             e.Handled = true; return;
                         }
-                        if (selStart == p2Start && selLen == p2Len) // On Month -> Go to Day
+                        if (selStart == p2Start && selLen == p2Len) 
                         {
                             textBox.Select(p1Start, p1Len);
                             e.Handled = true; return;
                         }
-                        return; // If on Day, let Shift+Tab exit the control normally
+                        return; 
                     }
 
-                    // NORMAL TAB (Go Forwards)
-                    if (selLen == text.Length || selLen == 0) // Nothing specific selected -> Select Day
+                    
+                    if (selLen == text.Length || selLen == 0)
                     {
                         textBox.Select(p1Start, p1Len);
                         e.Handled = true; return;
                     }
-                    if (selStart == p1Start && selLen == p1Len) // On Day -> Select Month
+                    if (selStart == p1Start && selLen == p1Len) 
                     {
                         textBox.Select(p2Start, p2Len);
                         e.Handled = true; return;
                     }
-                    if (selStart == p2Start && selLen == p2Len) // On Month -> Select Year
+                    if (selStart == p2Start && selLen == p2Len) 
                     {
                         textBox.Select(p3Start, p3Len);
                         e.Handled = true; return;
                     }
 
-                    // If on Year, let Tab exit the control normally to the next UI element
+                   
                     return;
                 }
             }
 
-            // --- HANDLE ARROW KEYS (UP/DOWN TO CHANGE DATE) ---
             if (e.Key is Key.Up or Key.Down)
             {
                 if (dpSaleDate.SelectedDate == null) dpSaleDate.SelectedDate = DateTime.Today;
@@ -396,7 +369,6 @@ namespace Management_System_WPF.Views
                 DateTime current = dpSaleDate.SelectedDate.Value;
                 int selectionStart = textBox.SelectionStart;
 
-                // Find separators to determine which part the cursor is in
                 char[] separators = { '/', '-', '.' };
                 int firstSep = text.IndexOfAny(separators);
                 int secondSep = firstSep > -1 ? text.IndexOfAny(separators, firstSep + 1) : -1;
@@ -406,34 +378,29 @@ namespace Management_System_WPF.Views
                 int direction = (e.Key == Key.Up) ? 1 : -1;
                 DateTime newDate = current;
 
-                // Determine if cursor is in Day, Month, or Year part
                 if (selectionStart <= firstSep)
                 {
-                    // Cursor is in Part 1 (Usually Day)
+             
                     newDate = current.AddDays(direction);
                 }
                 else if (selectionStart > firstSep && selectionStart <= secondSep)
                 {
-                    // Cursor is in Part 2 (Usually Month)
+                  
                     newDate = current.AddMonths(direction);
                 }
                 else if (selectionStart > secondSep)
                 {
-                    // Cursor is in Part 3 (Usually Year)
                     newDate = current.AddYears(direction);
                 }
 
                 if (newDate != current)
                 {
                     dpSaleDate.SelectedDate = newDate;
-
-                    // Critical: Re-select the text after the UI updates
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                        // Re-find the textbox and restore selection so user can keep pressing Up/Down
+                      
                         var tb = dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) as DatePickerTextBox;
                         tb?.Select(selectionStart, 0);
-                        // Note: You can also use selectionLength if you want to keep the part highlighted
                     }), System.Windows.Threading.DispatcherPriority.Background);
 
                     e.Handled = true;

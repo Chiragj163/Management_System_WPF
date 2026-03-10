@@ -10,8 +10,6 @@ namespace Management_System_WPF.Helpers
         {
             if (value == null)
                 return "";
-
-            // Handle TOTAL / TEXT rows
             if (value is string str && !DateTime.TryParse(str, out _))
                 return str;
 
@@ -21,8 +19,6 @@ namespace Management_System_WPF.Helpers
                 date = dt;
             else if (!DateTime.TryParse(value.ToString(), out date))
                 return value.ToString();
-
-            // 🔥 FORCE dd/MM/yyyy
             return date.ToString("dd/MM/yyyy");
         }
 

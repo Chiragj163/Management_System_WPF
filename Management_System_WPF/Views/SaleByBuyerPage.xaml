@@ -549,7 +549,7 @@
                                         <Setter Property="Background" Value="#F1F8E9"/>
                                     </Trigger>
 
-                                    <!-- ✅ TOTAL ROW (LAST = HIGHEST PRIORITY) -->
+                                   
                                     <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
                                        
                                         <Setter Property="Foreground" Value="Black"/>

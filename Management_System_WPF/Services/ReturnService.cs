@@ -25,22 +25,15 @@ namespace Management_System_WPF.Services
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
         }
-
-        // Save a return
         public static void AddReturn(int buyerId, int itemId, int year, int month, int qty)
         {
             using var conn = new SQLiteConnection(connectionString);
             conn.Open();
             string ym = $"{year}-{month:D2}";
-
-            // Check if return exists for this item in this month, update it or insert new
             string sql = @"INSERT INTO returns (buyer_id, item_id, return_month, qty) 
                            VALUES (@b, @i, @ym, @q)
                            ON CONFLICT(return_id) DO UPDATE SET qty = qty + @q; -- Simplification
                            ";
-
-            // Note: For simplicity, we just insert. You might want to grouping logic in SQL, 
-            // but here we will just Insert and Sum later.
             sql = "INSERT INTO returns (buyer_id, item_id, return_month, qty) VALUES (@b, @i, @ym, @q)";
 
             using var cmd = new SQLiteCommand(sql, conn);
@@ -50,8 +43,6 @@ namespace Management_System_WPF.Services
             cmd.Parameters.AddWithValue("@q", qty);
             cmd.ExecuteNonQuery();
         }
-
-        // Get returns for a specific month
         public static List<SalesRaw> GetReturnsForPivot(int buyerId, int year, int month)
         {
             var list = new List<SalesRaw>();
@@ -76,12 +67,11 @@ namespace Management_System_WPF.Services
                 {
                     ItemName = reader["item_name"].ToString(),
                     Qty = Convert.ToInt32(reader["qty"]),
-                    Date = "Return" // Marker
+                    Date = "Return" 
                 });
             }
             return list;
         }
-        // 1. GET LIST
         public static List<ReturnModel> GetDetailedReturns(int buyerId, int year, int month)
         {
             var list = new List<ReturnModel>();
@@ -111,8 +101,6 @@ namespace Management_System_WPF.Services
             }
             return list;
         }
-
-        // 2. UPDATE
         public static void UpdateReturn(int returnId, int newItemId, int newQty)
         {
             using var conn = new SQLiteConnection(connectionString);
@@ -124,8 +112,6 @@ namespace Management_System_WPF.Services
             cmd.Parameters.AddWithValue("@rid", returnId);
             cmd.ExecuteNonQuery();
         }
-
-        // 3. DELETE
         public static void DeleteReturn(int returnId)
         {
             using var conn = new SQLiteConnection(connectionString);

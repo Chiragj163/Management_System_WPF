@@ -31,7 +31,7 @@ namespace Management_System_WPF.Views
         private List<SalesRaw> _masterSales = new();
         private List<SalesRaw> _masterReturns = new();
 
-      
+
 
         public BuyerReportPage(int id, string buyerName = "")
         {
@@ -45,7 +45,7 @@ namespace Management_System_WPF.Views
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             LoadBuyerData();
             LoadCategories();
-           
+
             ApplyCategoryFilter();
 
 
@@ -74,12 +74,10 @@ namespace Management_System_WPF.Views
             ApplyCategoryFilter();
         }
         private void ApplyCategoryFilter()
-        {
-            // 1. Start with the MASTER data (which is already filtered by Date)
+        { 
             IEnumerable<SalesRaw> salesQuery = _masterSales;
             IEnumerable<SalesRaw> returnsQuery = _masterReturns;
 
-            // 2. Apply Category Logic
             if (cmbCategory.SelectedItem != null)
             {
                 string selectedCategory = cmbCategory.SelectedItem.ToString();
@@ -101,20 +99,18 @@ namespace Management_System_WPF.Views
                 }
             }
 
-            // 3. Update the FILTERED lists (Source for Grid & Print)
+           
             _filteredSales = salesQuery.ToList();
             _filteredReturns = returnsQuery.ToList();
 
-            // 4. Update UI
+           
             DataTable pivot = PivotHelper.CreatePivotTableWithTotals(_filteredSales, _filteredReturns);
             BindPivotToGrid(pivot);
 
             CalculateMonthlyTotals();
         }
 
-        // =========================================================
-        // MAIN LOAD (MONTH MODE)
-        // =========================================================
+       
         private void LoadBuyerData()
         {
             _isCustomRange = false;
@@ -125,34 +121,31 @@ namespace Management_System_WPF.Views
             ReturnService.Initialize();
             PaymentService.Initialize();
 
-            // 1. Fetch from DB into MASTER
             _masterSales = SalesService.GetSalesRawForPivot(buyerId, _currentMonth.Year, _currentMonth.Month)
                            ?? new List<SalesRaw>();
 
             _masterReturns = ReturnService.GetReturnsForPivot(buyerId, _currentMonth.Year, _currentMonth.Month)
                              ?? new List<SalesRaw>();
 
-            // 2. Update Date UI
+           
             txtMonthName.Text = _currentMonth.ToString("MMMM yyyy");
             UpdateMonthNavigationButtons();
 
-            // 3. Apply Category Filter (This populates _filtered and updates Grid)
+           
             ApplyCategoryFilter();
         }
 
-        // =========================================================
-        // TOTALS
-        // =========================================================
+        
         private void CalculateMonthlyTotals()
         {
-            // Use FILTERED lists so totals match the grid and print
+           
             var salesList = _filteredSales;
             var returnsList = _filteredReturns;
 
-            // 1. Gross Sales
+           
             decimal grossSales = salesList.Sum(x => x.Qty * x.Price);
 
-            // 2. Return Value
+            
             var allDbItems = ItemsService.GetAllItems();
 
             decimal totalReturnValue = returnsList.Sum(ret =>
@@ -169,17 +162,17 @@ namespace Management_System_WPF.Views
                 return ret.Qty * price;
             });
 
-            // 3. Net Sales
+           
             _currentTotalSales = grossSales - totalReturnValue;
 
-            // 4. Payment logic
+           
             _currentPayment = PaymentService.GetPayment(
                 buyerId,
                 _currentMonth.Year,
                 _currentMonth.Month
             );
 
-            // If in Custom Date Range mode, hide payment or set to 0
+           
             _currentPayment = PaymentService.GetPayment(
       buyerId,
       _currentMonth.Year,
@@ -198,45 +191,38 @@ namespace Management_System_WPF.Views
             PaymentPanel.Visibility = payment > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        // =========================================================
-        // RETURN
-        // =========================================================
+      
         private void Return_Click(object sender, RoutedEventArgs e)
         {
-            // Pass only the context (ID, Year, Month)
+           
             var win = new ReturnWindow(buyerId, _currentMonth.Year, _currentMonth.Month);
 
-            // Refresh main report when window closes
+           
             win.ShowDialog();
             LoadBuyerData();
         }
-        // =========================================================
-        // PAYMENT
-        // =========================================================
-      private void Payment_Click(object sender, RoutedEventArgs e)
-{
-    // 1. Fetch History
-    var history = PaymentService.GetPaymentsList(buyerId, _currentMonth.Year, _currentMonth.Month);
+       
+        private void Payment_Click(object sender, RoutedEventArgs e)
+        {
+           
+            var history = PaymentService.GetPaymentsList(buyerId, _currentMonth.Year, _currentMonth.Month);
 
-    // 2. Define Refresh Action (Simple refresh of the page)
-    Action onRefresh = () => 
-    {
-        LoadBuyerData(); // Recalculate totals
-    };
+           
+            Action onRefresh = () =>
+            {
+                LoadBuyerData();
+            };
 
-    // 3. Open Window (Pass ID, History, and Refresh Action)
-    // Note: We don't pass 'amount' anymore, the window handles inputs internally
-    var win = new PaymentWindow(buyerId, history, onRefresh);
-    
-    win.ShowDialog();
-    
-    // Refresh one last time when closed to be sure
-    LoadBuyerData();
-}
+          
+            var win = new PaymentWindow(buyerId, history, onRefresh);
 
-        // =========================================================
-        // FILTERS
-        // =========================================================
+            win.ShowDialog();
+
+           
+            LoadBuyerData();
+        }
+
+        
         private void Filter_Click(object sender, RoutedEventArgs e)
         {
             FilterPanel.Visibility =
@@ -293,46 +279,44 @@ namespace Management_System_WPF.Views
                       ?? new List<SalesRaw>();
 
             _masterSales = raw;
-            _masterReturns = new List<SalesRaw>(); // Assuming no returns logic for custom range yet
+            _masterReturns = new List<SalesRaw>(); 
 
-            // 2. Update Date UI
+           
             txtMonthName.Text = label;
             btnPrevMonth.IsEnabled = false;
             btnNextMonth.IsEnabled = false;
             FilterPanel.Visibility = Visibility.Collapsed;
 
-            // 3. Apply Category Filter (This applies the category to the NEW dates)
+            
             ApplyCategoryFilter();
         }
         private void ResetFilters_Click(object sender, RoutedEventArgs e)
         {
-            // Restore current month
+          
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
 
-            // Reload month data (this also sets master list)
+           
             LoadBuyerData();
 
-            // Reset category to ALL
+          
             cmbCategory.SelectedIndex = 0;
 
-            // Re-enable month navigation
+            
             btnPrevMonth.IsEnabled = true;
             btnNextMonth.IsEnabled = true;
             btnPrevMonth.Opacity = 1.0;
             btnNextMonth.Opacity = 1.0;
 
-            // Hide filter panel
+           
             FilterPanel.Visibility = Visibility.Collapsed;
         }
 
-        // =========================================================
-        // GRID
-        // =========================================================
+        
         private void BindPivotToGrid(DataTable pivot)
         {
             dgBuyerReport.Columns.Clear();
 
-            double dateColumnWidth = 150; // keep your date width
+            double dateColumnWidth = 150;
 
             foreach (DataColumn col in pivot.Columns)
             {
@@ -341,7 +325,7 @@ namespace Management_System_WPF.Views
                     dgBuyerReport.Columns.Add(new DataGridTextColumn
                     {
                         Header = "Date",
-                        Binding = new Binding("[Date]"),   // ✅ FIXED binding
+                        Binding = new Binding("[Date]"),   
                         FontSize = 16,
                         IsReadOnly = true,
                         Width = new DataGridLength(dateColumnWidth, DataGridLengthUnitType.Pixel)
@@ -352,7 +336,7 @@ namespace Management_System_WPF.Views
                     dgBuyerReport.Columns.Add(new DataGridTextColumn
                     {
                         Header = col.ColumnName,
-                        Binding = new Binding($"[{col.ColumnName}]"), // ✅ FIXED binding
+                        Binding = new Binding($"[{col.ColumnName}]"),
                         FontSize = 16,
                         IsReadOnly = true,
                         Width = new DataGridLength(1, DataGridLengthUnitType.Star)
@@ -364,9 +348,6 @@ namespace Management_System_WPF.Views
         }
 
 
-        // =========================================================
-        // MONTH NAVIGATION
-        // =========================================================
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousSalesMonthForBuyer(buyerId, _currentMonth);
@@ -400,24 +381,24 @@ namespace Management_System_WPF.Views
         }
 
 
-       
-        // PRINT
-        
+
+      
+
         private void Print_Click(object sender, RoutedEventArgs e)
         {
             try
             {
 
 
-                // Get printer page size
+               
                 double pageWidth = 780;
                 double pageHeight = 1120;
 
-                // Build a document specifically for printing
+               
                 FlowDocument doc = BuildInvoiceDocumentForPrint(pageWidth, pageHeight);
 
                 var preview = new PrintPreviewWindow(doc);
-                preview.Owner = Window.GetWindow(this); // Center over current app
+                preview.Owner = Window.GetWindow(this);
                 preview.ShowDialog();
             }
             catch (Exception ex)
@@ -429,212 +410,199 @@ namespace Management_System_WPF.Views
         private string FormatDecimal(decimal value)
         {
             return value % 1 == 0
-                ? ((int)value).ToString()           
-                : value.ToString("0.##");           
+                ? ((int)value).ToString()
+                : value.ToString("0.##");
         }
 
-            private FlowDocument BuildInvoiceDocumentForPrint(double pageWidth, double pageHeight)
+        private FlowDocument BuildInvoiceDocumentForPrint(double pageWidth, double pageHeight)
+        {
+            int ROWS_PER_PAGE = 26; 
+
+            double marginSize = 0;
+
+            var doc = new FlowDocument
             {
-                int ROWS_PER_PAGE = 26;   // your requirement
+                FontFamily = new FontFamily("Arial"),
+                FontSize = 15,
+                TextAlignment = TextAlignment.Left,
+                PageWidth = pageWidth,
+                PageHeight = pageHeight,
+                PagePadding = new Thickness(marginSize),
+                ColumnGap = 0,
+                ColumnWidth = pageWidth
+            };
 
-           
-                double marginSize = 0;
 
-                var doc = new FlowDocument
-                {
-                    FontFamily = new FontFamily("Arial"),
-                    FontSize = 15,
-                    TextAlignment = TextAlignment.Left,
-                    PageWidth = pageWidth,
-                    PageHeight = pageHeight,
-                    PagePadding = new Thickness(marginSize),
-                    ColumnGap = 0,
-                    ColumnWidth = pageWidth
-                };
-
-                // ========= FETCH DATA (your original logic preserved) =========
-
-                var buyerName = (txtBuyerName.Text ?? string.Empty).Trim().ToUpperInvariant();
+            var buyerName = (txtBuyerName.Text ?? string.Empty).Trim().ToUpperInvariant();
 
             var sales = _filteredSales;
             var returnsList = _filteredReturns;
             if (!sales.Any() && !returnsList.Any())
+            {
+                doc.Blocks.Add(new Paragraph(new Run("No data available for printing.")));
+                return doc;
+            }
+
+
+      
+            var dates = new List<DateTime>();
+            foreach (var s in sales)
+                if (DateTime.TryParse(s.Date, out var d)) dates.Add(d.Date);
+
+            foreach (var r in returnsList)
+                if (DateTime.TryParse(r.Date, out var d)) dates.Add(d.Date);
+
+            dates = dates.Distinct().OrderBy(x => x).ToList();
+
+            var returnTotals = returnsList
+                .GroupBy(r => r.ItemName.Trim())
+                .ToDictionary(g => g.Key.ToUpperInvariant(), g => g.Sum(x => x.Qty));
+
+          
+            var allItemNames = sales.Select(s => s.ItemName)
+               .Concat(returnsList.Select(r => r.ItemName))
+               .Distinct()
+               .OrderBy(name => name)
+               .ToList();
+
+            var items = allItemNames.Select(itemName =>
+            {
+                var salesForItem = sales.Where(s => s.ItemName == itemName);
+
+                decimal unitPrice = salesForItem.Any()
+                    ? salesForItem.First().Price
+                    : SalesService.GetItemPriceFromMaster(itemName);
+
+                int totalQty = salesForItem.Sum(s => s.Qty);
+
+                int totalReturns = returnTotals.TryGetValue(
+                    itemName.Trim().ToUpperInvariant(), out var rt)
+                    ? rt : 0;
+
+                int netQty = totalQty - totalReturns;
+                decimal netAmount = netQty * unitPrice;
+
+                var dateQty = new Dictionary<DateTime, List<int>>();
+                foreach (var s in salesForItem)
                 {
-                    doc.Blocks.Add(new Paragraph(new Run("No data available for printing.")));
-                    return doc;
+                    if (DateTime.TryParse(s.Date, out var sd))
+                    {
+                        var dk = sd.Date;
+                        if (!dateQty.ContainsKey(dk))
+                            dateQty[dk] = new List<int>();
+                        dateQty[dk].Add(s.Qty);
+                    }
+                }
+
+                return new
+                {
+                    Item = itemName,
+                    UnitPrice = unitPrice,
+                    TotalQty = totalQty,
+                    TotalReturns = totalReturns,
+                    NetQty = netQty,
+                    TotalAmount = netAmount,
+                    DateQty = dateQty
+                };
+            }).Where(x => x.TotalQty > 0 || x.TotalReturns > 0).ToList();
+
+            int totalColumns = 1 + items.Count;
+
+            int totalDateRows = dates.Count;
+            int pageCount = (int)Math.Ceiling(totalDateRows / (double)ROWS_PER_PAGE);
+
+            int rowIndex = 0;
+
+            for (int page = 1; page <= pageCount; page++)
+            {
+
+                doc.Blocks.Add(new Paragraph(new Run("\n"))); 
+
+                if (page == 1)
+                    doc.Blocks.Add(BuildBuyerHeaderTable(buyerName, pageWidth));
+
+
+              
+                var table = BuildNewPageTable(items, pageWidth);
+                doc.Blocks.Add(table);
+
+                var body = new TableRowGroup();
+                table.RowGroups.Add(body);
+
+                for (int i = 0; i < ROWS_PER_PAGE && rowIndex < totalDateRows; i++, rowIndex++)
+                {
+                    var date = dates[rowIndex];
+                    var row = new TableRow();
+                    body.Rows.Add(row);
+
+                    AddExcelCell(row, date.ToString("dd-MM-yy"), true, false);
+
+                    foreach (var item in items)
+                    {
+                        string qty = item.DateQty.TryGetValue(date, out var list)
+                            ? string.Join("\n", list)
+                            : "";
+
+                        AddExcelCell(row, qty, true, false);
+                    }
+                }
+
+                if (page != pageCount)
+                {
+                    doc.Blocks.Add(new Paragraph(new Run("\n")));
+                    continue;
                 }
 
 
-                // DATES
-                var dates = new List<DateTime>();
-                foreach (var s in sales)
-                    if (DateTime.TryParse(s.Date, out var d)) dates.Add(d.Date);
+                bool hasAnyReturns = returnTotals.Any(x => x.Value > 0);
 
-                foreach (var r in returnsList)
-                    if (DateTime.TryParse(r.Date, out var d)) dates.Add(d.Date);
-
-                dates = dates.Distinct().OrderBy(x => x).ToList();
-
-                var returnTotals = returnsList
-                    .GroupBy(r => r.ItemName.Trim())
-                    .ToDictionary(g => g.Key.ToUpperInvariant(), g => g.Sum(x => x.Qty));
-
-                // ITEMS LIST
-                var allItemNames = sales.Select(s => s.ItemName)
-                   .Concat(returnsList.Select(r => r.ItemName))
-                   .Distinct()
-                   .OrderBy(name => name)
-                   .ToList();
-
-                var items = allItemNames.Select(itemName =>
+                if (hasAnyReturns)
                 {
-                    var salesForItem = sales.Where(s => s.ItemName == itemName);
+                    var returnRow = new TableRow();
+                    body.Rows.Add(returnRow);
+                    AddExcelCell(returnRow, "Return", true, true);
 
-                    decimal unitPrice = salesForItem.Any()
-                        ? salesForItem.First().Price
-                        : SalesService.GetItemPriceFromMaster(itemName);
-
-                    int totalQty = salesForItem.Sum(s => s.Qty);
-
-                    int totalReturns = returnTotals.TryGetValue(
-                        itemName.Trim().ToUpperInvariant(), out var rt)
-                        ? rt : 0;
-
-                    int netQty = totalQty - totalReturns;
-                    decimal netAmount = netQty * unitPrice;
-
-                    var dateQty = new Dictionary<DateTime, List<int>>();
-                    foreach (var s in salesForItem)
-                    {
-                        if (DateTime.TryParse(s.Date, out var sd))
-                        {
-                            var dk = sd.Date;
-                            if (!dateQty.ContainsKey(dk))
-                                dateQty[dk] = new List<int>();
-                            dateQty[dk].Add(s.Qty);
-                        }
-                    }
-
-                    return new
-                    {
-                        Item = itemName,
-                        UnitPrice = unitPrice,
-                        TotalQty = totalQty,
-                        TotalReturns = totalReturns,
-                        NetQty = netQty,
-                        TotalAmount = netAmount,
-                        DateQty = dateQty
-                    };
-                }).Where(x => x.TotalQty > 0 || x.TotalReturns > 0).ToList();
-
-                int totalColumns = 1 + items.Count;
-
-                // ========= PAGINATION ENGINE =========
-
-                int totalDateRows = dates.Count;
-                int pageCount = (int)Math.Ceiling(totalDateRows / (double)ROWS_PER_PAGE);
-
-                int rowIndex = 0;
-
-                for (int page = 1; page <= pageCount; page++)
-                {
-               
-                    doc.Blocks.Add(new Paragraph(new Run("\n"))); // small gap
-                   
-               
-                // ----- PAGE HEADER (ONLY on first page) -----
-                if (page == 1)
-                        doc.Blocks.Add(BuildBuyerHeaderTable(buyerName, pageWidth));
-
-
-                    // ----- MAIN GRID TABLE -----
-                    var table = BuildNewPageTable(items, pageWidth);
-                    doc.Blocks.Add(table);
-
-                    var body = new TableRowGroup();
-                    table.RowGroups.Add(body);
-
-                    // ----- ADD 26 rows max -----
-                    for (int i = 0; i < ROWS_PER_PAGE && rowIndex < totalDateRows; i++, rowIndex++)
-                    {
-                        var date = dates[rowIndex];
-                        var row = new TableRow();
-                        body.Rows.Add(row);
-
-                        AddExcelCell(row, date.ToString("dd-MM-yy"), true, false);
-
-                        foreach (var item in items)
-                        {
-                            string qty = item.DateQty.TryGetValue(date, out var list)
-                                ? string.Join("\n", list)
-                                : "";
-
-                            AddExcelCell(row, qty, true, false);
-                        }
-                    }
-
-                    // ---- If not last page → NO totals, continue loop ----
-                    if (page != pageCount)
-                    {
-                        doc.Blocks.Add(new Paragraph(new Run("\n"))); // small gap
-                        continue;
-                    }
-
-                    // ========= LAST PAGE — ADD TOTALS =========
-
-                    bool hasAnyReturns = returnTotals.Any(x => x.Value > 0);
-
-                    if (hasAnyReturns)
-                    {
-                        var returnRow = new TableRow();
-                        body.Rows.Add(returnRow);
-                        AddExcelCell(returnRow, "Return", true, true);
-
-                        foreach (var item in items)
-                        {
-                            int retQty = returnTotals.TryGetValue(item.Item.Trim().ToUpperInvariant(), out var rq)
-                                ? rq : 0;
-                            AddExcelCell(returnRow, retQty == 0 ? "" : "-" + rq, true, false);
-                        }
-                    }
-
-                    // Qty row
-                    var qtyRow = new TableRow();
-                    body.Rows.Add(qtyRow);
-                    AddExcelCell(qtyRow, "Qty", true, true ,15);
                     foreach (var item in items)
-                        AddExcelCell(qtyRow, item.NetQty.ToString(), true, false ,14);
+                    {
+                        int retQty = returnTotals.TryGetValue(item.Item.Trim().ToUpperInvariant(), out var rq)
+                            ? rq : 0;
+                        AddExcelCell(returnRow, retQty == 0 ? "" : "-" + rq, true, false);
+                    }
+                }
 
-                    // Price row
-                    var priceRow = new TableRow();
-                    body.Rows.Add(priceRow);
-                    AddExcelCell(priceRow, "Price", true, true ,15);
-                    foreach (var item in items)
-                        AddExcelCell(priceRow, "X " + FormatDecimal(item.UnitPrice), true, false, 14);
+                var qtyRow = new TableRow();
+                body.Rows.Add(qtyRow);
+                AddExcelCell(qtyRow, "Qty", true, true, 15);
+                foreach (var item in items)
+                    AddExcelCell(qtyRow, item.NetQty.ToString(), true, false, 14);
 
-                // Total Amount row
-                // 1. Calculate dynamic font size
+                var priceRow = new TableRow();
+                body.Rows.Add(priceRow);
+                AddExcelCell(priceRow, "Price", true, true, 15);
+                foreach (var item in items)
+                    AddExcelCell(priceRow, "X " + FormatDecimal(item.UnitPrice), true, false, 14);
+
                 double baseFontSize = 14;
                 double dynamicFontSize = baseFontSize;
 
                 if (items.Count > 14)
                 {
-                    // Reduce font size by 1 for every item over 14
+  
                     int difference = items.Count - 14;
                     dynamicFontSize = baseFontSize - difference;
 
-                    // ✅ Safety: Never let it go below 11
+ 
                     if (dynamicFontSize < 11)
                     {
                         dynamicFontSize = 11;
                     }
                 }
 
-                // 2. Create the Row
+
                 var amountRow = new TableRow();
                 body.Rows.Add(amountRow);
 
-                // 3. Use the calculated font size
+  
                 AddExcelCell(amountRow, "Total", true, true, 15);
 
                 foreach (var item in items)
@@ -642,122 +610,121 @@ namespace Management_System_WPF.Views
                     AddExcelCell(amountRow, FormatDecimal(item.TotalAmount), true, false, dynamicFontSize);
                 }
 
-                // --- Summary rows ---
                 decimal grandTotal = items.Sum(x => x.TotalAmount);
-                    decimal payment = PaymentService.GetPayment(
-                        buyerId,
-                        _currentMonth.Year,
-                        _currentMonth.Month
-                    );
-                    decimal balance = grandTotal - payment;
+                decimal payment = PaymentService.GetPayment(
+                    buyerId,
+                    _currentMonth.Year,
+                    _currentMonth.Month
+                );
+                decimal balance = grandTotal - payment;
 
-                    AddSummaryRow(body, "Grand Total", grandTotal, totalColumns, Brushes.LightCyan, true);
-                    if (payment > 0)
-                    {
-                        AddSummaryRow(body, "Less", payment, totalColumns, Brushes.LightCyan, true);
-                        AddSummaryRow(body, "Due", balance, totalColumns, Brushes.LightCyan, true);
-                    }
+                AddSummaryRow(body, "Grand Total", grandTotal, totalColumns, Brushes.LightCyan, true);
+                if (payment > 0)
+                {
+                    AddSummaryRow(body, "Less", payment, totalColumns, Brushes.LightCyan, true);
+                    AddSummaryRow(body, "Due", balance, totalColumns, Brushes.LightCyan, true);
                 }
-
-                return doc;
             }
-            private Table BuildBuyerHeaderTable(string buyerName, double pageWidth)
+
+            return doc;
+        }
+        private Table BuildBuyerHeaderTable(string buyerName, double pageWidth)
+        {
+            var table = new Table
             {
-                var table = new Table
-                {
-                    CellSpacing = 1,
-                    BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1),
-                    Margin = new Thickness(0)
-                };
+                CellSpacing = 1,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Margin = new Thickness(0)
+            };
 
-                table.Columns.Add(new TableColumn { Width = new GridLength(pageWidth) });
+            table.Columns.Add(new TableColumn { Width = new GridLength(pageWidth) });
 
-                var group = new TableRowGroup();
-                table.RowGroups.Add(group);
+            var group = new TableRowGroup();
+            table.RowGroups.Add(group);
 
-                var row = new TableRow();
-                group.Rows.Add(row);
+            var row = new TableRow();
+            group.Rows.Add(row);
 
-                var para = new Paragraph(new Run(buyerName))
-                {
-                    FontSize = 20,
-                    FontWeight = FontWeights.Bold,
-                    TextAlignment = TextAlignment.Center,
-                    Margin = new Thickness(0)
-                };
-
-                var cell = new TableCell(para)
-                {
-                    BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1),
-                    Background = Brushes.LightCyan,
-                    Padding = new Thickness(0)
-                };
-
-                row.Cells.Add(cell);
-
-                return table;
-            }
-            private Table BuildNewPageTable(IEnumerable<object> items, double pageWidth)
+            var para = new Paragraph(new Run(buyerName))
             {
-                double spacingSize = 1;
+                FontSize = 20,
+                FontWeight = FontWeights.Bold,
+                TextAlignment = TextAlignment.Center,
+                Margin = new Thickness(0)
+            };
 
-                var table = new Table
+            var cell = new TableCell(para)
+            {
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1),
+                Background = Brushes.LightCyan,
+                Padding = new Thickness(0)
+            };
+
+            row.Cells.Add(cell);
+
+            return table;
+        }
+        private Table BuildNewPageTable(IEnumerable<object> items, double pageWidth)
+        {
+            double spacingSize = 1;
+
+            var table = new Table
+            {
+                BorderBrush = Brushes.Black,
+                CellSpacing = spacingSize,
+                BorderThickness = new Thickness(0),
+                Background = Brushes.White,
+                Margin = new Thickness(0)
+            };
+
+            table.Columns.Clear();
+
+    
+            const double dateColumnWidth = 59;
+            table.Columns.Add(new TableColumn { Width = new GridLength(dateColumnWidth) });
+
+            var itemList = items.ToList();
+            int itemCount = itemList.Count;
+            if (itemCount > 0)
+            {
+
+
+                for (int i = 0; i < itemCount; i++)
                 {
-                    BorderBrush = Brushes.Black,
-                    CellSpacing = spacingSize,
-                    BorderThickness = new Thickness(0),
-                    Background = Brushes.White,
-                    Margin = new Thickness(0)
-                };
 
-                table.Columns.Clear();
-
-                // Fixed date column width
-                const double dateColumnWidth = 59;
-                table.Columns.Add(new TableColumn { Width = new GridLength(dateColumnWidth) });
-
-                var itemList = items.ToList();
-                int itemCount = itemList.Count;
-                if (itemCount > 0)
-                {
-                   
-
-                    for (int i = 0; i < itemCount; i++)
-                    {
-                        
-                        table.Columns.Add(new TableColumn { Width = GridLength.Auto });
-                    }
+                    table.Columns.Add(new TableColumn { Width = GridLength.Auto });
                 }
-                // Header row
-                var headerGroup = new TableRowGroup();
-                table.RowGroups.Add(headerGroup);
+            }
+       
+            var headerGroup = new TableRowGroup();
+            table.RowGroups.Add(headerGroup);
 
-                var headerRow = new TableRow();
-                headerGroup.Rows.Add(headerRow);
+            var headerRow = new TableRow();
+            headerGroup.Rows.Add(headerRow);
 
-                AddExcelCell(headerRow, "Date", true, true);
+            AddExcelCell(headerRow, "Date", true, true);
 
-                foreach (var item in itemList)
-                {
-                    // Use reflection to read "Item" property from anonymous type
-                    string itemName = (string)item.GetType().GetProperty("Item").GetValue(item);
-                    AddExcelCell(headerRow, itemName, true, true);
-                }
-
-                return table;
+            foreach (var item in itemList)
+            {
+  
+                string itemName = (string)item.GetType().GetProperty("Item").GetValue(item);
+                AddExcelCell(headerRow, itemName, true, true);
             }
 
+            return table;
+        }
 
-        private void AddExcelCell( TableRow row, string text, bool isBold, bool isHeader, double fontSize = 13.5 )
+
+        private void AddExcelCell(TableRow row, string text, bool isBold, bool isHeader, double fontSize = 13.5)
         {
             var p = new Paragraph(new Run(text ?? string.Empty))
             {
                 Margin = new Thickness(1, 1, 1, 1),
                 TextAlignment = TextAlignment.Center,
                 FontSize = fontSize,
-             
+
                 FontWeight = isBold ? FontWeights.Bold : FontWeights.Normal
             };
 
@@ -766,7 +733,7 @@ namespace Management_System_WPF.Views
                 TextAlignment = TextAlignment.Center,
                 BorderBrush = Brushes.Black,
                 BorderThickness = new Thickness(1),
-                Padding = new Thickness(0,8,0,8)
+                Padding = new Thickness(0, 8, 0, 8)
             };
 
             if (isHeader)
@@ -776,41 +743,39 @@ namespace Management_System_WPF.Views
         }
 
 
-        private void AddSummaryRow(  TableRowGroup body, string label, decimal value,  int columnSpan,  Brush background,  bool bold = true)
+        private void AddSummaryRow(TableRowGroup body, string label, decimal value, int columnSpan, Brush background, bool bold = true)
+        {
+            var row = new TableRow();
+            body.Rows.Add(row);
+
+           
+            row.Cells.Add(new TableCell(new Paragraph(new Run(label)))
             {
-                var row = new TableRow();
-                body.Rows.Add(row);
+                TextAlignment = TextAlignment.Center,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1.5),
+                Padding = new Thickness(2),
+                FontSize = 14,
+                Background = background,
+                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = Brushes.Black
+            });
 
-                // Label cell
-                row.Cells.Add(new TableCell(new Paragraph(new Run(label)))
-                {
-                    TextAlignment = TextAlignment.Center,
-                    BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1.5),
-                    Padding = new Thickness(2),
-                    FontSize = 14,
-                    Background = background,
-                    FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
-                    Foreground = Brushes.Black
-                });
-
-                // Value cell
-                row.Cells.Add(new TableCell(new Paragraph(new Run($"₹ {value:0,0.##}")))
-                {
-                    ColumnSpan = columnSpan - 1,
-                    TextAlignment = TextAlignment.Center,
-                    BorderBrush = Brushes.Black,
-                    BorderThickness = new Thickness(1.5),
-                    FontSize=17,
-                    Padding = new Thickness(2),
-                    Background = background,
-                    FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
-                    Foreground = Brushes.Black
-                });
-            }
-        // =========================================================
-        // EXCEL
-        // =========================================================
+           
+            row.Cells.Add(new TableCell(new Paragraph(new Run($"₹ {value:0,0.##}")))
+            {
+                ColumnSpan = columnSpan - 1,
+                TextAlignment = TextAlignment.Center,
+                BorderBrush = Brushes.Black,
+                BorderThickness = new Thickness(1.5),
+                FontSize = 17,
+                Padding = new Thickness(2),
+                Background = background,
+                FontWeight = bold ? FontWeights.Bold : FontWeights.Normal,
+                Foreground = Brushes.Black
+            });
+        }
+ 
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
             if (dgBuyerReport.ItemsSource is not DataView dv || dv.Count == 0)
@@ -851,9 +816,6 @@ namespace Management_System_WPF.Views
             MessageBox.Show("Exported to Desktop.");
         }
 
-        // =========================================================
-        // MENU + BACK
-        // =========================================================
         private void ToggleMenu_Click(object sender, RoutedEventArgs e)
         {
             if (ActionButtonsPanel.Visibility == Visibility.Visible)
@@ -888,16 +850,15 @@ namespace Management_System_WPF.Views
             e.Column.CanUserSort = false;
         }
 
-        // Helper function to convert DB data to our PaymentRecord model
         private List<PaymentRecord> GetPaymentHistoryForWindow()
         {
-            // Now it fetches real data from DB
+           
             return PaymentService.GetPaymentsList(buyerId, _currentMonth.Year, _currentMonth.Month);
         }
-        // 1. Graph for Quantity (Item Name vs Qty)
+       
         private void ViewQtyGraph_Click(object sender, RoutedEventArgs e)
         {
-            // ✅ Use _filteredSales so it respects Date AND Category
+           
             var sourceData = _filteredSales;
 
             if (sourceData == null || !sourceData.Any())
@@ -906,7 +867,7 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Group by Item Name and Sum the Quantity
+           
             var graphData = sourceData
                 .GroupBy(s => s.ItemName)
                 .Select(g => new
@@ -914,7 +875,7 @@ namespace Management_System_WPF.Views
                     Item = g.Key,
                     Total = g.Sum(x => x.Qty)
                 })
-                .Where(x => x.Total > 0) // Exclude items with 0 sales
+                .Where(x => x.Total > 0) 
                 .ToDictionary(x => x.Item, x => (decimal)x.Total);
 
             if (graphData.Count == 0)
@@ -923,22 +884,22 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Open Graph Window (true = Quantity Mode)
+          
             var graphWin = new BuyerGraphWindow(
                 graphData,
-                $"Quantity Analysis: {txtMonthName.Text}", // Dynamic Title
+                $"Quantity Analysis: {txtMonthName.Text}",
                 "Items",
-                true // isQuantity = true
+                true 
             );
 
             graphWin.Owner = Window.GetWindow(this);
             graphWin.ShowDialog();
         }
 
-        // 2. Graph for Amount (Item Name vs Total ₹)
+      
         private void ViewAmountGraph_Click(object sender, RoutedEventArgs e)
         {
-            // ✅ Use _filteredSales
+           
             var sourceData = _filteredSales;
 
             if (sourceData == null || !sourceData.Any())
@@ -947,7 +908,7 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Group by Item Name and Sum the Amount (Qty * Price)
+           
             var graphData = sourceData
                 .GroupBy(s => s.ItemName)
                 .Select(g => new
@@ -964,12 +925,12 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // Open Graph Window (false = Amount Mode)
+           
             var graphWin = new BuyerGraphWindow(
                 graphData,
                 $"Sales Amount: {txtMonthName.Text}",
                 "Items",
-                false // isQuantity = false
+                false 
             );
 
             graphWin.Owner = Window.GetWindow(this);

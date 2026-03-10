@@ -25,8 +25,6 @@ namespace Management_System_WPF.Views
             cmbBuyer.DisplayMemberPath = "Name";
             cmbBuyer.SelectedValuePath = "BuyerId";
         }
-
-        // ================= ALL SALES =================
         private void AllSales_Click(object sender, RoutedEventArgs e)
         {
             if (cmbBuyer.SelectedItem == null)
@@ -46,29 +44,22 @@ namespace Management_System_WPF.Views
 
             var main = (MainWindow)Application.Current.MainWindow;
             main.ShowFullScreenPage();
-
-            // ✅ CORRECT PAGE
             NavigationService.Navigate(
                 new BuyerReportPage(buyer.BuyerId, buyer.Name)
             );
         }
 
-
-        // ================= SALES BY ARTICLES =================
         private void SalesByArticles_Click(object sender, RoutedEventArgs e)
         {
             NavigationService.Navigate(new ArticleReportPage());
         }
 
-        // ================= SALES BY BUYER MATRIX =================
         private void SalesByBuyer_Click(object sender, RoutedEventArgs e)
         {
             var main = (MainWindow)Application.Current.MainWindow;
 
-            // 🔥 Enable full screen layout (hide side menu, remove margins)
             main.ShowFullScreenPage();
 
-            // Navigate to month-wise Sale By Buyer matrix
             NavigationService.Navigate(new SaleByBuyerPage());
         }
 

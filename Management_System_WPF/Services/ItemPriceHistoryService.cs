@@ -9,8 +9,6 @@ namespace Management_System_WPF.Services
     {
         private static string connectionString =
             $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
-
-        // ---------------- ADD HISTORY ----------------
         public static void AddHistory(ItemPriceHistory history)
         {
             using (var conn = new SQLiteConnection(connectionString))
@@ -34,7 +32,6 @@ namespace Management_System_WPF.Services
             }
         }
 
-        // ---------------- GET HISTORY ----------------
         public static List<ItemPriceHistory> GetHistory(int itemId)
         {
             var list = new List<ItemPriceHistory>();

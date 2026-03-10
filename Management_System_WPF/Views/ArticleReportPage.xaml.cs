@@ -28,13 +28,11 @@ namespace Management_System_WPF.Views
         private DateTime _rangeTo;
 
         private DateTime _currentMonth;
-        // 🔥 NEW: Store article categories for lookup
         private Dictionary<string, string> _articleCategoryMap = new();
 
         public ArticleReportPage()
         {
             InitializeComponent();
-            // 1. Load Categories and Build Map
             LoadCategoriesAndMap();
 
             ((MainWindow)Application.Current.MainWindow).ShowFullScreenPage();
@@ -56,8 +54,6 @@ namespace Management_System_WPF.Views
             var raw = SalesService.GetArticleSalesTillNowRaw();
 
             if (raw == null) return;
-
-            // Extract available years using the sale row dates
             var years = raw
                 .Select(r =>
                 {
@@ -92,13 +88,10 @@ namespace Management_System_WPF.Views
             }
             else
             {
-                // Range (e.g., "01-Mar-25 to 31-Mar-25")
                 txtTitle.Text = $"{from:dd-MMM-yy} to {to:dd-MMM-yy}";
             }
-            // 🔹 Fetch raw data for range
             var raw = SalesService.GetArticleSalesByDateRange(from, to);
 
-            // 🔹 Apply category filter (reuse existing logic)
             if (cmbFilterCategory.SelectedItem != null &&
                 cmbFilterCategory.SelectedItem.ToString() != "All")
             {
@@ -112,14 +105,10 @@ namespace Management_System_WPF.Views
 
             var dates = raw.Select(r => r.Date).Distinct().ToList();
 
-            // ==========================================
-            // ✅ CALCULATE TOTALS AND SORT ARTICLES
-            // ==========================================
             var articleTotals = raw
                 .GroupBy(r => r.Article)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
 
-            // Sort from highest quantity to lowest
             var articles = articleTotals
                 .OrderByDescending(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
@@ -151,10 +140,10 @@ namespace Management_System_WPF.Views
                     {
                         int qtySum = entries.Sum(e => e.Qty);
 
-                        // Show only SUM inside the cell
+                      
                         row.ArticleValues[art] = qtySum.ToString();
 
-                        // Tooltip still shows individual breakdown
+                      
                         row.ArticleTooltips[art] = string.Join(
                             Environment.NewLine,
                             entries.Select(e => $"{e.Qty} → {e.BuyerName}")
@@ -166,7 +155,7 @@ namespace Management_System_WPF.Views
                 rows.Add(row);
             }
 
-            // 🔹 TOTAL ROW
+         
             var totalRow = new ArticleSaleRow { IsTotalRow = true };
 
             foreach (var art in articles)
@@ -177,37 +166,29 @@ namespace Management_System_WPF.Views
 
             rows.Add(totalRow);
 
-            // 🔹 Bind
+           
             BuildDynamicColumns(articles);
             dgArticles.ItemsSource = rows;
 
-            // 🔹 Disable month navigation (range mode)
+           
             btnPrevMonth.IsEnabled = false;
             btnNextMonth.IsEnabled = false;
         }
 
-        // 🔥 NEW: Load Categories & Map Logic
+       
         private void LoadCategoriesAndMap()
         {
-            // A. Fetch all items to know which category they belong to
             var allItems = ItemsService.GetAllItems();
 
-            // Build the dictionary: Key = Name, Value = Category
             _articleCategoryMap = allItems.ToDictionary(x => x.Name, x => x.Category);
 
-            // B. Populate ComboBox (Same as InventoryPage)
-            var categories = new List<string> { "All" }; // Default Option
-
-            // Add distinct categories from DB or your hardcoded list
+            var categories = new List<string> { "All" }; 
             categories.AddRange(allItems.Select(x => x.Category).Distinct().OrderBy(c => c));
 
-            // Or use your hardcoded list if you prefer:
-            // categories.AddRange(new[] { "Double Station", "Vertical", "Rotary" });
 
             cmbFilterCategory.ItemsSource = categories;
-            cmbFilterCategory.SelectedIndex = 0; // Select "All" by default
+            cmbFilterCategory.SelectedIndex = 0;
         }
-        // 🔥 NEW: Filter Change Event
         private void FilterCategory_Changed(object sender, SelectionChangedEventArgs e)
         {
             if (_isRangeMode)
@@ -218,14 +199,13 @@ namespace Management_System_WPF.Views
         }
 
       
-        // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
+     
 
         private void LoadArticleReport(DateTime month)
         {
             _isRangeMode = false;
             var raw = SalesService.GetArticleSalesByMonth(month.Year, month.Month);
 
-            // Category filter
             if (cmbFilterCategory.SelectedItem != null &&
                 cmbFilterCategory.SelectedItem.ToString() != "All")
             {
@@ -239,14 +219,10 @@ namespace Management_System_WPF.Views
 
             var dates = raw.Select(r => DateTime.Parse(r.Date)).Distinct().OrderBy(d => d).ToList();
 
-            // ==========================================
-            // ✅ CALCULATE TOTALS AND SORT ARTICLES
-            // ==========================================
             var articleTotals = raw
                 .GroupBy(r => r.Article)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
 
-            // Sort from highest quantity to lowest
             var articles = articleTotals
                 .OrderByDescending(kvp => kvp.Value)
                 .Select(kvp => kvp.Key)
@@ -280,10 +256,8 @@ namespace Management_System_WPF.Views
                     {
                         int qtySum = entries.Sum(e => e.Qty);
 
-                        // Show only SUM inside the cell
                         row.ArticleValues[art] = qtySum.ToString();
 
-                        // Tooltip still shows individual breakdown
                         row.ArticleTooltips[art] = string.Join(
                             Environment.NewLine,
                             entries.Select(e => $"{e.Qty} → {e.BuyerName}")
@@ -295,7 +269,6 @@ namespace Management_System_WPF.Views
                 rows.Add(row);
             }
 
-            // TOTAL ROW
             var totalRow = new ArticleSaleRow { IsTotalRow = true };
 
             foreach (var art in articles)
@@ -314,17 +287,10 @@ namespace Management_System_WPF.Views
 
 
 
-
-
-
-
-        // CREATE DYNAMIC COLUMNS
-
         private void BuildDynamicColumns(List<string> articles)
         {
             dgArticles.Columns.Clear();
 
-            // DATE COLUMN
             dgArticles.Columns.Add(new DataGridTextColumn
             {
                 Header = "Date",
@@ -332,8 +298,6 @@ namespace Management_System_WPF.Views
                 Width = 120,
                 IsReadOnly = true
             });
-
-            // ARTICLE COLUMNS
             foreach (var art in articles)
             {
                 dgArticles.Columns.Add(new DataGridTextColumn
@@ -349,8 +313,7 @@ namespace Management_System_WPF.Views
         new Setter(TextBlock.TextWrappingProperty, TextWrapping.Wrap),
         new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center),
         new Setter(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center),
-        new Setter(TextBlock.ToolTipProperty, null) ,// default: NO tooltip
-        // Tooltip binding when content exists
+        new Setter(TextBlock.ToolTipProperty, null) ,
 new Setter(
     TextBlock.ToolTipProperty,
     new Binding($"ArticleTooltips[{art}]")
@@ -359,7 +322,6 @@ new Setter(
     },
                         Triggers =
     {
-        // ✅ SHOW tooltip only when value is NOT empty
         new DataTrigger
         {
             Binding = new Binding($"ArticleValues[{art}]"),
@@ -392,7 +354,6 @@ new Setter(
 
             }
 
-            // TOTAL COLUMN
             dgArticles.Columns.Add(new DataGridTextColumn
             {
                 Header = "Total",
@@ -409,7 +370,6 @@ new Setter(
         }
                  },
 
-                // 🔹 TEXT ALIGNMENT
                 ElementStyle = new Style(typeof(TextBlock))
                 {
                     Setters =
@@ -422,9 +382,6 @@ new Setter(
 
 
 
-
-
-        // BUTTON: BACK
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
@@ -443,7 +400,6 @@ new Setter(
         }
 
 
-        // BUTTON: PREVIOUS MONTH
 
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
@@ -458,9 +414,6 @@ new Setter(
         }
 
 
-
-        // BUTTON: NEXT MONTH
-
         private void NextMonth_Click(object sender, RoutedEventArgs e)
         {
             var next = SalesService.GetNextArticleSalesMonth(_currentMonth);
@@ -473,12 +426,9 @@ new Setter(
             }
         }
 
-
-        // EXPORT EXCEL
-
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Validate Data
+            
             var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
             if (rows == null || rows.Count == 0)
             {
@@ -502,15 +452,11 @@ new Setter(
                 {
                     var ws = package.Workbook.Worksheets.Add("Sales Report");
 
-                    // --- 1. PREPARE HEADERS ---
-
-                    // Get all unique article names
                     var allArticleNames = rows.SelectMany(r => r.ArticleValues.Keys)
                                               .Distinct()
                                               .OrderBy(x => x)
                                               .ToList();
 
-                    // Dictionary to hold the vertical sums (Bottom Row)
                     var columnTotals = allArticleNames.ToDictionary(name => name, name => 0m);
 
                     ws.Cells[1, 1].Value = "Date";
@@ -520,25 +466,19 @@ new Setter(
                     {
                         ws.Cells[1, col++].Value = artName;
                     }
-
-                    // [NEW] Add "Total" Header at the end
                     ws.Cells[1, col].Value = "Total";
                     ws.Cells[1, col].Style.Font.Bold = true;
-
-
-                    // --- 2. WRITE DATA ROWS ---
                     int rowIdx = 2;
-                    decimal grandTotal = 0; // Bottom-right corner value
+                    decimal grandTotal = 0; 
 
                     foreach (var r in rows)
                     {
                         if (r.Date.Year < 1900) continue;
-                        // Date Column
                         ws.Cells[rowIdx, 1].Value = r.Date;
                         ws.Cells[rowIdx, 1].Style.Numberformat.Format = "dd-mm-yyyy";
 
                         col = 2;
-                        decimal rowSum = 0; // Horizontal sum for this specific day
+                        decimal rowSum = 0; 
 
                         foreach (var artName in allArticleNames)
                         {
@@ -553,34 +493,23 @@ new Setter(
                                     .Sum();
                             }
 
-
-                            // Write Value
                             if (val > 0) ws.Cells[rowIdx, col].Value = val;
                             else ws.Cells[rowIdx, col].Value = 0;
 
-                            // [CALC] Add to Row Sum (Horizontal)
                             rowSum += val;
-
-                            // [CALC] Add to Column Sum (Vertical)
                             columnTotals[artName] += val;
 
                             col++;
                         }
-
-                        // [NEW] Write Row Total (Last Column)
                         ws.Cells[rowIdx, col].Value = rowSum;
                         ws.Cells[rowIdx, col].Style.Font.Bold = true;
                         ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
                         ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.WhiteSmoke);
 
-                        grandTotal += rowSum; // Add to grand total
+                        grandTotal += rowSum; 
                         rowIdx++;
                     }
 
-
-                    // --- 3. WRITE BOTTOM TOTAL ROW ---
-
-                    // Write "Total" label
                     ws.Cells[rowIdx, 1].Value = "Total";
                     ws.Cells[rowIdx, 1].Style.Font.Bold = true;
                     ws.Cells[rowIdx, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Right;
@@ -588,35 +517,27 @@ new Setter(
                     col = 2;
                     foreach (var artName in allArticleNames)
                     {
-                        // Write the vertical sum we calculated earlier
                         decimal colSum = columnTotals[artName];
                         ws.Cells[rowIdx, col].Value = colSum;
                         col++;
                     }
 
-                    // [NEW] Write Grand Total (Bottom Right)
                     ws.Cells[rowIdx, col].Value = grandTotal;
                     ws.Cells[rowIdx, col].Style.Font.Bold = true;
                     ws.Cells[rowIdx, col].Style.Font.Size = 12;
                     ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
                     ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
-
-                    // --- 4. STYLING ---
-
-                    // Format the Total Row (Bottom)
                     var bottomRowRange = ws.Cells[rowIdx, 1, rowIdx, col];
                     bottomRowRange.Style.Font.Bold = true;
-                    bottomRowRange.Style.Border.Top.Style = ExcelBorderStyle.Medium; // Thicker line above totals
+                    bottomRowRange.Style.Border.Top.Style = ExcelBorderStyle.Medium; 
 
-                    // Header Style
                     var headerRange = ws.Cells[1, 1, 1, col];
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Teal);
                     headerRange.Style.Font.Color.SetColor(System.Drawing.Color.White);
 
-                    // Borders for all data
                     var fullRange = ws.Cells[1, 1, rowIdx, col];
                     fullRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
                     fullRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
@@ -625,7 +546,6 @@ new Setter(
                     ws.View.FreezePanes(2, 1);
                     ws.Cells.AutoFitColumns();
 
-                    // --- SAVE ---
                     File.WriteAllBytes(saveFileDialog.FileName, package.GetAsByteArray());
 
                     MessageBox.Show("Export Successful!");
@@ -637,10 +557,6 @@ new Setter(
             }
         }
 
-
-
-
-        // DISABLE NEXT/PREV IF MONTH HAS NO SALES
 
         private void UpdateMonthNavigationButtons()
         {
@@ -656,40 +572,29 @@ new Setter(
 
         private void dgArticles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // 1. Find exactly what visual element was double-clicked
             DependencyObject dep = (DependencyObject)e.OriginalSource;
 
-            // Navigate up the visual tree to find the DataGridCell
             while (dep != null && !(dep is DataGridCell))
             {
                 dep = VisualTreeHelper.GetParent(dep);
             }
 
-            // ❌ If we didn't double-click inside an actual cell (e.g. scrollbar or header), exit
             if (dep == null) return;
 
             DataGridCell cell = (DataGridCell)dep;
 
-            // 2. Get the row data
             var row = cell.DataContext as ArticleSaleRow;
-
-            // ❌ Ignore invalid clicks (Total Row)
             if (row == null || row.IsTotalRow) return;
-
-            // 3. Get the column info
             if (cell.Column == null) return;
 
-            // ❌ Ignore the Date column (Index 0) and the Total column
             string article = cell.Column.Header?.ToString();
             if (cell.Column.DisplayIndex == 0 || article == "Total" || string.IsNullOrEmpty(article))
                 return;
 
-            // ❌ No data → no popup
             if (!row.ArticleTooltips.ContainsKey(article) ||
                 string.IsNullOrWhiteSpace(row.ArticleTooltips[article]))
                 return;
 
-            // 4. Parse tooltip data
             var details = row.ArticleTooltips[article]
                 .Split('\n')
                 .Select(line =>
@@ -702,7 +607,6 @@ new Setter(
                 })
                 .ToList();
 
-            // 5. Open popup
             var popup = new BuyerDetailsWindow(
                 article,
                 row.DateDisplay,
@@ -716,18 +620,12 @@ new Setter(
         }
 
 
-
-
-
         private void LoadSalesTillNow()
 {
     try
     {
-        // 1️⃣ Load all data
         var raw = SalesService.GetArticleSalesTillNowRaw();
         if (raw == null) return;
-
-        // 2️⃣ Apply Category filter
         if (cmbSaleTillNowFilterCategory.SelectedItem != null &&
             cmbSaleTillNowFilterCategory.SelectedItem.ToString() != "All")
         {
@@ -738,8 +636,6 @@ new Setter(
                 _articleCategoryMap[x.Article] == selectedCategory
             ).ToList();
         }
-
-        // 3️⃣ Apply YEAR filter
         if (cmbYearFilter.SelectedItem != null &&
             cmbYearFilter.SelectedItem.ToString() != "All")
         {
@@ -753,7 +649,6 @@ new Setter(
             }).ToList();
         }
 
-        // 4️⃣ Apply MONTH filter
         if (cmbMonthFilter.SelectedItem != null &&
             ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString() != "All")
         {
@@ -771,8 +666,6 @@ new Setter(
                 return false;
             }).ToList();
         }
-
-        // 5️⃣ Build grouped totals
         var articles = raw.Select(x => x.Article).Distinct().OrderBy(a => a).ToList();
 
         var totals = articles.ToDictionary(
@@ -780,7 +673,6 @@ new Setter(
             art => raw.Where(x => x.Article == art).Sum(x => x.Qty)
         );
 
-        // 6️⃣ Build grid
         dgSalesTillNow.Columns.Clear();
         dgSalesTillNow.Columns.Add(new DataGridTextColumn
         {
@@ -830,9 +722,6 @@ new Setter(
         {
             try
             {
-                // ====================================================
-                // 1️⃣ REUSE FILTERING LOGIC (Exact copy from LoadSalesTillNow)
-                // ====================================================
 
                 var raw = SalesService.GetArticleSalesTillNowRaw();
                 if (raw == null || !raw.Any())
@@ -841,7 +730,6 @@ new Setter(
                     return;
                 }
 
-                // Apply Category Filter
                 if (cmbSaleTillNowFilterCategory.SelectedItem != null &&
                     cmbSaleTillNowFilterCategory.SelectedItem.ToString() != "All")
                 {
@@ -851,8 +739,6 @@ new Setter(
                         _articleCategoryMap[x.Article] == selectedCategory
                     ).ToList();
                 }
-
-                // Apply YEAR Filter
                 if (cmbYearFilter.SelectedItem != null &&
                     cmbYearFilter.SelectedItem.ToString() != "All")
                 {
@@ -865,7 +751,6 @@ new Setter(
                     }).ToList();
                 }
 
-                // Apply MONTH Filter
                 if (cmbMonthFilter.SelectedItem != null &&
                     ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString() != "All")
                 {
@@ -889,11 +774,6 @@ new Setter(
                     return;
                 }
 
-                // ====================================================
-                // 2️⃣ PREPARE DATA FOR GRAPH
-                // ====================================================
-
-                // Group by Article Name and Sum the Quantity
                 var graphData = raw
                     .GroupBy(x => x.Article)
                     .Select(g => new
@@ -901,19 +781,15 @@ new Setter(
                         Article = g.Key,
                         TotalQty = g.Sum(x => x.Qty)
                     })
-                    .Where(x => x.TotalQty > 0) // Hide items with 0 sales
+                    .Where(x => x.TotalQty > 0) 
                     .ToDictionary(x => x.Article, x => (decimal)x.TotalQty);
 
-                // ====================================================
-                // 3️⃣ OPEN GRAPH WINDOW
-                // ====================================================
-
-                // We reuse your existing BuyerGraphWindow since it accepts a Dictionary
+              
                 var graphWin = new BuyerGraphWindow(
                     graphData,
-                    "Sales Analysis (Qty)", // Window Title
-                    "Articles",             // X-Axis Label
-                    true                    // isQuantity = true (Orange Color)
+                    "Sales Analysis (Qty)", 
+                    "Articles",            
+                    true                    
                 );
 
                 graphWin.Owner = Window.GetWindow(this);
@@ -980,7 +856,7 @@ new Setter(
         }
         private void FilterReset_Click(object sender, RoutedEventArgs e)
         {
-            cmbFilterCategory.SelectedIndex = 0;  // All
+            cmbFilterCategory.SelectedIndex = 0; 
             dpFrom.SelectedDate = null;
             dpTo.SelectedDate = null;
 
@@ -997,19 +873,14 @@ new Setter(
         }
         private void ViewGraph_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Get Rows
+           
             var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
             if (rows == null || !rows.Any()) { MessageBox.Show("No data"); return; }
-
-            // 2. Find Total Row
             var totalRow = rows.FirstOrDefault(r => r.IsTotalRow);
             if (totalRow == null) { MessageBox.Show("No totals found"); return; }
-
-            // 3. Prepare Data
             var graphData = new Dictionary<string, decimal>();
             foreach (var kvp in totalRow.ArticleValues)
             {
-                // Parse the Qty string to decimal
                 if (decimal.TryParse(kvp.Value, out decimal qty) && qty > 0)
                 {
                     graphData[kvp.Key] = qty;

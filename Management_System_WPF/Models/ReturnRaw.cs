@@ -8,7 +8,7 @@ namespace Management_System_WPF.Models
 {
     public class ReturnRaw
     {
-        public string Date { get; set; }     // yyyy-MM-dd
+        public string Date { get; set; }  
         public string ItemName { get; set; }
         public int Qty { get; set; }
         public decimal Price { get; set; }

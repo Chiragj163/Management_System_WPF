@@ -18,7 +18,6 @@ namespace Management_System.Services
             return new SQLiteConnection($"Data Source={dbPath};Version=3;");
         }
 
-        // 🔥 Correct version that MATCHES your real tables
         public static List<SaleRecord> GetSales()
         {
             var list = new List<SaleRecord>();

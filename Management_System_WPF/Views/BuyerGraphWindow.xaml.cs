@@ -25,13 +25,11 @@ namespace Management_System_WPF.Views
             SalesChart.AxisX[0].Title = xAxisLabel;
             if (isQuantity)
             {
-                // Qty Mode: Plain numbers (e.g., "150")
                 SalesChart.AxisY[0].Title = "Quantity";
                 Formatter = value => value.ToString("N0");
             }
             else
             {
-                // Sales Mode: Currency (e.g., "₹ 150")
                 SalesChart.AxisY[0].Title = "Amount (₹)";
                 Formatter = value => value.ToString("C0", CultureInfo.CreateSpecificCulture("en-IN"));
             }
@@ -48,8 +46,6 @@ namespace Management_System_WPF.Views
             var sortedData = data.OrderByDescending(x => x.Value).ToList();
 
             Labels = sortedData.Select(x => x.Key).ToArray();
-
-            // ✅ FIX 1: Force the chart to use the new labels immediately
             SalesChart.AxisX[0].Labels = Labels;
 
             var values = new ChartValues<decimal>(sortedData.Select(x => x.Value));

@@ -1,4 +1,4 @@
-﻿using Management_System_WPF.Views; // Ensure you have this if ChangePasswordWindow is in Views
+﻿using Management_System_WPF.Views;
 using System;
 using System.IO;
 using System.Windows;
@@ -14,17 +14,11 @@ namespace Management_System_WPF
         {
             InitializeComponent();
             LoadBackground();
-
-            // ✅ FIX 1: Pre-fill Username from Settings
             txtUser.Text = Properties.Settings.Default.AppUsername;
-
-            // ✅ FIX 2: Make it Read-Only (User cannot edit)
             txtUser.IsReadOnly = true;
-            txtUser.Focusable = false; // Skips tab stop
-            txtUser.Background = Brushes.WhiteSmoke; // Visual cue that it's locked
+            txtUser.Focusable = false; 
+            txtUser.Background = Brushes.WhiteSmoke; 
             txtUser.Foreground = Brushes.Gray;
-
-            // ✅ FIX 3: Set Focus directly to Password box
             txtPass.Focus();
         }
 
@@ -39,7 +33,7 @@ namespace Management_System_WPF
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
-            // We only need to check the password, since username is fixed from settings
+           
             string savedPass = Properties.Settings.Default.AppPassword;
 
             if (txtPass.Password == savedPass)
@@ -62,7 +56,6 @@ namespace Management_System_WPF
 
             if (resetWin.ShowDialog() == true)
             {
-                // ✅ FIX 4: Refresh the Fixed Username if it was changed
                 txtUser.Text = Properties.Settings.Default.AppUsername;
 
                 txtPass.Clear();

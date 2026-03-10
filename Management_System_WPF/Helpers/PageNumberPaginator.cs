@@ -20,7 +20,7 @@ namespace Management_System_WPF.Helpers
             _typeface = new Typeface("Arial");
             _fontSize = 12;
 
-            // Force calculation of total pages immediately
+            
             _originalPaginator.ComputePageCount();
         }
 
@@ -31,16 +31,12 @@ namespace Management_System_WPF.Helpers
 
         public override DocumentPage GetPage(int pageNumber)
         {
-            // 1. Get the original page content
+            
             DocumentPage originalPage = _originalPaginator.GetPage(pageNumber);
-
-            // 2. Create a visual container to hold the original content + page number
             ContainerVisual visual = new ContainerVisual();
-
-            // Add original content
             visual.Children.Add(originalPage.Visual);
 
-            // 3. Create the Page Number Text
+           
             //DrawingVisual textVisual = new DrawingVisual();
             //using (DrawingContext dc = textVisual.RenderOpen())
             //{
@@ -65,7 +61,7 @@ namespace Management_System_WPF.Helpers
 
             //visual.Children.Add(textVisual);
 
-            // 4. Return the new combined page
+           
             return new DocumentPage(visual, _pageSize, originalPage.BleedBox, originalPage.ContentBox);
         }
     }

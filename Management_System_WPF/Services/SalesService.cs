@@ -20,9 +20,7 @@ namespace Management_System_WPF.Services
 
         private static SQLiteConnection GetConnection() => new SQLiteConnection(connectionString);
 
-        // ================================
-        // 1️⃣ CREATE SALE
-        // ================================
+       
         public static int CreateSale(int buyerId, DateTime date, decimal totalAmount)
         {
             using var conn = GetConnection();
@@ -41,9 +39,7 @@ namespace Management_System_WPF.Services
             return Convert.ToInt32(cmd.ExecuteScalar());
         }
 
-        // =================================
-        // 2️⃣ ADD SALE ITEM
-        // =================================
+        
         public static void AddSaleItem(int saleId, int itemId, int qty, decimal price)
         {
             using var conn = GetConnection();
@@ -66,9 +62,7 @@ namespace Management_System_WPF.Services
         }
 
 
-        // =================================
-        // 3️⃣ GET ALL SALES RECORDS
-        // =================================
+       
         public static List<SaleRecord> GetAllSaleRecords()
         {
             var list = new List<SaleRecord>();
@@ -127,9 +121,7 @@ ORDER BY s.sale_id DESC;
             return list;
         }
 
-        // =================================
-        // 4️⃣ GET SALES BY BUYER (JOIN)
-        // =================================
+       
         public static List<SaleRecord> GetSales()
         {
             var list = new List<SaleRecord>();
@@ -207,7 +199,6 @@ ORDER BY s.sale_id DESC;
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                // sale_date stored as TEXT in DB, so parse to DateTime
                 var date = DateTime.Parse(reader["sale_date"].ToString());
                 var buyerName = reader["buyer_name"]?.ToString() ?? "Unknown";
 
@@ -236,9 +227,7 @@ ORDER BY s.sale_id DESC;
                 .ToList();
         }
 
-        // =================================
-        // 5️⃣ GET BUYER DETAIL REPORT
-        // =================================
+       
         public static List<BuyerSaleRecord> GetSalesByBuyer(int buyerId)
         {
             var list = new List<BuyerSaleRecord>();
@@ -320,9 +309,7 @@ ORDER BY s.sale_id DESC;
             return list;
         }
 
-        // =================================
-        // DELETE FUNCTIONS
-        // =================================
+     
         public static void DeleteSaleItem(int saleItemId)
         {
             using var conn = GetConnection();
@@ -349,9 +336,7 @@ ORDER BY s.sale_id DESC;
             .ExecuteNonQuery();
         }
 
-        // =================================
-        // ARTICLE-SALES REPORT
-        // =================================
+      
         public static List<(string Date, string Article, double Total)> GetArticleSales()
         {
             var list = new List<(string, string, double)>();
@@ -418,9 +403,7 @@ ORDER BY s.sale_id DESC;
 
             return list;
         }
-        // ======================================================
-        //  🔵 GET RAW SALES DATA FOR PIVOT REPORT (DYNAMIC ITEMS)
-        // ======================================================
+       
         public static List<SalesRaw> GetSalesRawForPivot(int buyerId, int year, int month)
         {
             var list = new List<SalesRaw>();
@@ -535,7 +518,7 @@ ORDER BY s.sale_id DESC;
                 {
                     conn.Open();
 
-                    // 🔥 IMPORTANT: NO SUM, NO GROUP BY
+                   
                     string query = @"
                SELECT 
     date(s.sale_date) as SaleDate,
@@ -590,7 +573,7 @@ ORDER BY s.sale_date;
                 {
                     conn.Open();
 
-                    // 🔥 SAME LOGIC AS MONTH — NO SUM, NO GROUP
+                   
                     string query = @"
                 SELECT 
                     date(s.sale_date) AS SaleDate,
@@ -698,7 +681,7 @@ ORDER BY s.sale_date;
             long count = (long)cmd.ExecuteScalar();
             return count > 0;
         }
-        // ✅ Get the nearest previous month that has sales
+      
         public static DateTime? GetPreviousSalesMonth(DateTime currentMonth)
         {
             currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
@@ -721,7 +704,7 @@ ORDER BY s.sale_date;
             return result == null ? null : DateTime.Parse(result.ToString());
         }
 
-        // ✅ Get the nearest next month that has sales
+       
         public static DateTime? GetNextSalesMonth(DateTime currentMonth)
         {
             currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
@@ -745,9 +728,7 @@ ORDER BY s.sale_date;
             return result == null ? null : DateTime.Parse(result.ToString());
         }
 
-        // ==========================================
-        // 🔁 PREVIOUS SALES MONTH FOR BUYER
-        // ==========================================
+       
         public static DateTime? GetPreviousSalesMonthForBuyer(int buyerId, DateTime currentMonth)
         {
             currentMonth = NormalizeMonth(currentMonth);
@@ -775,9 +756,7 @@ ORDER BY s.sale_date;
 
 
 
-        // ==========================================
-        // 🔁 NEXT SALES MONTH FOR BUYER
-        // ==========================================
+       
         public static DateTime? GetNextSalesMonthForBuyer(int buyerId, DateTime currentMonth)
         {
             currentMonth = NormalizeMonth(currentMonth);
@@ -806,9 +785,7 @@ ORDER BY s.sale_date;
 
 
 
-        // ==========================================
-        // 🔁 PREVIOUS MONTH WITH ARTICLE SALES
-        // ==========================================
+       
         public static DateTime? GetPreviousArticleSalesMonth(DateTime currentMonth)
         {
             currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
@@ -832,9 +809,7 @@ ORDER BY s.sale_date;
         }
 
 
-        // ==========================================
-        // 🔁 NEXT MONTH WITH ARTICLE SALES
-        // ==========================================
+       
         public static DateTime? GetNextArticleSalesMonth(DateTime currentMonth)
         {
             currentMonth = new DateTime(currentMonth.Year, currentMonth.Month, 1);
@@ -858,7 +833,7 @@ ORDER BY s.sale_date;
             return result == null ? null : DateTime.Parse(result.ToString());
         }
 
-        // ✅ SQLITE VERSION
+       
         public static int GetArticleQtyByDate(string article, DateTime date)
         {
             using var conn = GetConnection();
@@ -942,9 +917,7 @@ ORDER BY s.sale_date;
         }
 
 
-        // =======================================
-        // ✅ UPDATE FULL SALE ITEM (BUYER + ITEM + QTY)
-        // =======================================
+      
         public static void UpdateSaleItemFull(
             int saleItemId,
             int saleId,
@@ -957,7 +930,7 @@ ORDER BY s.sale_date;
 
             using var tx = conn.BeginTransaction();
 
-            // 🔵 Update buyer in SALES table
+           
             new SQLiteCommand(
                 "UPDATE sales SET buyer_id=@b WHERE sale_id=@s",
                 conn, tx)
@@ -969,7 +942,7 @@ ORDER BY s.sale_date;
         }
             }.ExecuteNonQuery();
 
-            // 🔵 Update item + qty in SALE_ITEMS table
+           
             new SQLiteCommand(
                 "UPDATE sale_items SET item_id=@i, qty=@q WHERE sale_item_id=@id",
                 conn, tx)
@@ -1072,7 +1045,7 @@ ORDER BY s.sale_date;
 
             try
             {
-                // 1. Update the price for the specific item in all past sales for this buyer
+               
                 string updateItemsQuery = @"
             UPDATE sale_items 
             SET price = @newPrice
@@ -1085,7 +1058,6 @@ ORDER BY s.sale_date;
                 cmd1.Parameters.AddWithValue("@buyerId", buyerId);
                 cmd1.ExecuteNonQuery();
 
-                // 2. Update the total_amount in the sales header table so "All Sales" lists stay correct
                 string updateHeaderQuery = @"
             UPDATE sales 
             SET total_amount = (

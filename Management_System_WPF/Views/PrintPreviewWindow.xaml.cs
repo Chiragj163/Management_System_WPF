@@ -74,11 +74,9 @@ namespace Management_System_WPF.Views
 
             if (pd.ShowDialog() == true)
             {
-                // Use the actual printable area of the printer selected by the user
+               
                 double printableWidth = pd.PrintableAreaWidth;
                 double printableHeight = pd.PrintableAreaHeight;
-
-                // Re-paginate with the correct size right before printing
                 _fixedSequence.DocumentPaginator.PageSize = new Size(printableWidth, printableHeight);
 
                 pd.PrintDocument(_fixedSequence.DocumentPaginator, "Invoice Print");

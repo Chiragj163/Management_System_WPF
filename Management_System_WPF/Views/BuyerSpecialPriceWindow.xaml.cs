@@ -54,8 +54,6 @@ namespace Management_System_WPF.Views
                     SpecialPrices.Add(p);
 
                 dgSpecialPrices.ItemsSource = SpecialPrices;
-
-                // 🔥 ALSO UPDATE COMBOBOX HERE
                 cmbItems.ItemsSource = ItemsService.GetAllItems();
                 cmbItems.DisplayMemberPath = "Name";
                 cmbItems.SelectedValuePath = "Id";
@@ -90,15 +88,12 @@ namespace Management_System_WPF.Views
         {
             try
             {
-                if (cmbItems.SelectedValue == null) { /* ... check code ... */ return; }
-                if (!decimal.TryParse(txtSpecialPrice.Text, out decimal price)) { /* ... check code ... */ return; }
+                if (cmbItems.SelectedValue == null) { return; }
+                if (!decimal.TryParse(txtSpecialPrice.Text, out decimal price)) { return; }
 
                 int itemId = (int)cmbItems.SelectedValue;
 
-                // 1. Save the new Special Price for future sales
                 SpecialPriceService.SaveOrUpdate(_buyer.BuyerId, itemId, price);
-
-                // 2. 🔥 NEW: Update all PAST sales for this buyer/item combo
                 SalesService.UpdatePastSalePrices(_buyer.BuyerId, itemId, price);
 
                 txtSpecialPrice.Text = "";
@@ -120,11 +115,7 @@ namespace Management_System_WPF.Views
                 return;
 
             decimal newPrice = vm.SpecialPrice ?? vm.OriginalPrice;
-
-            // Save for future
             SpecialPriceService.SaveOrUpdate(_buyer.BuyerId, vm.ItemId, newPrice);
-
-            // 🔥 Update the past
             SalesService.UpdatePastSalePrices(_buyer.BuyerId, vm.ItemId, newPrice);
 
             MessageBox.Show("Special price and past records updated.");
@@ -163,9 +154,6 @@ namespace Management_System_WPF.Views
                 MessageBox.Show(ex.Message, "Database Error");
             }
         }
-
-
-        // Add this method inside the BuyerSpecialPriceWindow class
         private void DeleteBuyer(Buyer buyer)
         {
             if (buyer == null)
@@ -181,11 +169,8 @@ namespace Management_System_WPF.Views
 
             try
             {
-                // DIRECTLY DELETE WITHOUT PASSWORD
                 BuyersService.DeleteBuyer(buyer.BuyerId);
                 MessageBox.Show("Buyer deleted");
-
-                // Note: caller (DeleteBuyer_Click) closes the window and refreshes lists as needed
             }
             catch (Exception ex)
             {

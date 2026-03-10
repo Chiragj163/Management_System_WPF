@@ -2,25 +2,19 @@
 
 public class SaleRecord
 {
-    // PRIMARY KEYS
     public int SaleId { get; set; }
     public int SaleItemId { get; set; }
 
-    // Buyer
     public int BuyerId { get; set; }
     public string BuyerName { get; set; } = "";
 
-    // Sale
     public DateTime SaleDate { get; set; }
-    public decimal TotalAmount { get; set; }   // ✅ FIXED
+    public decimal TotalAmount { get; set; }  
 
-    // Item
     public int ItemId { get; set; }
     public string ItemName { get; set; } = "";
     public int Qty { get; set; }
-    public decimal Price { get; set; }          // ✅ FIXED
-
-    // Backward compatibility
+    public decimal Price { get; set; }      
     public string Item
     {
         get => ItemName;
@@ -33,8 +27,8 @@ public class SaleRecord
         set => Qty = value;
     }
 
-    public decimal Amount { get; set; }         // ✅ FIXED
-    public decimal Total { get; set; }          // ✅ FIXED
+    public decimal Amount { get; set; }        
+    public decimal Total { get; set; }      
 
     public string Date
     {

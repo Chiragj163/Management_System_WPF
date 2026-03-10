@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace Management_System_WPF.Views
 {
-    /// <summary>
-    /// Interaction logic for ItemPriceHistoryWindow.xaml
-    /// </summary>
     public partial class ItemPriceHistoryWindow : Window
     {
         public ItemPriceHistoryWindow(List<ItemPriceHistory> history)

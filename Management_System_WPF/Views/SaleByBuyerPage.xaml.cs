@@ -37,16 +37,12 @@ namespace Management_System_WPF.Views
 
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             LoadCategories();
-            LoadReport(_currentMonth); // ✅ FIX
+            LoadReport(_currentMonth); 
         }
-
-
 
         private void LoadCategories()
         {
             var items = ItemsService.GetAllItems();
-
-            // ItemName → Category
             _articleCategoryMap = items
                 .Where(i => !string.IsNullOrWhiteSpace(i.Name))
                 .ToDictionary(i => i.Name, i => i.Category);
@@ -82,7 +78,6 @@ namespace Management_System_WPF.Views
         {
             if (!sales.Any())
             {
-               // MessageBox.Show("No records found");
                 dgBuyerSales.ItemsSource = null;
                 dgBuyerSales.Columns.Clear();
                 txtTitle.Text = title;
@@ -134,11 +129,7 @@ namespace Management_System_WPF.Views
 
             }
 
-            // ==========================================
-            // ✅ CALCULATE TOTALS AND SORT BUYERS
-            // ==========================================
-
-            // 1. Calculate the total for each buyer
+          
             var buyerTotals = new Dictionary<string, decimal>();
             foreach (var buyer in buyers)
             {
@@ -149,10 +140,8 @@ namespace Management_System_WPF.Views
                 buyerTotals[buyer] = colTotal;
             }
 
-            // 2. Sort the buyers list based on their totals (Highest to Lowest)
+           
             var sortedBuyers = buyers.OrderByDescending(b => buyerTotals[b]).ToList();
-
-            // 3. Build the Total Row using the calculated totals
             var totalRow = new SaleByBuyerRow { Date = DateTime.MinValue };
             decimal grandTotal = 0m;
 
@@ -166,21 +155,13 @@ namespace Management_System_WPF.Views
             totalRow.Total = grandTotal;
             rows.Add(totalRow);
 
-            // ==========================================
-            // BIND TO GRID
-            // ==========================================
             dgBuyerSales.ItemsSource = null;
             dgBuyerSales.Columns.Clear();
-
-            // 4. Pass the SORTED buyers to build the columns in the correct visual order
             BuildDynamicColumns(sortedBuyers);
 
             dgBuyerSales.ItemsSource = rows;
         }
-
-
-        // LOAD REPORT (CURRENT MONTH / PREVIOUS MONTH)
-
+        
         private void LoadReport(DateTime month)
         {
             _isRangeFilter = false;
@@ -255,27 +236,19 @@ namespace Management_System_WPF.Views
         }
         private void ResetFilters_Click(object sender, RoutedEventArgs e)
         {
-            // 1️⃣ Reset flags
+            
             _isRangeFilter = false;
 
-            // 2️⃣ Reset month to current
+            
             var now = DateTime.Now;
             _currentMonth = new DateTime(now.Year, now.Month, 1);
 
-            // 3️⃣ Reset category
             cmbCategory.SelectedIndex = 0;
-
-            // 4️⃣ Clear date pickers
             dpFrom.SelectedDate = null;
             dpTo.SelectedDate = null;
 
-            // 5️⃣ Load default month report
             LoadReport(_currentMonth);
-
-            // 6️⃣ Hide panel
             FilterPanel.Visibility = Visibility.Collapsed;
-
-            // 7️⃣ Enable month navigation
             btnPrevMonth.IsEnabled = true;
             btnNextMonth.IsEnabled = true;
             btnPrevMonth.Opacity = 1;
@@ -284,13 +257,9 @@ namespace Management_System_WPF.Views
 
 
         // BUILD TABLE COLUMNS
-
-        // 1. Paste this method inside SaleByBuyerPage class
         private void BuildDynamicColumns(List<string> buyers)
         {
             dgBuyerSales.Columns.Clear();
-
-            // ================= DATE COLUMN =================
             var dateCol = new DataGridTextColumn
             {
                 Header = "Dates",
@@ -298,15 +267,11 @@ namespace Management_System_WPF.Views
                 Width = 150,
                 IsReadOnly = true
             };
-
-            // ✅ Fix 1: Safely find the style. If missing, it won't crash.
             dateCol.CellStyle = dgBuyerSales.TryFindResource("StandardCellStyle") as Style;
 
             dgBuyerSales.Columns.Add(dateCol);
-            // --- Buyer Columns (Dynamic) ---
             foreach (var buyer in buyers)
             {
-                // Define the column variable properly
                 var col = new DataGridTextColumn
                 {
                     Header = buyer,
@@ -314,15 +279,11 @@ namespace Management_System_WPF.Views
                     Width = 120,
                     IsReadOnly = true
                 };
-
-                // ✅ USE THE STYLE FROM XAML (ClickableCellStyle)
-                // This ensures the EventSetter (Click) works AND the design stays beautiful
                 col.CellStyle = dgBuyerSales.Resources["ClickableCellStyle"] as Style;
 
                 dgBuyerSales.Columns.Add(col);
             }
 
-            // --- Total Column ---
             dgBuyerSales.Columns.Add(new DataGridTextColumn
             {
                 Header = "Total",
@@ -344,12 +305,10 @@ namespace Management_System_WPF.Views
             });
         }
 
-        // 2. Helper Method to get data
         private List<SaleDetailItem> GetDetailsForCell(DataGridCell cell)
         {
             if (cell.DataContext is not SaleByBuyerRow rowData) return null;
 
-            // Use 'as' safely
             var col = cell.Column as DataGridTextColumn;
             if (col == null) return null;
 
@@ -357,7 +316,6 @@ namespace Management_System_WPF.Views
 
             if (buyerName == "Dates" || buyerName == "Total") return null;
 
-            // Filter using cached raw data
             var relevantSales = _cachedRawSales
                 .Where(s =>
                     s.SaleDate.Date == rowData.Date &&
@@ -374,7 +332,6 @@ namespace Management_System_WPF.Views
             return relevantSales;
         }
 
-        // 3. Click Event Handler
         private void OnCellDoubleClicked(object sender, MouseButtonEventArgs e)
         {
             var cell = sender as DataGridCell;
@@ -384,7 +341,6 @@ namespace Management_System_WPF.Views
 
             if (details != null && details.Count > 0)
             {
-                // Get Title Info safely
                 string buyerName = cell.Column.Header.ToString();
                 string dateStr = "";
 
@@ -393,7 +349,6 @@ namespace Management_System_WPF.Views
                     dateStr = row.Date == DateTime.MinValue ? "Total" : row.Date.ToString("dd MMM yyyy");
                 }
 
-                // Open the ItemDetailsWindow
                 var popup = new ItemDetailsWindow(buyerName, dateStr, details);
                 popup.Owner = Window.GetWindow(this);
                 popup.ShowDialog();
@@ -424,8 +379,6 @@ namespace Management_System_WPF.Views
         }
 
 
-        // BUTTON: PREVIOUS MONTH
-
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
         {
             var prev = SalesService.GetPreviousSalesMonth(_currentMonth);
@@ -450,12 +403,9 @@ namespace Management_System_WPF.Views
 
 
 
-
-        // BUTTON: EXPORT TO EXCEL (CSV format)
-
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Get the raw data source (Better than looping UI items)
+           
             var rows = dgBuyerSales.ItemsSource as IEnumerable<SaleByBuyerRow>;
             if (rows == null || !rows.Any())
             {
@@ -463,7 +413,6 @@ namespace Management_System_WPF.Views
                 return;
             }
 
-            // 2. Configure Save Dialog for .xlsx
             SaveFileDialog dialog = new SaveFileDialog
             {
                 Filter = "Excel Files|*.xlsx",
@@ -474,16 +423,13 @@ namespace Management_System_WPF.Views
 
             try
             {
-                // 3. Set License (Required for EPPlus 5+)
+               
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 using (var package = new ExcelPackage())
                 {
                     var ws = package.Workbook.Worksheets.Add("Sales Report");
 
-                    // --- HEADERS ---
-
-                    // Get all unique Buyer names from the data to ensure we have columns for everyone
                     var allBuyers = rows
       .Where(r => r?.BuyerValues != null)
       .SelectMany(r => r.BuyerValues.Keys)
@@ -492,22 +438,22 @@ namespace Management_System_WPF.Views
       .ToList();
 
 
-                    // Setup Header Row
+                 
                     ws.Cells[1, 1].Value = "Date";
                     int col = 2;
                     foreach (var buyer in allBuyers)
                     {
                         ws.Cells[1, col++].Value = buyer;
                     }
-                    // Add "Total" Header
+                   
                     ws.Cells[1, col].Value = "Total";
 
-                    // Dictionary for Vertical Totals (Bottom Row)
+                  
                     var columnTotals = allBuyers.ToDictionary(b => b, b => 0m);
                     decimal grandTotal = 0;
 
 
-                    // --- DATA ROWS ---
+                   
                     int rowIdx = 2;
                     foreach (var r in rows)
                     {
@@ -518,7 +464,7 @@ namespace Management_System_WPF.Views
                         ws.Cells[rowIdx, 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
 
                         col = 2;
-                        decimal rowSum = 0; // Horizontal Total
+                        decimal rowSum = 0;
 
                         foreach (var buyer in allBuyers)
                         {
@@ -532,7 +478,7 @@ namespace Management_System_WPF.Views
                             {
                                 ws.Cells[rowIdx, col].Value = val;
                                 rowSum += val;
-                                columnTotals[buyer] += val; // Add to vertical total
+                                columnTotals[buyer] += val; 
                             }
                             else
                             {
@@ -542,7 +488,7 @@ namespace Management_System_WPF.Views
                             col++;
                         }
 
-                        // Write Row Total (Last Column)
+                       
                         ws.Cells[rowIdx, col].Value = rowSum;
                         ws.Cells[rowIdx, col].Style.Font.Bold = true;
                         ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -552,7 +498,7 @@ namespace Management_System_WPF.Views
                         rowIdx++;
                     }
 
-                    // --- TOTAL ROW (BOTTOM) ---
+                  
                     ws.Cells[rowIdx, 1].Value = " TOTAL";
                     ws.Cells[rowIdx, 1].Style.Font.Bold = true;
 
@@ -564,38 +510,28 @@ namespace Management_System_WPF.Views
                         ws.Cells[rowIdx, col].Style.Border.Top.Style = ExcelBorderStyle.Medium;
                         col++;
                     }
-
-                    // Bottom Right Grand Total
                     ws.Cells[rowIdx, col].Value = grandTotal;
                     ws.Cells[rowIdx, col].Style.Font.Bold = true;
                     ws.Cells[rowIdx, col].Style.Font.Size = 12;
                     ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
                     ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
-                    // --- STYLING ---
-
-                    // Header Style
                     var headerRange = ws.Cells[1, 1, 1, col];
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
                     headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Teal);
                     headerRange.Style.Font.Color.SetColor(System.Drawing.Color.White);
 
-                    // Borders
                     var fullRange = ws.Cells[1, 1, rowIdx, col];
                     fullRange.Style.Border.Top.Style = ExcelBorderStyle.Thin;
 fullRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
 fullRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
 fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
 
-                    // AutoFit
                     ws.Cells.AutoFitColumns();
-                    ws.View.FreezePanes(2, 1); // Freeze header
+                    ws.View.FreezePanes(2, 1);
 
-                    // Save
                     File.WriteAllBytes(dialog.FileName, package.GetAsByteArray());
-
-                    // Ask to open
                     if (MessageBox.Show("Export Successful! Open file now?", "Success", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
                         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = dialog.FileName, UseShellExecute = true });
@@ -612,12 +548,8 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
             }
         }
 
-
-        // BUTTON: PRINT
-
         private void Filter_Category_Click(object sender, SelectionChangedEventArgs e)
         {
-            // Re-apply current report with selected category
             if (_isRangeFilter)
             {
                 LoadReportByRange(_filterFrom, _filterTo);
@@ -654,7 +586,7 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
         }
         private void ViewGraph_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Get the current data from the DataGrid
+           
             var rows = dgBuyerSales.ItemsSource as List<SaleByBuyerRow>;
 
             if (rows == null || !rows.Any())
@@ -663,7 +595,7 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 return;
             }
 
-            // 2. Find the "Grand Total" row (It has Date = DateTime.MinValue)
+         
             var totalRow = rows.FirstOrDefault(r => r.Date == DateTime.MinValue);
 
             if (totalRow == null || totalRow.BuyerValues == null || !totalRow.BuyerValues.Any())
@@ -672,8 +604,6 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 return;
             }
 
-            // 3. Convert to Dictionary<string, decimal> for the window
-            // Only take buyers with > 0 sales
             var graphData = new Dictionary<string, decimal>();
 
             foreach (var kvp in totalRow.BuyerValues)
@@ -690,7 +620,7 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 return;
             }
 
-            // 4. Open the Graph Window
+           
            
             var graphWin = new BuyerGraphWindow(graphData, $"Sales Analysis: {txtTitle.Text}", "Buyers", false);
 

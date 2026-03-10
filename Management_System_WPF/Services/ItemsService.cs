@@ -9,29 +9,24 @@ namespace Management_System_WPF.Services
     {
         private static string connectionString =
             $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
-
-        // ---------------------- ADD ITEM ----------------------
         public static void AddItem(Item item)
         {
             using (var conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
 
-                // ✅ ADDED: category
+              
                 string query = "INSERT INTO items (item_name, price, category) VALUES (@name, @price, @category)";
 
                 using (var cmd = new SQLiteCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@name", item.Name);
                     cmd.Parameters.AddWithValue("@price", item.Price);
-                    // Handle null category by saving empty string
                     cmd.Parameters.AddWithValue("@category", item.Category ?? "");
                     cmd.ExecuteNonQuery();
                 }
             }
         }
-
-        // ---------------------- GET ALL ITEMS ----------------------
         public static List<Item> GetAllItems()
         {
             List<Item> items = new List<Item>();
@@ -39,8 +34,6 @@ namespace Management_System_WPF.Services
             using (var conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-
-                // ✅ ADDED: category to SELECT
                 string query = "SELECT item_id, item_name, price, category FROM items";
 
                 using (var cmd = new SQLiteCommand(query, conn))
@@ -63,15 +56,11 @@ namespace Management_System_WPF.Services
             return items;
         }
 
-
-        // ---------------------- UPDATE ITEM ----------------------
         public static void UpdateItem(Item item)
         {
             using (var conn = new SQLiteConnection(connectionString))
             {
                 conn.Open();
-
-                // ✅ ADDED: category to UPDATE
                 string query = "UPDATE items SET item_name = @name, price = @price, category = @category WHERE item_id = @id";
 
                 using (var cmd = new SQLiteCommand(query, conn))
@@ -86,8 +75,6 @@ namespace Management_System_WPF.Services
             }
         }
 
-
-        // ---------------------- DELETE ITEM ----------------------
         public static void DeleteItem(int id)
         {
             using (var conn = new SQLiteConnection(connectionString))

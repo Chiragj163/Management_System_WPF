@@ -11,11 +11,7 @@ namespace Management_System_WPF.Views
         private int _buyerId;
         private int _year;
         private int _month;
-
-        // Tracks if we are editing (not null) or adding (null)
         private int? _editingReturnId = null;
-
-        // Constructor receives context to load data
         public ReturnWindow(int buyerId, int year, int month)
         {
             InitializeComponent();
@@ -24,69 +20,53 @@ namespace Management_System_WPF.Views
             _year = year;
             _month = month;
 
-            LoadItems();     // Fill Dropdown
-            LoadReturns();   // Fill Grid
+            LoadItems();     
+            LoadReturns();  
         }
 
-        // 🟢 LOAD DROPDOWN
         private void LoadItems()
         {
             var allItems = ItemsService.GetAllItems().OrderBy(x => x.Name).ToList();
             cmbItems.ItemsSource = allItems;
         }
 
-        // 🟢 LOAD GRID
         private void LoadReturns()
         {
             var list = ReturnService.GetDetailedReturns(_buyerId, _year, _month);
             dgReturns.ItemsSource = list;
         }
-
-        // 💾 SAVE (ADD OR UPDATE)
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             if (cmbItems.SelectedItem == null) { MessageBox.Show("Select an item."); return; }
             if (!int.TryParse(txtQty.Text, out int qty) || qty <= 0) { MessageBox.Show("Invalid Quantity."); return; }
-
-            // Get selected Item ID
             int itemId = (int)cmbItems.SelectedValue;
 
             if (_editingReturnId == null)
             {
-                // INSERT NEW
                 ReturnService.AddReturn(_buyerId, itemId, _year, _month, qty);
                 MessageBox.Show("Return Added!");
             }
             else
             {
-                // UPDATE EXISTING
                 ReturnService.UpdateReturn(_editingReturnId.Value, itemId, qty);
                 MessageBox.Show("Return Updated!");
             }
 
-            // Reset UI
             ClearForm();
-            LoadReturns(); // Refresh List
+            LoadReturns(); 
         }
 
-        // ✏️ EDIT ROW (Clicked from Grid)
         private void EditRow_Click(object sender, RoutedEventArgs e)
         {
             var item = ((FrameworkElement)sender).DataContext as ReturnModel;
             if (item == null) return;
-
-            // Populate Form
             _editingReturnId = item.ReturnId;
             cmbItems.SelectedValue = item.ItemId;
             txtQty.Text = item.Qty.ToString();
-
-            // Change UI State
             lblTitle.Text = "Edit Return";
             btnSave.Content = "Update";
             btnSave.Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Colors.Orange);
         }
-
-        // 🗑️ DELETE ROW
         private void DeleteRow_Click(object sender, RoutedEventArgs e)
         {
             var item = ((FrameworkElement)sender).DataContext as ReturnModel;
@@ -99,7 +79,6 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // 🧹 CLEAR FORM
         private void Clear_Click(object sender, RoutedEventArgs e) => ClearForm();
 
         private void ClearForm()
@@ -115,7 +94,7 @@ namespace Management_System_WPF.Views
 
         private void Close_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true; // Tell parent to refresh
+            DialogResult = true;
             Close();
         }
     }

@@ -23,7 +23,7 @@ namespace Management_System_WPF.Views
                 if (e.Key == Key.Enter || e.Key == Key.Escape)
                 {
                     this.Close();
-                    e.Handled = true; // Marks the key press as handled
+                    e.Handled = true; 
                 }
             };
         }

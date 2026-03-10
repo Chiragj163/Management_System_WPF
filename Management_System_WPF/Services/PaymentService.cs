@@ -10,8 +10,6 @@ namespace Management_System_WPF.Services
     {
         private static string connectionString =
             $"Data Source={Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
-
-        // 1. INITIALIZE TABLE
         public static void Initialize()
         {
             using var conn = new SQLiteConnection(connectionString);
@@ -26,16 +24,12 @@ namespace Management_System_WPF.Services
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
         }
-
-        // 2. GET TOTAL MONTHLY PAYMENT (This was missing!)
         public static decimal GetPayment(int buyerId, int year, int month)
         {
             try
             {
                 using var conn = new SQLiteConnection(connectionString);
                 conn.Open();
-
-                // Select the SUM of all payments for this specific YYYY-MM
                 string sql = @"SELECT IFNULL(SUM(amount), 0) 
                                FROM buyer_payments 
                                WHERE buyer_id = @b 
@@ -55,8 +49,6 @@ namespace Management_System_WPF.Services
                 return 0;
             }
         }
-
-        // 3. ADD NEW PAYMENT
         public static void AddPayment(int buyerId, DateTime date, decimal amount)
         {
             using var conn = new SQLiteConnection(connectionString);
@@ -69,7 +61,6 @@ namespace Management_System_WPF.Services
             cmd.ExecuteNonQuery();
         }
 
-        // 4. UPDATE EXISTING PAYMENT
         public static void UpdatePayment(int paymentId, DateTime date, decimal amount)
         {
             using var conn = new SQLiteConnection(connectionString);
@@ -82,7 +73,7 @@ namespace Management_System_WPF.Services
             cmd.ExecuteNonQuery();
         }
 
-        // 5. DELETE PAYMENT
+      
         public static void DeletePayment(int paymentId)
         {
             using var conn = new SQLiteConnection(connectionString);
@@ -93,7 +84,7 @@ namespace Management_System_WPF.Services
             cmd.ExecuteNonQuery();
         }
 
-        // 6. GET PAYMENT HISTORY LIST (For the grid)
+       
         public static List<PaymentRecord> GetPaymentsList(int buyerId, int year, int month)
         {
             var list = new List<PaymentRecord>();

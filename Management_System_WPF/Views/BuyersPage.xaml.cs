@@ -20,12 +20,11 @@ namespace Management_System_WPF.Views
             LoadBuyers();
         }
 
-        // ------------------- LOAD BUYERS -------------------
         private void LoadBuyers()
         {
             var buyers = BuyersService
                 .GetAllBuyers()
-                .OrderBy(b => b.Name)   // ✅ A → Z sorting
+                .OrderBy(b => b.Name)  
                 .ToList();
 
             if (buyers == null)
@@ -40,15 +39,11 @@ namespace Management_System_WPF.Views
             dgBuyers.ItemsSource = buyers;
         }
 
-
-        // ------------------- EXIT PAGE -------------------
         private void ExitBuyerPage_Click(object sender, RoutedEventArgs e)
         {
             if (Application.Current.MainWindow is MainWindow main)
                 main.MainFrame.Content = null;
         }
-
-        // ------------------- OPTIONS: EDIT / DELETE -------------------
         private void Options_Click(object sender, RoutedEventArgs e)
         {
             if (sender is not Button button)
@@ -79,10 +74,6 @@ namespace Management_System_WPF.Views
 
             menu.IsOpen = true;
         }
-
-
-
-        // ------------------- DELETE BUYER -------------------
         private void DeleteBuyer(Buyer buyer)
         {
             if (buyer == null)
@@ -100,7 +91,6 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // ------------------- SAVE / UPDATE BUYER -------------------
         private void SaveBuyer_Click(object sender, RoutedEventArgs e)
         {
             string name = txtBuyerName.Text.Trim();
@@ -113,7 +103,6 @@ namespace Management_System_WPF.Views
 
             if (selectedBuyer == null)
             {
-                // ADD NEW BUYER
                 BuyersService.AddBuyer(new Buyer
                 {
                     Name = name
@@ -122,7 +111,6 @@ namespace Management_System_WPF.Views
             }
             else
             {
-                // UPDATE EXISTING BUYER
                 selectedBuyer.Name = name;
                 BuyersService.UpdateBuyer(selectedBuyer);
 
@@ -132,8 +120,6 @@ namespace Management_System_WPF.Views
 
             txtBuyerName.Text = "";
             LoadBuyers();
-
-            // ✅ MOVE CURSOR BACK TO TEXTBOX
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 txtBuyerName.Focus();
@@ -154,35 +140,23 @@ namespace Management_System_WPF.Views
         }
         private void txtSearchBuyer_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // 1. Get the view
             var view = CollectionViewSource.GetDefaultView(dgBuyers.ItemsSource);
 
-            // 2. Guard clause: If the view is null, stop immediately
             if (view == null) return;
-
-            // 3. Optimize: Grab the search text once to avoid accessing the UI property repeatedly
             string searchText = txtSearchBuyer.Text;
 
             view.Filter = item =>
             {
-                // Show all if search is empty
                 if (string.IsNullOrEmpty(searchText))
                     return true;
-
-                // Safe cast
                 if (item is Buyer buyer)
                 {
-                    // CRITICAL FIX: Check if buyer.Name is null before calling IndexOf
                     return !string.IsNullOrEmpty(buyer.Name) &&
                            buyer.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
                 }
 
-                return false; // Hide items that aren't Buyers
+                return false;
             };
-
-            // Optional: Refresh isn't usually needed as setting Filter triggers it, 
-            // but sometimes required if the view state gets stale.
-            // view.Refresh(); 
         }
     }
 }

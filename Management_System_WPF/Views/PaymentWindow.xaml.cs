@@ -12,11 +12,9 @@ namespace Management_System_WPF.Views
     public partial class PaymentWindow : Window
     {
         private ObservableCollection<PaymentRecord> _paymentHistory;
-        private Action _refreshParent; // Delegate to tell parent to refresh totals
+        private Action _refreshParent; 
         private int _buyerId;
-
-        // Variables to handle "Edit Mode"
-        private int? _editingPaymentId = null; // Stores ID if we are editing
+        private int? _editingPaymentId = null; 
 
         public PaymentWindow(int buyerId, List<PaymentRecord> history, Action onRefreshParent)
         {
@@ -26,15 +24,11 @@ namespace Management_System_WPF.Views
             _buyerId = buyerId;
             _refreshParent = onRefreshParent;
 
-            // Setup List
             _paymentHistory = new ObservableCollection<PaymentRecord>(history ?? new List<PaymentRecord>());
             dgHistory.ItemsSource = _paymentHistory;
 
-            // Defaults
             ResetInput();
         }
-
-        // 1. SAVE / UPDATE BUTTON
         private void Save_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(txtAmount.Text)) txtAmount.Text = "0";
@@ -55,36 +49,25 @@ namespace Management_System_WPF.Views
             {
                 if (_editingPaymentId == null)
                 {
-                    // --- CREATE NEW ---
                     PaymentService.AddPayment(_buyerId, date, amount);
-
-                    // Add to UI List (We can fetch the ID, but for UI feedback just adding is enough)
-                    // Ideally, reload the list from DB to get the new ID, but for speed:
                     var newRecord = new PaymentRecord { Id = 0, Date = date, Amount = amount };
                     _paymentHistory.Insert(0, newRecord);
-
-                    // Reload list completely to get the correct ID (important for future edits)
                     RefreshHistoryFromDB();
                 }
                 else
                 {
-                    // --- UPDATE EXISTING ---
                     PaymentService.UpdatePayment(_editingPaymentId.Value, date, amount);
-
-                    // Update UI List
                     var item = _paymentHistory.FirstOrDefault(x => x.Id == _editingPaymentId.Value);
                     if (item != null)
                     {
                         item.Amount = amount;
                         item.Date = date;
-                        dgHistory.Items.Refresh(); // Force grid refresh
+                        dgHistory.Items.Refresh(); 
                     }
 
-                    // Reset Mode
                     ResetInput();
                 }
 
-                // Notify Parent Page to recalculate "Grand Total"
                 _refreshParent?.Invoke();
             }
             catch (Exception ex)
@@ -93,27 +76,23 @@ namespace Management_System_WPF.Views
             }
         }
 
-        // 2. EDIT ROW
         private void EditRow_Click(object sender, RoutedEventArgs e)
         {
-            // Get the button that was clicked
             var button = sender as Button;
             var paymentRecord = button.DataContext as PaymentRecord;
 
             if (paymentRecord != null)
             {
-                // Fill Inputs
                 txtAmount.Text = paymentRecord.Amount.ToString("0.##");
                 dpPaymentDate.SelectedDate = paymentRecord.Date;
 
-                // Enter Edit Mode
                 _editingPaymentId = paymentRecord.Id;
-                btnSave.Content = "Update Payment"; // Change Button Text
+                btnSave.Content = "Update Payment"; 
                 txtAmount.Focus();
             }
         }
 
-        // 3. DELETE ROW
+       
         private void DeleteRow_Click(object sender, RoutedEventArgs e)
         {
             var button = sender as Button;
@@ -126,11 +105,7 @@ namespace Management_System_WPF.Views
                     try
                     {
                         PaymentService.DeletePayment(paymentRecord.Id);
-
-                        // Remove from UI
                         _paymentHistory.Remove(paymentRecord);
-
-                        // Notify Parent
                         _refreshParent?.Invoke();
                     }
                     catch (Exception ex)
@@ -145,12 +120,10 @@ namespace Management_System_WPF.Views
         {
             if (_editingPaymentId != null)
             {
-                // If editing, "Cancel" just clears the edit mode
                 ResetInput();
             }
             else
             {
-                // If adding, "Cancel" closes window
                 Close();
             }
         }
@@ -160,7 +133,7 @@ namespace Management_System_WPF.Views
             txtAmount.Text = "";
             dpPaymentDate.SelectedDate = DateTime.Today;
             _editingPaymentId = null;
-            btnSave.Content = "Save Payment"; // Reset Button Text
+            btnSave.Content = "Save Payment"; 
             txtAmount.Focus();
         }
 

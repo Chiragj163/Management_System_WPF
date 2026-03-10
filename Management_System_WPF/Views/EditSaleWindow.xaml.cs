@@ -7,8 +7,6 @@ namespace Management_System_WPF.Views
     public partial class EditSaleWindow : Window
     {
         private readonly SaleRecord _sale;
-
-        // ✅ THIS CONSTRUCTOR MUST EXIST
         public EditSaleWindow(SaleRecord sale)
         {
             InitializeComponent();

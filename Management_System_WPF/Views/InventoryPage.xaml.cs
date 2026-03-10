@@ -5,7 +5,7 @@ using Management_System_WPF.Services;
 using System.Collections.Generic;
 using System.Linq;
 using System;
-using System.Windows.Data; // Required for CollectionView
+using System.Windows.Data; 
 
 namespace Management_System_WPF.Views
 {
@@ -25,10 +25,8 @@ namespace Management_System_WPF.Views
         {
             var categories = new List<string> { "Double Station", "Vertical", "Rotary" ,"NEW" };
 
-            // Input ComboBox
+           
             cmbCategory.ItemsSource = categories;
-
-            // Filter ComboBox
             var filterOptions = new List<string> { "All" };
             filterOptions.AddRange(categories);
             cmbFilterCategory.ItemsSource = filterOptions;
@@ -44,10 +42,6 @@ namespace Management_System_WPF.Views
 
         }
 
-        // ============================================
-        // ✅ NEW: UNIFIED FILTERING LOGIC
-        // ============================================
-
         private void txtSearchItem_TextChanged(object sender, TextChangedEventArgs e)
         {
             ApplyFilters();
@@ -60,10 +54,7 @@ namespace Management_System_WPF.Views
 
         private void ApplyFilters()
         {
-            // Ensure data exists before filtering
             if (dgItems.ItemsSource == null) return;
-
-            // Get the Default View (WPF's way of filtering without reloading the list)
             var view = CollectionViewSource.GetDefaultView(dgItems.ItemsSource);
             if (view == null) return;
 
@@ -71,54 +62,38 @@ namespace Management_System_WPF.Views
             {
                 var product = item as Item;
                 if (product == null) return false;
-
-                // 1. Check Category
                 bool matchesCategory = true;
                 if (cmbFilterCategory.SelectedItem != null)
                 {
                     string selectedCat = cmbFilterCategory.SelectedItem.ToString();
                     if (!string.IsNullOrEmpty(selectedCat) && selectedCat != "All")
                     {
-                        // Case-insensitive comparison
                         matchesCategory = string.Equals(product.Category, selectedCat, StringComparison.OrdinalIgnoreCase);
                     }
                 }
-
-                // 2. Check Search Text (Name)
                 bool matchesText = true;
                 if (!string.IsNullOrWhiteSpace(txtSearchItem.Text))
                 {
-                    // Case-insensitive search
                     matchesText = product.Name.IndexOf(txtSearchItem.Text, StringComparison.OrdinalIgnoreCase) >= 0;
                 }
 
-                // Show item ONLY if BOTH conditions are true
                 return matchesCategory && matchesText;
             };
         }
 
-        // ============================================
-        // CRUD OPERATIONS (Existing Code Preserved)
-        // ============================================
-
         private void SaveItem_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Basic Validation
             if (string.IsNullOrWhiteSpace(txtItemName.Text)) { MessageBox.Show("Enter item name"); return; }
             if (!decimal.TryParse(txtItemPrice.Text, out decimal price)) { MessageBox.Show("Enter valid price"); return; }
             if (string.IsNullOrWhiteSpace(cmbCategory.Text)) { MessageBox.Show("Select category"); return; }
 
-            string itemName = txtItemName.Text.Trim(); // Trim whitespace
+            string itemName = txtItemName.Text.Trim();
             string category = cmbCategory.Text;
 
-            // 2. CHECK FOR DUPLICATES (Case-Insensitive)
-            // We check against _allItems which is already loaded in memory
             bool exists = _allItems.Any(x => x.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase));
 
             if (selectedItem != null)
             {
-                // UPDATE LOGIC
-                // Check duplicate ONLY if name changed (allow saving same name if editing price/category)
                 if (!selectedItem.Name.Equals(itemName, StringComparison.OrdinalIgnoreCase) && exists)
                 {
                     MessageBox.Show("An article with this name already exists!", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -151,7 +126,6 @@ namespace Management_System_WPF.Views
             }
             else
             {
-                // ADD NEW LOGIC
                 if (exists)
                 {
                     MessageBox.Show("An article with this name already exists!", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -163,7 +137,6 @@ namespace Management_System_WPF.Views
                 MessageBox.Show("Item Added Successfully!");
             }
 
-            // Reload and Re-apply filters
             _allItems = ItemsService.GetAllItems();
             dgItems.ItemsSource = _allItems;
             ApplyFilters();
@@ -175,7 +148,6 @@ namespace Management_System_WPF.Views
         {
             if (item == null) return;
 
-            // DIRECTLY ENTER EDIT MODE WITHOUT PASSWORD
             selectedItem = item;
             txtItemName.Text = item.Name;
             txtItemPrice.Text = item.Price.ToString();
@@ -208,7 +180,7 @@ namespace Management_System_WPF.Views
             txtItemPrice.Text = "";
             cmbCategory.SelectedIndex = -1;
             selectedItem = null;
-            btnSave.Content = "Add Article"; // Reset button text
+            btnSave.Content = "Add Article";
         }
         private void Options_Click(object sender, RoutedEventArgs e)
         {
@@ -221,8 +193,7 @@ namespace Management_System_WPF.Views
             edit.Click += (s, ev) => EditItem(item);
 
             MenuItem history = new MenuItem { Header = "View Price History 📊" };
-            history.Click += (s, ev) => ViewPriceHistory(item); // ✅
-
+            history.Click += (s, ev) => ViewPriceHistory(item);
             MenuItem delete = new MenuItem { Header = "Delete Article ❌" };
             delete.Click += (s, ev) => DeleteItem(item);
 
@@ -261,8 +232,6 @@ namespace Management_System_WPF.Views
             cmbCategory.Text = "";
             selectedItem = null;
             btnSave.Content = "Save Article";
-
-            // ✅ FORCE CURSOR BACK TO ITEM NAME
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 txtItemName.Focus();

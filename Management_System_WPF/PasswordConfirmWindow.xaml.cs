@@ -1,17 +1,15 @@
 ﻿using System.Windows;
-using System.Windows.Input; // ✅ Required for dragging
+using System.Windows.Input;
 
-namespace Management_System_WPF.Views // ✅ Ensure namespace matches your file structure
+namespace Management_System_WPF.Views 
 {
     public partial class PasswordConfirmWindow : Window
     {
         public PasswordConfirmWindow()
         {
             InitializeComponent();
-            txtPass.Focus(); // Focus password box immediately
+            txtPass.Focus(); 
         }
-
-        // ✅ NEW: Allows dragging the borderless window
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)
@@ -20,12 +18,11 @@ namespace Management_System_WPF.Views // ✅ Ensure namespace matches your file 
 
         private void Confirm_Click(object sender, RoutedEventArgs e)
         {
-            // Verify against the stored password
             string currentPass = Properties.Settings.Default.AppPassword;
 
             if (txtPass.Password == currentPass)
             {
-                this.DialogResult = true; // Success
+                this.DialogResult = true;
                 this.Close();
             }
             else

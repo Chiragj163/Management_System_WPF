@@ -13,9 +13,6 @@ using System.Windows.Shapes;
 
 namespace Management_System.Views
 {
-    /// <summary>
-    /// Interaction logic for MonthlyReportPage.xaml
-    /// </summary>
     public partial class MonthlyReportPage : Page
     {
         public MonthlyReportPage()
