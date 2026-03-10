@@ -14,7 +14,7 @@
         <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
         <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
-        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
         <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
 
         <Style TargetType="{x:Type Control}" x:Key="InputStyle">
@@ -24,7 +24,21 @@
             <Setter Property="Padding" Value="10,0"/>
             <Setter Property="Margin" Value="0,0,0,15"/>
         </Style>
+        <Style TargetType="TextBox" x:Key="RoundedInputStyle" BasedOn="{StaticResource InputStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="5,0"/>
 
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="Button" x:Key="PrimaryButton">
             <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -35,7 +49,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -138,12 +152,297 @@
 
                         <StackPanel Grid.Column="0">
 
-                            <TextBlock Text="Buyer" Foreground="{StaticResource TextDark}" FontSize="16"   Margin="0,0,0,5"/>
-                            <ComboBox x:Name="cmbBuyer" Style="{StaticResource InputStyle}" ToolTip="Select Buyer Name" TabIndex="1" Height="30"/>
+                            <TextBlock Text="Buyer" FontWeight="Bold" Foreground="{StaticResource TextDark}" FontSize="16"   Margin="0,0,0,5"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center"  Margin="0,0,0,15"  >
 
-                            <TextBlock Text="Article / Item" Foreground="{StaticResource TextDark}" FontSize="16" ToolTip="Select Article Name" Margin="0,0,0,5"/>
-                            <ComboBox x:Name="cmbItem"  SelectionChanged="cmbBuyer_SelectionChanged" TabIndex="2" Style="{StaticResource InputStyle}" Height="30"/>
 
+                                <!-- Card container -->
+                                <Border Height="30" Width="350"  Background="White"  CornerRadius="10">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="3"  BlurRadius="10"   Opacity="0.16"/>
+                                    </Border.Effect>
+
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#3498DB"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <!-- Modern ComboBox -->
+                                    <ComboBox x:Name="cmbBuyer" 
+          DisplayMemberPath="Name" 
+          SelectedValuePath="BuyerId" 
+          FontSize="14" ToolTip="Select Buyer Name" TabIndex="1" 
+          FontWeight="SemiBold" FontFamily="Segoe UI" Foreground="Black" 
+          Background="Transparent" BorderThickness="0" VerticalContentAlignment="Center"
+          
+          IsEditable="True" 
+          IsTextSearchEnabled="False" 
+          StaysOpenOnEdit="True" 
+                                            KeyUp="SearchableComboBox_KeyUp"
+         SelectionChanged="cmbBuyer_SelectionChanged">
+
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+
+                                        <ComboBox.Template>
+                                            <ControlTemplate TargetType="ComboBox">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="32"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBox x:Name="PART_EditableTextBox" 
+                         Grid.Column="0"
+                         Margin="12,0,0,0" 
+                         VerticalAlignment="Center" 
+                         Background="Transparent" 
+                         BorderThickness="0" 
+                         FontSize="14" 
+                         FontFamily="Segoe UI" 
+                         FontWeight="SemiBold" 
+                         Foreground="Black"/>
+
+                                                    <ToggleButton x:Name="PART_DropDownToggle" 
+                             Grid.Column="0" 
+              Grid.ColumnSpan="2"
+                              Background="Transparent" 
+                              BorderThickness="0" 
+                              Focusable="False" 
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border Background="Transparent"/>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+
+                                                    <Path x:Name="Arrow" Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                                        <Path.RenderTransform>
+                                                            <RotateTransform Angle="0"/>
+                                                        </Path.RenderTransform>
+                                                    </Path>
+
+                                                    <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                        <Border Background="White" CornerRadius="10" Margin="0,5,0,0" Padding="4" SnapsToDevicePixels="True">
+                                                            <Border.Effect>
+                                                                <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA" Opacity="0.28"/>
+                                                            </Border.Effect>
+                                                            <ScrollViewer MaxHeight="250">
+                                                                <ItemsPresenter/>
+                                                            </ScrollViewer>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsDropDownOpen" Value="True">
+                                                        <Trigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.EnterActions>
+                                                        <Trigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.ExitActions>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter Property="Opacity" Value="0.5"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ComboBox.Template>
+
+                                        <ComboBox.ItemContainerStyle>
+                                            <Style TargetType="ComboBoxItem">
+                                                <Setter Property="Padding" Value="10,6"/>
+                                                <Setter Property="Width" Value="300"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ComboBoxItem">
+                                                            <Border x:Name="ItemBorder" Background="Transparent" CornerRadius="10" Padding="10,6" Margin="2,1">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ItemBorder" Property="Background" Value="#EBF5FB"/>
+                                                                    <Setter Property="Foreground" Value="#3498DB"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="ItemBorder" Property="Background" Value="#3498DB"/>
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ComboBox.ItemContainerStyle>
+                                    </ComboBox>
+                                </Border>
+                            </StackPanel>
+
+                            <TextBlock Text="Article / Item" FontWeight="Bold" Foreground="{StaticResource TextDark}" FontSize="16" ToolTip="Select Article Name" Margin="0,0,0,5"/>
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,15"   >
+
+                                <!-- Card container -->
+                                <Border Height="30" Width="350"  Background="White"  CornerRadius="10">
+                                    <Border.Effect>
+                                        <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="3"  BlurRadius="10"   Opacity="0.16"/>
+                                    </Border.Effect>
+
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="BorderBrush" Value="Transparent"/>
+                                            <Setter Property="BorderThickness" Value="1"/>
+                                            <Style.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#3498DB"/>
+                                                </Trigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <!-- Modern ComboBox -->
+                                    <ComboBox x:Name="cmbItem" 
+          DisplayMemberPath="Name" 
+          SelectedValuePath="Id" 
+          FontSize="14" ToolTip="Select Item" TabIndex="2" 
+          FontWeight="SemiBold" FontFamily="Segoe UI" Foreground="Black" 
+          Background="Transparent" BorderThickness="0" VerticalContentAlignment="Center"
+          
+          IsEditable="True" 
+          IsTextSearchEnabled="False" 
+          StaysOpenOnEdit="True" 
+                                              
+                                             KeyUp="SearchableComboBox_KeyUp"
+SelectionChanged="cmbBuyer_SelectionChanged">
+
+                                        <ComboBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <VirtualizingStackPanel/>
+                                            </ItemsPanelTemplate>
+                                        </ComboBox.ItemsPanel>
+
+                                        <ComboBox.Template>
+                                            <ControlTemplate TargetType="ComboBox">
+                                                <Grid >
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="32"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <TextBox x:Name="PART_EditableTextBox" 
+                         Grid.Column="0"
+                         Margin="12,0,0,0" 
+                         VerticalAlignment="Center" 
+                         Background="Transparent" 
+                         BorderThickness="0" 
+                         FontSize="14" 
+                         FontFamily="Segoe UI" 
+                         FontWeight="SemiBold" 
+                         Foreground="Black"/>
+
+                                                    <ToggleButton x:Name="PART_DropDownToggle" 
+                             Grid.Column="0" 
+              Grid.ColumnSpan="2"
+                              Background="Transparent" 
+                              BorderThickness="0" 
+                              Focusable="False" 
+                              IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                                        <ToggleButton.Template>
+                                                            <ControlTemplate TargetType="ToggleButton">
+                                                                <Border Background="Transparent"/>
+                                                            </ControlTemplate>
+                                                        </ToggleButton.Template>
+                                                    </ToggleButton>
+
+                                                    <Path x:Name="Arrow" Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                                        <Path.RenderTransform>
+                                                            <RotateTransform Angle="0"/>
+                                                        </Path.RenderTransform>
+                                                    </Path>
+
+                                                    <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                        <Border Background="White" CornerRadius="10" Margin="0,5,0,0" Padding="4" SnapsToDevicePixels="True">
+                                                            <Border.Effect>
+                                                                <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA" Opacity="0.28"/>
+                                                            </Border.Effect>
+                                                            <ScrollViewer MaxHeight="250">
+                                                                <ItemsPresenter/>
+                                                            </ScrollViewer>
+                                                        </Border>
+                                                    </Popup>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsDropDownOpen" Value="True">
+                                                        <Trigger.EnterActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.EnterActions>
+                                                        <Trigger.ExitActions>
+                                                            <BeginStoryboard>
+                                                                <Storyboard>
+                                                                    <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
+                                                                </Storyboard>
+                                                            </BeginStoryboard>
+                                                        </Trigger.ExitActions>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter Property="Opacity" Value="0.5"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </ComboBox.Template>
+
+                                        <ComboBox.ItemContainerStyle>
+                                            <Style TargetType="ComboBoxItem">
+                                                <Setter Property="Padding" Value="10,6"/>
+                                                <Setter Property="Width" Value="300"/>
+                                                <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ComboBoxItem">
+                                                            <Border x:Name="ItemBorder" Background="Transparent" CornerRadius="10" Padding="10,6" Margin="2,1">
+                                                                <ContentPresenter/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="ItemBorder" Property="Background" Value="#EBF5FB"/>
+                                                                    <Setter Property="Foreground" Value="#3498DB"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="ItemBorder" Property="Background" Value="#3498DB"/>
+                                                                    <Setter Property="Foreground" Value="White"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ComboBox.ItemContainerStyle>
+                                    </ComboBox>
+                                </Border>
+                            </StackPanel>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -152,21 +451,73 @@
                                 </Grid.ColumnDefinitions>
 
                                 <StackPanel Grid.Column="0">
-                                    <TextBlock Text="Quantity" FontSize="16"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
-                                    <TextBox x:Name="txtQuantity" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource InputStyle}" VerticalContentAlignment="Center" Height="30"/>
+                                    <TextBlock Text="Quantity" FontWeight="Bold" FontSize="16"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                                    <TextBox x:Name="txtQuantity" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource RoundedInputStyle}" VerticalContentAlignment="Center" Height="30"/>
 
                                 </StackPanel>
 
                                 <StackPanel Grid.Column="2">
-                                    <TextBlock Text="Date" Foreground="{StaticResource TextDark}" FontSize="16" Margin="0,0,0,5"/>
-                                    <DatePicker x:Name="dpSaleDate"
-                                                  Height="30"
-                                                  FontSize="14"
-                                                Background="#80F5F5F5"
-                                                  Margin="0,0,0,15"
-                                                  SelectedDateFormat="Short"
-                                                TabIndex="4"
-                                                  PreviewKeyDown="dpSaleDate_PreviewKeyDown"/>
+                                    <TextBlock Text="Date" FontWeight="Bold" Foreground="{StaticResource TextDark}" FontSize="16" Margin="0,0,0,5"/>
+                                    <Border Background="#80F5F5F5"
+        BorderBrush="#D0D0D0"
+        BorderThickness="1"
+        CornerRadius="10"
+        Height="30"
+        Margin="0,0,0,15">
+
+                                        <DatePicker x:Name="dpSaleDate"
+                SelectedDateFormat="Short"
+                TabIndex="4"
+                FontSize="14"
+                VerticalContentAlignment="Center"
+                BorderThickness="0"
+                Background="Transparent"
+                PreviewKeyDown="dpSaleDate_PreviewKeyDown">
+                                            <DatePicker.CalendarStyle>
+                                                <Style TargetType="Calendar">
+                                                    <Setter Property="LayoutTransform">
+                                                        <Setter.Value>
+                                                            <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </DatePicker.CalendarStyle>
+
+
+                                            <DatePicker.Resources>
+                                                <Style TargetType="DatePickerTextBox">
+                                                    <Setter Property="Background" Value="Transparent"/>
+                                                    <Setter Property="BorderThickness" Value="0"/>
+                                                    <Setter Property="Padding" Value="5,0"/>
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate TargetType="DatePickerTextBox">
+                                                                <Grid>
+                                                                    <ScrollViewer x:Name="PART_ContentHost"/>
+                                                                    <TextBlock Text="Select Date" 
+                                           Foreground="#999" 
+                                           IsHitTestVisible="False"
+                                           Margin="5,0,0,0"
+                                           VerticalAlignment="Center">
+                                                                        <TextBlock.Style>
+                                                                            <Style TargetType="TextBlock">
+                                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                                <Style.Triggers>
+                                                                                    <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource AncestorType=DatePickerTextBox}}" Value="">
+                                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                                    </DataTrigger>
+                                                                                </Style.Triggers>
+                                                                            </Style>
+                                                                        </TextBlock.Style>
+                                                                    </TextBlock>
+                                                                </Grid>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </Style>
+                                            </DatePicker.Resources>
+                                        </DatePicker>
+                                    </Border>
 
 
                                 </StackPanel>
@@ -189,7 +540,7 @@
                                             Click="Calculate_Click"/>
 
                                     <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                                        <TextBlock Text="Total:" FontWeight="SemiBold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,10,0"/>
+                                        <TextBlock Text="Total:" FontWeight="Bold" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,10,0"/>
                                         <TextBlock x:Name="txtTotal" Text="0.00" FontWeight="Bold" FontSize="20" Foreground="{StaticResource TextDark}"/>
                                     </StackPanel>
                                 </Grid>
@@ -300,11 +651,13 @@
                                     </DataGrid.Resources>
 
                                     <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Buyer" Binding="{Binding BuyerName}"  Width="*"/>
+
                                         <DataGridTextColumn Header="Item" Binding="{Binding ItemName}" Width="*"/>
                                         <DataGridTextColumn Header="Qty" Binding="{Binding Quantity}" Width="*"/>
                                         <DataGridTextColumn Header="Price" Binding="{Binding Price}" Width="*"/>
                                         <DataGridTextColumn Header="Total" Binding="{Binding Total}" Width="*" FontWeight="Bold"/>
-
+                                        <DataGridTextColumn Header="Date" Binding="{Binding SaleDate, StringFormat=dd/MM/yyyy}" Width="*"/>
                                         <DataGridTemplateColumn Width="*">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>

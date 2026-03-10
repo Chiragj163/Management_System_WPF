@@ -10,10 +10,6 @@ namespace Management_System_WPF.Services
         private static string _conn =
             $"Data Source={System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Database", "factory.db")};Version=3;";
 
-        // =========================================================
-        // 🔵 BUYER RELEVANT ARTICLES ONLY
-        // Bought OR already has special price
-        // =========================================================
         public static List<SpecialPriceVM> GetBuyerRelevantArticles(int buyerId)
         {
             var list = new List<SpecialPriceVM>();
@@ -21,12 +17,11 @@ namespace Management_System_WPF.Services
             using var con = new SQLiteConnection(_conn);
             con.Open();
 
-            string sql = @"
-SELECT DISTINCT
+            string sql = @"SELECT DISTINCT
     i.item_id,
     i.item_name,
     i.price AS OriginalPrice,
-    COALESCE(sp.special_price, i.price) AS SpecialPrice
+    sp.special_price AS SpecialPrice
 FROM items i
 
 LEFT JOIN sale_items si ON si.item_id = i.item_id
@@ -42,6 +37,7 @@ WHERE s.buyer_id IS NOT NULL
    OR sp.item_id IS NOT NULL
 
 ORDER BY i.item_name;
+
 ";
 
             using var cmd = new SQLiteCommand(sql, con);
@@ -55,16 +51,14 @@ ORDER BY i.item_name;
                     ItemId = rd.GetInt32(0),
                     ItemName = rd.GetString(1),
                     OriginalPrice = rd.GetDecimal(2),
-                    SpecialPrice = rd.GetDecimal(3)
+                    SpecialPrice = rd.IsDBNull(3) ? null : rd.GetDecimal(3)
                 });
+
             }
 
             return list;
         }
 
-        // =========================================================
-        // SAVE / UPDATE
-        // =========================================================
         public static void SaveOrUpdate(int buyerId, int itemId, decimal price)
         {
             using var con = new SQLiteConnection(_conn);
@@ -85,9 +79,7 @@ DO UPDATE SET special_price = excluded.special_price;
             cmd.ExecuteNonQuery();
         }
 
-        // =========================================================
-        // DELETE
-        // =========================================================
+       
         public static void Delete(int buyerId, int itemId)
         {
             using var con = new SQLiteConnection(_conn);
@@ -106,9 +98,7 @@ WHERE buyer_id = @BuyerId
             cmd.ExecuteNonQuery();
         }
 
-        // =========================================================
-        // EFFECTIVE PRICE (used in Sales page)
-        // =========================================================
+       
         public static decimal GetEffectivePrice(int buyerId, int itemId)
         {
             using var con = new SQLiteConnection(_conn);

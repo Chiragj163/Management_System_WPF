@@ -13,21 +13,21 @@
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
         <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
-        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
         <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
 
         <Style TargetType="Button" x:Key="PrimaryButton">
             <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+           
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="15,0"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -54,7 +54,7 @@
                         <Border Background="{TemplateBinding Background}" 
                             BorderBrush="{TemplateBinding BorderBrush}" 
                             BorderThickness="{TemplateBinding BorderThickness}" 
-                            CornerRadius="6">
+                            CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -91,54 +91,116 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Thumb}">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="3"/>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
 
-        <Style TargetType="{x:Type ScrollBar}">
-            <Setter Property="Stylus.IsFlicksEnabled" Value="false" />
-            <Setter Property="Foreground" Value="#B0BEC5" />
-            <Setter Property="Background" Value="Transparent" />
-
+        <Style x:Key="InvisibleRepeatButton" TargetType="{x:Type RepeatButton}">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="IsTabStop" Value="False"/>
             <Setter Property="Template">
                 <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type ScrollBar}">
-                        <Grid x:Name="GridRoot" Background="Transparent" SnapsToDevicePixels="true">
-                            <Track x:Name="PART_Track" IsDirectionReversed="true" Focusable="false">
-                                <Track.Thumb>
-                                    <Thumb Style="{StaticResource ScrollThumb}" Background="{TemplateBinding Foreground}" />
-                                </Track.Thumb>
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineUpCommand" Opacity="0" />
-                                </Track.DecreaseRepeatButton>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="ScrollBar.LineDownCommand" Opacity="0" />
-                                </Track.IncreaseRepeatButton>
-                            </Track>
-                        </Grid>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="true">
-                                <Setter Property="Foreground" Value="{StaticResource SecondaryColor}" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
+                    <ControlTemplate TargetType="{x:Type RepeatButton}">
+                        <Border Background="{TemplateBinding Background}"/>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
 
+        <Style x:Key="ModernScrollThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="Background" Value="#B0BEC5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="ThumbBorder" 
+                        Background="{TemplateBinding Background}" 
+                        CornerRadius="4" 
+                        Margin="2.5"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
-                <Trigger Property="Orientation" Value="Vertical">
-                    <Setter Property="Width" Value="5"/>
-                    <Setter Property="MinWidth" Value="5"/>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
                 </Trigger>
-                <Trigger Property="Orientation" Value="Horizontal">
-                    <Setter Property="Height" Value="5"/>
-                    <Setter Property="MinHeight" Value="5"/>
+                <Trigger Property="IsDragging" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="Stylus.IsFlicksEnabled" Value="False" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="12"/>
+                    <Setter Property="MinHeight" Value="20"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Border x:Name="TrackBackground" Background="{TemplateBinding Background}" CornerRadius="5">
+                                    <Grid x:Name="GridRoot" SnapsToDevicePixels="True">
+                                        <Track x:Name="PART_Track" IsDirectionReversed="True" Focusable="False">
+                                            <Track.DecreaseRepeatButton>
+                                                <RepeatButton Style="{StaticResource InvisibleRepeatButton}" Command="ScrollBar.PageUpCommand" />
+                                            </Track.DecreaseRepeatButton>
+                                            <Track.IncreaseRepeatButton>
+                                                <RepeatButton Style="{StaticResource InvisibleRepeatButton}" Command="ScrollBar.PageDownCommand" />
+                                            </Track.IncreaseRepeatButton>
+                                            <Track.Thumb>
+                                                <Thumb Style="{StaticResource ModernScrollThumb}" />
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="TrackBackground" Property="Background" Value="#08000000" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="12"/>
+                    <Setter Property="MinWidth" Value="20"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Border x:Name="TrackBackground" Background="{TemplateBinding Background}" CornerRadius="5">
+                                    <Grid x:Name="GridRoot" SnapsToDevicePixels="True">
+                                        <Track x:Name="PART_Track" IsDirectionReversed="False" Focusable="False">
+                                            <Track.DecreaseRepeatButton>
+                                                <RepeatButton Style="{StaticResource InvisibleRepeatButton}" Command="ScrollBar.PageLeftCommand" />
+                                            </Track.DecreaseRepeatButton>
+                                            <Track.IncreaseRepeatButton>
+                                                <RepeatButton Style="{StaticResource InvisibleRepeatButton}" Command="ScrollBar.PageRightCommand" />
+                                            </Track.IncreaseRepeatButton>
+                                            <Track.Thumb>
+                                                <Thumb Style="{StaticResource ModernScrollThumb}" />
+                                            </Track.Thumb>
+                                        </Track>
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="TrackBackground" Property="Background" Value="#08000000" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
     </Page.Resources>
     <Grid>
 
@@ -186,7 +248,7 @@
                 </Button>
 
 
-                <StackPanel Grid.Column="2" Margin="70,10,0,10" Orientation="Horizontal">
+                <StackPanel Grid.Column="2" Margin="70,1,0,1" Orientation="Horizontal">
                     <Button x:Name="btnPrevMonth"
                                 Content="◄ Prev"
                                 Style="{StaticResource SecondaryButton}"
@@ -201,16 +263,141 @@
                                 Margin="0,0,10,0"
                                 Click="NextMonth_Click"/>
                 </StackPanel>
-                <StackPanel Grid.Column="3" HorizontalAlignment="Right" Margin="0,10,30,10" Orientation="Horizontal">
+                <StackPanel Grid.Column="3" HorizontalAlignment="Right" Margin="0,1,30,1" Orientation="Horizontal">
 
-                    <TextBlock Text="Category :" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="Black" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="cmbCategory" 
-Width="150" 
-Height="35"
-Margin="0,0,30,0"
-VerticalContentAlignment="Center"
-FontSize="14"
-SelectionChanged="Filter_Category_Click"/>
+                   
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
+
+                        <!-- Label -->
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,15,0">
+                            <TextBlock Text="CATEGORY" FontSize="12" FontWeight="Bold" Foreground="Black"  FontFamily="Segoe UI"/>
+                        </StackPanel>
+
+                        <!-- Card container -->
+                        <Border Height="35" Width="150"  Background="White"  CornerRadius="10">
+                            <Border.Effect>
+                                <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="3"  BlurRadius="10"   Opacity="0.16"/>
+                            </Border.Effect>
+
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="BorderBrush" Value="Transparent"/>
+                                    <Setter Property="BorderThickness" Value="1"/>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="BorderBrush" Value="#3498DB"/>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+
+                            <!-- Modern ComboBox -->
+                            <ComboBox x:Name="cmbCategory" FontSize="14"  FontWeight="SemiBold"  FontFamily="Segoe UI" Foreground="#2C3E50"  Padding="12,0,32,0"  Background="Transparent"  BorderThickness="0" VerticalContentAlignment="Center"  SelectionChanged="Filter_Category_Click">
+
+                                <!-- Items virtualization (for performance on large lists) -->
+                                <ComboBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <VirtualizingStackPanel/>
+                                    </ItemsPanelTemplate>
+                                </ComboBox.ItemsPanel>
+
+                                <!-- Main template -->
+                                <ComboBox.Template>
+                                    <ControlTemplate TargetType="ComboBox">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="32"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Display selected text -->
+                                            <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"  ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" IsHitTestVisible="False"/>
+
+                                            <!-- Click area -->
+                                            <ToggleButton x:Name="PART_DropDownToggle" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ToggleButton.Template>
+                                                    <ControlTemplate TargetType="ToggleButton">
+                                                        <Border Background="Transparent"/>
+                                                    </ControlTemplate>
+                                                </ToggleButton.Template>
+                                            </ToggleButton>
+
+                                            <!-- Arrow -->
+                                            <Path x:Name="Arrow"  Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2"  HorizontalAlignment="Center" VerticalAlignment="Center"  RenderTransformOrigin="0.5,0.5">
+                                                <Path.RenderTransform>
+                                                    <RotateTransform Angle="0"/>
+                                                </Path.RenderTransform>
+                                            </Path>
+
+                                            <!-- Drop-down -->
+                                            <Popup x:Name="PART_Popup"   Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                <Border Background="White" CornerRadius="8" Margin="0,5,0,0" Padding="4"  SnapsToDevicePixels="True">
+                                                    <Border.Effect>
+                                                        <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA"  Opacity="0.28"/>
+                                                    </Border.Effect>
+                                                    <ScrollViewer>
+                                                        <ItemsPresenter/>
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+
+                                        <!-- Triggers -->
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsDropDownOpen" Value="True">
+                                                <Trigger.EnterActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="Arrow"
+   Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.EnterActions>
+                                                <Trigger.ExitActions>
+                                                    <BeginStoryboard>
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetName="Arrow"
+   Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </Trigger.ExitActions>
+                                            </Trigger>
+                                            <Trigger Property="IsEnabled" Value="False">
+                                                <Setter Property="Opacity" Value="0.5"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ComboBox.Template>
+
+                                <!-- Items style -->
+                                <ComboBox.ItemContainerStyle>
+                                    <Style TargetType="ComboBoxItem">
+                                        <Setter Property="Padding" Value="10,6"/>
+                                        <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ComboBoxItem">
+                                                    <Border x:Name="ItemBorder"   Background="Transparent" CornerRadius="5" Padding="10,6"  Margin="2,1">
+                                                        <ContentPresenter/>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="ItemBorder" Property="Background"  Value="#EBF5FB"/>
+                                                            <Setter Property="Foreground" Value="#3498DB"/>
+                                                        </Trigger>
+                                                        <Trigger Property="IsSelected" Value="True">
+                                                            <Setter TargetName="ItemBorder"   Property="Background"  Value="#3498DB"/>
+                                                            <Setter Property="Foreground"  Value="White"/>
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ComboBox.ItemContainerStyle>
+                            </ComboBox>
+                        </Border>
+                    </StackPanel>
 
                     <Button Content="📊 Excel"
              Style="{StaticResource PrimaryButton}"
@@ -219,6 +406,17 @@ SelectionChanged="Filter_Category_Click"/>
                             Margin="0,0,10,0"
              Click="ExportExcel_Click"/>
                    
+
+                        <Button Content="📈 Graph"
+            Style="{StaticResource PrimaryButton}"
+            Background="#7E57C2" 
+            Height="35" Width="100"
+            Margin="0,0,10,0"
+                               
+            Click="ViewGraph_Click"/>
+
+                   
+
                     <Button x:Name="btnFilter"
         Content="🔍 Filter"
         Style="{StaticResource PrimaryButton}"
@@ -227,17 +425,7 @@ SelectionChanged="Filter_Category_Click"/>
         Click="Filter_Click"/>
                 </StackPanel>
 
-                <Grid Grid.Row="1" Margin="15,5,15,5">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-
-
-                   
-                </Grid>
-
+                
                 <Border Grid.Row="2" 
                         Margin="15,0,15,25"
                        
@@ -248,46 +436,99 @@ SelectionChanged="Filter_Category_Click"/>
                     <DataGrid x:Name="dgBuyerSales"
                               AutoGenerateColumns="False"
                               FrozenColumnCount="1"
-                              HeadersVisibility="Column"
+                              HeadersVisibility="Column" ColumnWidth="Auto"
                               IsReadOnly="True"
                               CanUserSortColumns="False"
                               GridLinesVisibility="All"
                               HorizontalGridLinesBrush="Transparent"
                               VerticalGridLinesBrush="Transparent"
-                              BorderThickness="1"
-                              BorderBrush="Black"
-                              Background="#803CB4A7"
+                              BorderThickness="0"
+                              Background="#803CB4A7"  HorizontalAlignment="Left"
                               SelectionUnit="Cell"
-                              RowHeight="40"
+                              RowHeight="40"  VerticalScrollBarVisibility="Auto"
                               FontSize="16"
                               ColumnHeaderHeight="45">
-
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                <Setter Property="Foreground" Value="White"/>
                                 <Setter Property="FontSize" Value="16"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
-                                <Setter Property="BorderThickness" Value="1,1,1,1"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderBrush" Value="Gray"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+                                <Setter Property="Padding" Value="5"/>
                                 <Setter Property="Margin" Value="1.5"/>
-                                <Setter Property="Padding" Value="1"/>
+
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="DataGridColumnHeader">
+                                            <Border Background="Orange"  BorderBrush="{TemplateBinding BorderBrush}"  BorderThickness="{TemplateBinding BorderThickness}">
+                                                <ContentPresenter HorizontalAlignment="Center"  VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
                             </Style>
 
-                            <Style TargetType="DataGridCell">
+
+                            <Style x:Key="StandardCellStyle" TargetType="DataGridCell">
                                 <Setter Property="TextBlock.TextAlignment" Value="Center"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderThickness" Value="1,1,1,1"/>
                                 <Setter Property="BorderBrush" Value="Gray"/>
                                 <Setter Property="Margin" Value="1.5"/>
                                 <Setter Property="Padding" Value="1"/>
+                                <Setter Property="Background" Value="White"/>
+                                <Setter Property="Foreground" Value="Black"/>
+
                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
+                                        <Setter Property="Background" Value="Orange"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="BorderBrush" Value="Gray"/>
+                                    </DataTrigger>
+
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter Property="Background" Value="#E0F2F1"/>
                                         <Setter Property="Foreground" Value="Black"/>
                                         <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
                                     </Trigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style x:Key="ClickableCellStyle" TargetType="DataGridCell" BasedOn="{StaticResource StandardCellStyle}">
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <EventSetter Event="MouseDoubleClick" Handler="OnCellDoubleClicked"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
+                                        <Setter Property="Background" Value="Orange"/>
+                                        <Setter Property="Foreground" Value="Black"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Cursor" Value="Arrow"/>
+                                    </DataTrigger>
+
+                                    <MultiDataTrigger>
+                                        <MultiDataTrigger.Conditions>
+                                            <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
+                                           
+                                        </MultiDataTrigger.Conditions>
+                                        <Setter Property="Background" Value="#B2DFDB"/>
+                                    </MultiDataTrigger>
+                                </Style.Triggers>
+                            </Style>
+
+                            <Style x:Key="TotalColumnStyle" TargetType="DataGridCell" BasedOn="{StaticResource StandardCellStyle}">
+                                <Setter Property="Background" Value="LightGreen"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
+                                        <Setter Property="Background" Value="Orange"/>
+                                        <Setter Property="Foreground" Value="White"/>
+                                    </DataTrigger>
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.Resources>
@@ -310,8 +551,9 @@ SelectionChanged="Filter_Category_Click"/>
 
                                     <!-- ✅ TOTAL ROW (LAST = HIGHEST PRIORITY) -->
                                     <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
-                                        <Setter Property="Background" Value="#009688"/>
-                                        <Setter Property="Foreground" Value="White"/>
+                                       
+                                        <Setter Property="Foreground" Value="Black"/>
+                                        <Setter Property="FontWeight" Value="ExtraBold"/>
                                        
                                         <Setter Property="FontWeight" Value="Bold"/>
                                     </DataTrigger>
@@ -350,10 +592,11 @@ Margin="0,55,25,0">
                         <Button Content="This Month" Click="FilterThisMonth_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
                         <Button Content="Last 6 Months" Click="FilterSixMonths_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
                         <Button Content="This Year" Click="FilterYear_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,15"/>
+                        <Button Content="Reset Filters" Click="ResetFilters_Click" Style="{StaticResource SecondaryButton}"  Height="40" Background="#D32F2F" Foreground="White" Margin="0,20,0,0"/>
 
                         <Separator Background="#EEE" Margin="0,0,0,15"/>
 
-                        <TextBlock Text="Custom Range" FontWeight="SemiBold" Foreground="{StaticResource TextLight}" Margin="0,0,0,10"/>
+                        <TextBlock Text="Custom Range" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,10"/>
 
                         <Grid Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
@@ -361,8 +604,29 @@ Margin="0,55,25,0">
                                 <ColumnDefinition Width="10"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <DatePicker x:Name="dpFrom" Grid.Column="0" Height="35"/>
-                            <DatePicker x:Name="dpTo" Grid.Column="2" Height="35"/>
+                            <DatePicker x:Name="dpFrom" Grid.Column="0" Height="35">
+                                <DatePicker.CalendarStyle>
+                                    <Style TargetType="Calendar">
+                                        <Setter Property="LayoutTransform">
+                                            <Setter.Value>
+                                                <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DatePicker.CalendarStyle>
+                                </DatePicker>
+
+                                <DatePicker x:Name="dpTo" Grid.Column="2" Height="35">
+                                <DatePicker.CalendarStyle>
+                                    <Style TargetType="Calendar">
+                                        <Setter Property="LayoutTransform">
+                                            <Setter.Value>
+                                                <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DatePicker.CalendarStyle>
+                                </DatePicker>
                         </Grid>
 
                         <Button Content="Apply Filter" Click="FilterCustom_Click" Style="{StaticResource PrimaryButton}" Height="40"/>

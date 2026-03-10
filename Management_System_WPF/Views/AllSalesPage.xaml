@@ -10,17 +10,23 @@
 
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
-        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="#ACFFFC"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
-        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
-        <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
-        <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
+        <SolidColorBrush x:Key="TextLight" Color="#454545"/>
+        <SolidColorBrush x:Key="DangerColor" Color="Red"/>
         <Style x:Key="CenteredTextColumn" TargetType="TextBlock">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="TextAlignment" Value="Center"/>
             <Setter Property="Padding" Value="0"/>
         </Style>
-
+        <Style x:Key="ModernInputBorder" TargetType="Border">
+            <Setter Property="Background" Value="#F9FAFB"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Height" Value="40"/>
+        </Style>
 
         <Style TargetType="{x:Type Control}" x:Key="FilterInputStyle">
             <Setter Property="Height" Value="40"/>
@@ -49,7 +55,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -120,16 +126,140 @@
                        
                     </StackPanel>
                     <StackPanel Grid.Column="0" Orientation="Horizontal"  VerticalAlignment="Center" HorizontalAlignment="Left" Margin="40,0,0,0">
-                        <TextBlock Text="Category :" FontSize="16" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="Black" FontWeight="SemiBold"/>
-                    <ComboBox x:Name="cmbCategory" 
-Width="145" 
-Height="33"
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,0"  >
 
-VerticalContentAlignment="Center"
-                              HorizontalAlignment="Right"
-FontSize="14"
-SelectionChanged="Filter_Changed"/>
+                            <!-- Label -->
+                            <StackPanel VerticalAlignment="Center" Margin="0,0,15,0">
+                                <TextBlock Text="CATEGORY" FontSize="14" FontWeight="Bold" Foreground="Black"  FontFamily="Segoe UI"/>
+                            </StackPanel>
+
+                            <!-- Card container -->
+                            <Border Height="33" Width="145"  Background="White"  CornerRadius="10">
+                                <Border.Effect>
+                                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="3"  BlurRadius="10"   Opacity="0.16"/>
+                                </Border.Effect>
+
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="BorderBrush" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="1"/>
+                                        <Style.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="BorderBrush" Value="#3498DB"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+
+                                <!-- Modern ComboBox -->
+                                <ComboBox x:Name="cmbCategory" FontSize="14"  FontWeight="SemiBold"  FontFamily="Segoe UI" Foreground="#2C3E50"  Padding="12,0,32,0"  Background="Transparent"  BorderThickness="0" VerticalContentAlignment="Center"  SelectionChanged="Filter_Changed">
+
+                                    <!-- Items virtualization (for performance on large lists) -->
+                                    <ComboBox.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <VirtualizingStackPanel/>
+                                        </ItemsPanelTemplate>
+                                    </ComboBox.ItemsPanel>
+
+                                    <!-- Main template -->
+                                    <ComboBox.Template>
+                                        <ControlTemplate TargetType="ComboBox">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="32"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <!-- Display selected text -->
+                                                <ContentPresenter Margin="12,0,0,0" VerticalAlignment="Center" Content="{TemplateBinding SelectionBoxItem}" ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"  ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}" IsHitTestVisible="False"/>
+
+                                                <!-- Click area -->
+                                                <ToggleButton x:Name="PART_DropDownToggle" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                                    <ToggleButton.Template>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border Background="Transparent"/>
+                                                        </ControlTemplate>
+                                                    </ToggleButton.Template>
+                                                </ToggleButton>
+
+                                                <!-- Arrow -->
+                                                <Path x:Name="Arrow"  Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2"  HorizontalAlignment="Center" VerticalAlignment="Center"  RenderTransformOrigin="0.5,0.5">
+                                                    <Path.RenderTransform>
+                                                        <RotateTransform Angle="0"/>
+                                                    </Path.RenderTransform>
+                                                </Path>
+
+                                                <!-- Drop-down -->
+                                                <Popup x:Name="PART_Popup"   Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                    <Border Background="White" CornerRadius="8" Margin="0,5,0,0" Padding="4"  SnapsToDevicePixels="True">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA"  Opacity="0.28"/>
+                                                        </Border.Effect>
+                                                        <ScrollViewer>
+                                                            <ItemsPresenter/>
+                                                        </ScrollViewer>
+                                                    </Border>
+                                                </Popup>
+                                            </Grid>
+
+                                            <!-- Triggers -->
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsDropDownOpen" Value="True">
+                                                    <Trigger.EnterActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Arrow"
+                                      Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.EnterActions>
+                                                    <Trigger.ExitActions>
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Arrow"
+                                      Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </Trigger.ExitActions>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Opacity" Value="0.5"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </ComboBox.Template>
+
+                                    <!-- Items style -->
+                                    <ComboBox.ItemContainerStyle>
+                                        <Style TargetType="ComboBoxItem">
+                                            <Setter Property="Padding" Value="10,6"/>
+                                            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+                                            <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ComboBoxItem">
+                                                        <Border x:Name="ItemBorder"   Background="Transparent" CornerRadius="5" Padding="10,6"  Margin="2,1">
+                                                            <ContentPresenter/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="ItemBorder" Property="Background"  Value="#EBF5FB"/>
+                                                                <Setter Property="Foreground" Value="#3498DB"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="ItemBorder"   Property="Background"  Value="#3498DB"/>
+                                                                <Setter Property="Foreground"  Value="White"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ComboBox.ItemContainerStyle>
+                                </ComboBox>
+                            </Border>
                         </StackPanel>
+                    </StackPanel>
                     <Button Content="🔍 Filter"
         
                             Padding="10,0"
@@ -162,98 +292,217 @@ SelectionChanged="Filter_Changed"/>
 
                 <Border x:Name="FilterPanel" 
         Grid.Row="1" 
-        Visibility="Collapsed"
+       
         Background="White" 
-        CornerRadius="10"
-        Margin="25,0,25,20"
-        Padding="20,15"
-        BorderBrush="#EEE"
+        CornerRadius="12"
+         Visibility="Collapsed"              
+        Margin="20,0,20,20"
+        Padding="15"
+        BorderBrush="#E0E0E0"
         BorderThickness="1">
 
                     <Border.Effect>
-                        <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.1" Color="Black"/>
+                        <DropShadowEffect BlurRadius="20" ShadowDepth="4" Opacity="0.08" Color="Black"/>
                     </Border.Effect>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="0.5*"/>
+                            <ColumnDefinition Width="30"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
                             <TextBlock Text="Search Buyer / Item" 
-                       FontSize="15" FontWeight="SemiBold" 
-                       Foreground="{StaticResource TextDark}" 
-                       Margin="0,0,0,6"/>
+                       FontSize="12" FontWeight="SemiBold" 
+                       Foreground="{StaticResource TextLight}" 
+                       Margin="0,0,0,5"/>
 
-                            <Grid >
-                                <TextBox x:Name="txtSearch" 
-                         Width="250" 
-                         Style="{StaticResource FilterInputStyle}"
-                         Padding="30,0,10,0"
-                                         
-                         TextChanged="Filter_Changed"/>
+                            <Border Style="{StaticResource ModernInputBorder}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="40"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
 
-                                <Path Data="M15.5,14L14.71,14L14.43,13.73C15.41,12.59 16,11.11 16,9.5C16,5.91 13.09,3 9.5,3C5.91,3 3,5.91 3,9.5C3,13.09 5.91,16 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71L14,15.5L19,20.49L20.49,19L15.5,14ZM9.5,14C7.01,14 5,11.99 5,9.5C5,7.01 7.01,5 9.5,5C11.99,5 14,7.01 14,9.5C14,11.99 11.99,14 9.5,14Z"
-                      Fill="{StaticResource TextDark}"
-                      Width="16" Height="16"
-                      Stretch="Uniform"
-                      HorizontalAlignment="Left"
-                      Margin="8,0,0,0" 
-                      IsHitTestVisible="False"/>
-                            </Grid>
+                                    <Path Grid.Column="0" 
+                          Data="M15.5,14L14.71,14L14.43,13.73C15.41,12.59 16,11.11 16,9.5C16,5.91 13.09,3 9.5,3C5.91,3 3,5.91 3,9.5C3,13.09 5.91,16 9.5,16C11.11,16 12.59,15.41 13.73,14.43L14,14.71L14,15.5L19,20.49L20.49,19L15.5,14ZM9.5,14C7.01,14 5,11.99 5,9.5C5,7.01 7.01,5 9.5,5C11.99,5 14,7.01 14,9.5C14,11.99 11.99,14 9.5,14Z"
+                          Fill="{StaticResource TextLight}"
+                          Width="16" Height="16" Stretch="Uniform"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                                    <TextBox x:Name="txtSearch" 
+                             Grid.Column="1"
+                             Background="Transparent" BorderThickness="0"
+                             VerticalContentAlignment="Center"
+                             FontSize="14" Foreground="{StaticResource TextDark}"
+                             TextChanged="Filter_Changed"/>
+
+                                    <TextBlock Grid.Column="1" Text="Type to search..." 
+                               VerticalAlignment="Center" Foreground="#B0BEC5"
+                               IsHitTestVisible="False" Margin="2,0,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Text, ElementName=txtSearch}" Value="">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="1" Margin="0,0,15,0">
-                            <TextBlock Text="From Date" 
-                       FontSize="15" FontWeight="SemiBold" 
-                       Foreground="{StaticResource TextDark}" 
-                       Margin="0,0,0,6"/>
-                            <DatePicker x:Name="dpFrom" 
-                        Width="140"
-                        Style="{StaticResource FilterInputStyle}"
-                        SelectedDateChanged="Filter_Changed"/>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <TextBlock Text="Date Range" HorizontalAlignment="Center" FontSize="12" FontWeight="SemiBold"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Border Background="#80F5F5F5" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="10" Height="38">
+
+                                    <DatePicker x:Name="dpFrom" SelectedDateChanged="Filter_Changed"
+                                                SelectedDateFormat="Short" 
+                                                FontSize="14"
+                                                 VerticalContentAlignment="Center"
+                                                 BorderThickness="0"
+                                                 Background="Transparent" Width="138" >
+                                        <DatePicker.CalendarStyle>
+                                            <Style TargetType="Calendar">
+                                                <Setter Property="LayoutTransform">
+                                                    <Setter.Value>
+                                                        <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </DatePicker.CalendarStyle>
+
+                                        <DatePicker.Resources>
+                                            <Style TargetType="DatePickerTextBox">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                                <Setter Property="Padding" Value="5,0"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="DatePickerTextBox">
+                                                            <Grid>
+                                                                <ScrollViewer x:Name="PART_ContentHost"/>
+                                                                <TextBlock Text="Select Date" 
+                                   Foreground="#999" 
+                                   IsHitTestVisible="False"
+                                   Margin="5,0,0,0"
+                                   VerticalAlignment="Center">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource AncestorType=DatePickerTextBox}}" Value="">
+                                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </DatePicker.Resources>
+                                    </DatePicker>
+                                </Border>
+
+
+                                <TextBlock Text="—" VerticalAlignment="Center" Margin="10,0" Foreground="{StaticResource TextDark}"/>
+
+                                <Border Background="#80F5F5F5"  Grid.Column="3" BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="10" Height="38">
+
+                                    <DatePicker x:Name="dpTo" SelectedDateChanged="Filter_Changed"
+                 SelectedDateFormat="Short" 
+                 FontSize="14"
+                  VerticalContentAlignment="Center"
+                  BorderThickness="0"
+                  Background="Transparent" Width="138" >
+                                        <DatePicker.CalendarStyle>
+                                            <Style TargetType="Calendar">
+                                                <Setter Property="LayoutTransform">
+                                                    <Setter.Value>
+                                                        <ScaleTransform ScaleX="1.4" ScaleY="1.4"/>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </DatePicker.CalendarStyle>
+
+                                        <DatePicker.Resources>
+                                            <Style TargetType="DatePickerTextBox">
+                                                <Setter Property="Background" Value="Transparent"/>
+                                                <Setter Property="BorderThickness" Value="0"/>
+                                                <Setter Property="Padding" Value="5,0"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="DatePickerTextBox">
+                                                            <Grid>
+                                                                <ScrollViewer x:Name="PART_ContentHost"/>
+                                                                <TextBlock Text="Select Date" 
+    Foreground="#999" 
+    IsHitTestVisible="False"
+    Margin="5,0,0,0"
+    VerticalAlignment="Center">
+                                                                    <TextBlock.Style>
+                                                                        <Style TargetType="TextBlock">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                            <Style.Triggers>
+                                                                                <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource AncestorType=DatePickerTextBox}}" Value="">
+                                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                                </DataTrigger>
+                                                                            </Style.Triggers>
+                                                                        </Style>
+                                                                    </TextBlock.Style>
+                                                                </TextBlock>
+                                                            </Grid>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </DatePicker.Resources>
+                                    </DatePicker>
+                                </Border>
+                            </StackPanel>
                         </StackPanel>
 
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Text="To Date" 
-                       FontSize="15" FontWeight="SemiBold" 
-                       Foreground="{StaticResource TextDark}" 
-                       Margin="0,0,0,6"/>
-                            <DatePicker x:Name="dpTo" 
-                        Width="140"
-                        Style="{StaticResource FilterInputStyle}"
-                        SelectedDateChanged="Filter_Changed"/>
-                        </StackPanel>
-
-                        <Button Grid.Column="4"
-                VerticalAlignment="Bottom"
+                        <Button Grid.Column="5" 
                 Click="ClearFilter_Click"
-                Background="Transparent"
-                BorderThickness="0"
-                Cursor="Hand"
-                Height="40">
+                VerticalAlignment="Bottom"
+                Cursor="Hand" Background="Transparent" BorderThickness="0">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="15,0">
+                                    <Border x:Name="btnBorder" 
+                            Background="{TemplateBinding Background}" 
+                            CornerRadius="10" 
+                            Height="40" Padding="15,0"
+                            BorderBrush="#E0E0E0" BorderThickness="1">
                                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"
-                                  Fill="{StaticResource DangerColor}"
-                                  Width="14" Height="14"
-                                  Stretch="Uniform"
-                                  Margin="0,0,8,0"/>
-                                            <TextBlock Text="Reset Filters" 
-                                       Foreground="{StaticResource DangerColor}" 
-                                       FontWeight="SemiBold"
-                                       FontSize="15"/>
+                                            <Path x:Name="btnIcon"
+                                  Data="M17.65,6.35C16.2,4.9 14.21,4 12,4c-4.42,0-7.99,3.58-7.99,8s3.57,8 7.99,8c3.73,0 6.84-2.55 7.73-6h-2.08c-0.82,2.33-3.04,4-5.65,4c-3.31,0-6-2.69-6-6s2.69-6 6-6c1.66,0 3.14,0.69 4.22,1.78L13,11h7V4L17.65,6.35z"
+                                  Fill="{StaticResource TextDark}"
+                                  Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0"/>
+
+                                            <TextBlock x:Name="btnText" 
+                                       Text="Reset Filters" 
+                                       FontSize="14" FontWeight="SemiBold" 
+                                       Foreground="{StaticResource TextDark}"/>
                                         </StackPanel>
                                     </Border>
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" Value="#FFEBEE"/>
+                                            <Setter TargetName="btnBorder" Property="Background" Value="#FFEBEE"/>
+                                            <Setter TargetName="btnBorder" Property="BorderBrush" Value="{StaticResource DangerColor}"/>
+                                            <Setter TargetName="btnText" Property="Foreground" Value="{StaticResource DangerColor}"/>
+                                            <Setter TargetName="btnIcon" Property="Fill" Value="{StaticResource DangerColor}"/>
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -290,13 +539,13 @@ SelectionChanged="Filter_Changed"/>
           ColumnWidth="*">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="{StaticResource SecondaryColor}"/>
-                                <Setter Property="Foreground" Value="{StaticResource PrimaryColor}"/>
+                                <Setter Property="Background" Value="LightGreen"/>
+                                <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
                                 <Setter Property="FontSize" Value="18"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="BorderThickness" Value="1,1,1,1"/>
-                                <Setter Property="BorderBrush" Value="Black"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource TextDark}"/>
                                 <Setter Property="Margin" Value="1.5"/>
                                 <Setter Property="Padding" Value="10"/>
                                 <Setter Property="MinHeight" Value="65"/>
@@ -306,15 +555,14 @@ SelectionChanged="Filter_Changed"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
                                 <Setter Property="HorizontalContentAlignment" Value="Center"/>
                                 <Setter Property="Margin" Value="1.5"/>
-                                <Setter Property="BorderBrush" Value="Black"/>
-                                
+                                <Setter Property="BorderBrush" Value="{StaticResource TextDark}"/>
                                 <Setter Property="BorderThickness" Value="1,1,1,1"/>
                             </Style>
                         </DataGrid.Resources>
 
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Date" 
-                     Binding="{Binding SaleDate, StringFormat=dd/MM/yyyy}" 
+                     Binding="{Binding SaleDate, StringFormat=dd/MMM/yyyy}" 
                      Width="*"
                      ElementStyle="{StaticResource CenteredTextColumn}"
                      FontWeight="Bold"
@@ -350,19 +598,11 @@ SelectionChanged="Filter_Changed"/>
                             <DataGridTemplateColumn Header="Action" Width="*">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Button Width="36" Height="36"
-                            Background="#E0F7FA"
-                            Cursor="Hand"
-                            Click="Options_Click">
+                                        <Button Width="36" Height="36"  Background="#E0F7FA"  Cursor="Hand"  Click="Options_Click">
                                             <Button.Template>
                                                 <ControlTemplate TargetType="Button">
                                                     <Border Background="{TemplateBinding Background}" CornerRadius="18">
-                                                        <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"
-                                          Fill="{StaticResource PrimaryColor}"
-                                          Width="16" Height="16"
-                                          Stretch="Uniform"
-                                          HorizontalAlignment="Center"
-                                          VerticalAlignment="Center"/>
+                                                        <Path Data="M12,2 L14,4 L6,12 L4,12 L4,10 Z"     Fill="{StaticResource PrimaryColor}"  Width="16" Height="16" Stretch="Uniform"  HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </Button.Template>
@@ -378,19 +618,39 @@ SelectionChanged="Filter_Changed"/>
                                 <Setter Property="Height" Value="45"/>
                                 <Setter Property="MinHeight" Value="70"/>
                                 <Setter Property="VerticalContentAlignment" Value="Center"/>
-                                
                                 <Setter Property="SnapsToDevicePixels" Value="True"/>
+                                <Setter Property="Background" Value="White"/>
+
                                
-                                <Style.Triggers>
-                                    <Trigger Property="ItemsControl.AlternationIndex" Value="1">
-                                        <Setter Property="Background" Value="#FAFAFA"/>
-                                    </Trigger>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="#F1F8E9"/>
-                                    </Trigger>
-                                </Style.Triggers>
                             </Style>
                         </DataGrid.RowStyle>
+
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell">
+                                <Setter Property="Padding" Value="10"/>
+                                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                                <Setter Property="Margin" Value="1.5"/>
+                                <Setter Property="BorderBrush" Value="{StaticResource TextDark}"/>
+                                <Setter Property="BorderThickness" Value="1"/>
+
+                                <Style.Triggers>
+
+                                    <!-- 🔹 Alternate row CELL color -->
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=DataGridRow}, 
+                                          Path=(ItemsControl.AlternationIndex)}"
+                         Value="1">
+                                        <Setter Property="Background" Value="DeepSkyBlue"/>
+                                    </DataTrigger>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="#ACFFFC"/>
+                                    </Trigger>
+
+
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.CellStyle>
+
 
                     </DataGrid>
 

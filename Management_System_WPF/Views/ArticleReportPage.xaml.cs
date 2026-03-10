@@ -11,7 +11,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Drawing;
+using System.Windows.Input;
+using System.Windows.Media;
 
 
 
@@ -22,6 +23,9 @@ namespace Management_System_WPF.Views
         private string _selectedArticle;
         private DateTime _selectedDate;
 
+        private bool _isRangeMode = false;
+        private DateTime _rangeFrom;
+        private DateTime _rangeTo;
 
         private DateTime _currentMonth;
         // 🔥 NEW: Store article categories for lookup
@@ -78,6 +82,19 @@ namespace Management_System_WPF.Views
 
         private void LoadArticleReportByRange(DateTime from, DateTime to)
         {
+            _isRangeMode = true;
+            _rangeFrom = from;
+            _rangeTo = to;
+            if (from.Month == to.Month && from.Year == to.Year)
+            {
+               
+                txtTitle.Text = from.ToString("MMMM yyyy");
+            }
+            else
+            {
+                // Range (e.g., "01-Mar-25 to 31-Mar-25")
+                txtTitle.Text = $"{from:dd-MMM-yy} to {to:dd-MMM-yy}";
+            }
             // 🔹 Fetch raw data for range
             var raw = SalesService.GetArticleSalesByDateRange(from, to);
 
@@ -94,7 +111,19 @@ namespace Management_System_WPF.Views
             }
 
             var dates = raw.Select(r => r.Date).Distinct().ToList();
-            var articles = raw.Select(r => r.Article).Distinct().OrderBy(a => a).ToList();
+
+            // ==========================================
+            // ✅ CALCULATE TOTALS AND SORT ARTICLES
+            // ==========================================
+            var articleTotals = raw
+                .GroupBy(r => r.Article)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
+
+            // Sort from highest quantity to lowest
+            var articles = articleTotals
+                .OrderByDescending(kvp => kvp.Value)
+                .Select(kvp => kvp.Key)
+                .ToList();
 
             List<ArticleSaleRow> rows = new();
 
@@ -181,20 +210,19 @@ namespace Management_System_WPF.Views
         // 🔥 NEW: Filter Change Event
         private void FilterCategory_Changed(object sender, SelectionChangedEventArgs e)
         {
-            // Reload the report. The LoadArticleReport function will check the combobox.
-            LoadArticleReport(_currentMonth);
-           
+            if (_isRangeMode)
+                LoadArticleReportByRange(_rangeFrom, _rangeTo);
+            else
+                LoadArticleReport(_currentMonth);
+
         }
 
-        private void FilterCategory_ChangedSaleTillNow(object sender, SelectionChangedEventArgs e)
-        {
-           
-            LoadSalesTillNow();
-        }
+      
         // LOAD ARTICLE REPORT FOR SPECIFIC MONTH
 
         private void LoadArticleReport(DateTime month)
         {
+            _isRangeMode = false;
             var raw = SalesService.GetArticleSalesByMonth(month.Year, month.Month);
 
             // Category filter
@@ -209,19 +237,28 @@ namespace Management_System_WPF.Views
                 ).ToList();
             }
 
-            var dates = raw.Select(r => r.Date).Distinct().ToList();
-            var articles = raw.Select(r => r.Article).Distinct().OrderBy(a => a).ToList();
+            var dates = raw.Select(r => DateTime.Parse(r.Date)).Distinct().OrderBy(d => d).ToList();
+
+            // ==========================================
+            // ✅ CALCULATE TOTALS AND SORT ARTICLES
+            // ==========================================
+            var articleTotals = raw
+                .GroupBy(r => r.Article)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
+
+            // Sort from highest quantity to lowest
+            var articles = articleTotals
+                .OrderByDescending(kvp => kvp.Value)
+                .Select(kvp => kvp.Key)
+                .ToList();
 
             List<ArticleSaleRow> rows = new();
 
-            foreach (var dateStr in dates)
+            foreach (var date in dates)
             {
-                if (!DateTime.TryParse(dateStr, out DateTime parsedDate))
-                    continue;
-
                 var row = new ArticleSaleRow
                 {
-                    Date = parsedDate
+                    Date = date
                 };
 
                 foreach (var art in articles)
@@ -230,9 +267,14 @@ namespace Management_System_WPF.Views
                     row.ArticleTooltips[art] = string.Empty;
 
                     var entries = raw
-                        .Where(r => r.Date == dateStr && r.Article == art)
-                        .Select(r => new { r.Qty, r.BuyerName })
-                        .ToList();
+     .Where(r =>
+         DateTime.TryParse(r.Date, out var d) &&
+         d.Date == date.Date &&
+         r.Article == art
+     )
+     .Select(r => new { r.Qty, r.BuyerName })
+     .ToList();
+
 
                     if (entries.Any())
                     {
@@ -356,7 +398,25 @@ new Setter(
                 Header = "Total",
                 Binding = new Binding("Total"),
                 Width = 120,
-                IsReadOnly = true
+                IsReadOnly = true,
+
+                 CellStyle = new Style(typeof(DataGridCell))
+                 {
+                     Setters =
+        {
+            new Setter(DataGridCell.BackgroundProperty, Brushes.LightGreen),
+            new Setter(DataGridCell.FontWeightProperty, FontWeights.Bold)
+        }
+                 },
+
+                // 🔹 TEXT ALIGNMENT
+                ElementStyle = new Style(typeof(TextBlock))
+                {
+                    Setters =
+        {
+            new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center)
+        }
+                }
             });
         }
 
@@ -511,7 +571,7 @@ new Setter(
                         ws.Cells[rowIdx, col].Value = rowSum;
                         ws.Cells[rowIdx, col].Style.Font.Bold = true;
                         ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                        ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(Color.WhiteSmoke);
+                        ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.WhiteSmoke);
 
                         grandTotal += rowSum; // Add to grand total
                         rowIdx++;
@@ -539,7 +599,7 @@ new Setter(
                     ws.Cells[rowIdx, col].Style.Font.Bold = true;
                     ws.Cells[rowIdx, col].Style.Font.Size = 12;
                     ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(Color.LightGray);
+                    ws.Cells[rowIdx, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
 
 
                     // --- 4. STYLING ---
@@ -553,8 +613,8 @@ new Setter(
                     var headerRange = ws.Cells[1, 1, 1, col];
                     headerRange.Style.Font.Bold = true;
                     headerRange.Style.Fill.PatternType = ExcelFillStyle.Solid;
-                    headerRange.Style.Fill.BackgroundColor.SetColor(Color.Teal);
-                    headerRange.Style.Font.Color.SetColor(Color.White);
+                    headerRange.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Teal);
+                    headerRange.Style.Font.Color.SetColor(System.Drawing.Color.White);
 
                     // Borders for all data
                     var fullRange = ws.Cells[1, 1, rowIdx, col];
@@ -594,26 +654,42 @@ new Setter(
             btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
         }
 
-        private void dgArticles_SelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        private void dgArticles_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (dgArticles.SelectedCells.Count == 0)
+            // 1. Find exactly what visual element was double-clicked
+            DependencyObject dep = (DependencyObject)e.OriginalSource;
+
+            // Navigate up the visual tree to find the DataGridCell
+            while (dep != null && !(dep is DataGridCell))
+            {
+                dep = VisualTreeHelper.GetParent(dep);
+            }
+
+            // ❌ If we didn't double-click inside an actual cell (e.g. scrollbar or header), exit
+            if (dep == null) return;
+
+            DataGridCell cell = (DataGridCell)dep;
+
+            // 2. Get the row data
+            var row = cell.DataContext as ArticleSaleRow;
+
+            // ❌ Ignore invalid clicks (Total Row)
+            if (row == null || row.IsTotalRow) return;
+
+            // 3. Get the column info
+            if (cell.Column == null) return;
+
+            // ❌ Ignore the Date column (Index 0) and the Total column
+            string article = cell.Column.Header?.ToString();
+            if (cell.Column.DisplayIndex == 0 || article == "Total" || string.IsNullOrEmpty(article))
                 return;
-
-            var cellInfo = dgArticles.SelectedCells[0];
-            var row = cellInfo.Item as ArticleSaleRow;
-
-            // ❌ Ignore invalid clicks
-            if (row == null || row.IsTotalRow || cellInfo.Column.DisplayIndex == 0)
-                return;
-
-            string article = cellInfo.Column.Header.ToString();
 
             // ❌ No data → no popup
             if (!row.ArticleTooltips.ContainsKey(article) ||
                 string.IsNullOrWhiteSpace(row.ArticleTooltips[article]))
                 return;
 
-            // Parse tooltip data
+            // 4. Parse tooltip data
             var details = row.ArticleTooltips[article]
                 .Split('\n')
                 .Select(line =>
@@ -626,7 +702,7 @@ new Setter(
                 })
                 .ToList();
 
-            // Open popup
+            // 5. Open popup
             var popup = new BuyerDetailsWindow(
                 article,
                 row.DateDisplay,
@@ -643,130 +719,213 @@ new Setter(
 
 
 
+        private void LoadSalesTillNow()
+{
+    try
+    {
+        // 1️⃣ Load all data
+        var raw = SalesService.GetArticleSalesTillNowRaw();
+        if (raw == null) return;
 
-        private void LoadSalesTillNow(DateTime? from = null, DateTime? to = null)
+        // 2️⃣ Apply Category filter
+        if (cmbSaleTillNowFilterCategory.SelectedItem != null &&
+            cmbSaleTillNowFilterCategory.SelectedItem.ToString() != "All")
+        {
+            string selectedCategory = cmbSaleTillNowFilterCategory.SelectedItem.ToString();
+
+            raw = raw.Where(x =>
+                _articleCategoryMap.ContainsKey(x.Article) &&
+                _articleCategoryMap[x.Article] == selectedCategory
+            ).ToList();
+        }
+
+        // 3️⃣ Apply YEAR filter
+        if (cmbYearFilter.SelectedItem != null &&
+            cmbYearFilter.SelectedItem.ToString() != "All")
+        {
+            int selectedYear = int.Parse(cmbYearFilter.SelectedItem.ToString());
+
+            raw = raw.Where(x =>
+            {
+                if (DateTime.TryParse(x.Date, out DateTime dt))
+                    return dt.Year == selectedYear;
+                return false;
+            }).ToList();
+        }
+
+        // 4️⃣ Apply MONTH filter
+        if (cmbMonthFilter.SelectedItem != null &&
+            ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString() != "All")
+        {
+            int selectedMonth =
+                DateTime.ParseExact(
+                    ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString(),
+                    "MMMM",
+                    CultureInfo.InvariantCulture
+                ).Month;
+
+            raw = raw.Where(x =>
+            {
+                if (DateTime.TryParse(x.Date, out DateTime dt))
+                    return dt.Month == selectedMonth;
+                return false;
+            }).ToList();
+        }
+
+        // 5️⃣ Build grouped totals
+        var articles = raw.Select(x => x.Article).Distinct().OrderBy(a => a).ToList();
+
+        var totals = articles.ToDictionary(
+            art => art,
+            art => raw.Where(x => x.Article == art).Sum(x => x.Qty)
+        );
+
+        // 6️⃣ Build grid
+        dgSalesTillNow.Columns.Clear();
+        dgSalesTillNow.Columns.Add(new DataGridTextColumn
+        {
+            Header = "Articles →",
+            Binding = new Binding("Key"),
+            Width = 150
+        });
+
+        foreach (var art in articles)
+        {
+            dgSalesTillNow.Columns.Add(new DataGridTextColumn
+            {
+                Header = art,
+                Binding = new Binding($"Value[{art}]"),
+                Width = 100
+            });
+        }
+
+        dgSalesTillNow.ItemsSource = new[]
+        {
+            new { Key = "Total →", Value = totals }
+        };
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show("Error: " + ex.Message);
+    }
+}
+
+        private void cmbYearFilter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            LoadSalesTillNow();
+        }
+
+        private void MonthFilter_Changed(object sender, SelectionChangedEventArgs e)
+        {
+            LoadSalesTillNow();
+        }
+
+        private void FilterCategory_ChangedSaleTillNow(object sender, SelectionChangedEventArgs e)
+        {
+            LoadSalesTillNow();
+        }
+
+
+        private void ViewSalesTillNowGraph_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // 1️⃣ Fetch raw rows (each sale with real date)
+                // ====================================================
+                // 1️⃣ REUSE FILTERING LOGIC (Exact copy from LoadSalesTillNow)
+                // ====================================================
+
                 var raw = SalesService.GetArticleSalesTillNowRaw();
+                if (raw == null || !raw.Any())
+                {
+                    MessageBox.Show("No data available.");
+                    return;
+                }
 
-                if (raw == null) return;
-
-                // 2️⃣ Category Filter
+                // Apply Category Filter
                 if (cmbSaleTillNowFilterCategory.SelectedItem != null &&
                     cmbSaleTillNowFilterCategory.SelectedItem.ToString() != "All")
                 {
                     string selectedCategory = cmbSaleTillNowFilterCategory.SelectedItem.ToString();
-
                     raw = raw.Where(x =>
                         _articleCategoryMap.ContainsKey(x.Article) &&
                         _articleCategoryMap[x.Article] == selectedCategory
                     ).ToList();
                 }
 
-                // 3️⃣ Date Range Filter
-                if (from.HasValue && to.HasValue)
+                // Apply YEAR Filter
+                if (cmbYearFilter.SelectedItem != null &&
+                    cmbYearFilter.SelectedItem.ToString() != "All")
                 {
+                    int selectedYear = int.Parse(cmbYearFilter.SelectedItem.ToString());
                     raw = raw.Where(x =>
                     {
-                        string[] formats = { "yyyy-MM-dd" };
-
-                        if (DateTime.TryParseExact(x.Date,
-                                                   formats,
-                                                   CultureInfo.InvariantCulture,
-                                                   DateTimeStyles.None,
-                                                   out DateTime dt))
-                        {
-                            return dt.Date >= from.Value.Date && dt.Date <= to.Value.Date;
-                        }
+                        if (DateTime.TryParse(x.Date, out DateTime dt))
+                            return dt.Year == selectedYear;
                         return false;
                     }).ToList();
                 }
 
-                // 4️⃣ Group AFTER FILTERING
-                var articles = raw.Select(x => x.Article).Distinct().OrderBy(a => a).ToList();
-
-                var totals = articles.ToDictionary(
-                    art => art,
-                    art => raw.Where(x => x.Article == art).Sum(x => x.Qty)
-                );
-
-                // 5️⃣ Build dynamic columns
-                dgSalesTillNow.Columns.Clear();
-
-                dgSalesTillNow.Columns.Add(new DataGridTextColumn
+                // Apply MONTH Filter
+                if (cmbMonthFilter.SelectedItem != null &&
+                    ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString() != "All")
                 {
-                    Header = "Articles →",
-                    Binding = new Binding("Key"),
-                    Width = 150
-                });
+                    int selectedMonth = DateTime.ParseExact(
+                        ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString(),
+                        "MMMM",
+                        CultureInfo.InvariantCulture
+                    ).Month;
 
-                foreach (var art in articles)
-                {
-                    dgSalesTillNow.Columns.Add(new DataGridTextColumn
+                    raw = raw.Where(x =>
                     {
-                        Header = art,
-                        Binding = new Binding($"Value[{art}]"),
-                        Width = 100
-                    });
+                        if (DateTime.TryParse(x.Date, out DateTime dt))
+                            return dt.Month == selectedMonth;
+                        return false;
+                    }).ToList();
                 }
 
-                // 6️⃣ Bind final grouped totals
-                dgSalesTillNow.ItemsSource = new[]
+                if (!raw.Any())
                 {
-            new { Key = "Total →", Value = totals }
-        };
+                    MessageBox.Show("No records found for the selected filters.");
+                    return;
+                }
+
+                // ====================================================
+                // 2️⃣ PREPARE DATA FOR GRAPH
+                // ====================================================
+
+                // Group by Article Name and Sum the Quantity
+                var graphData = raw
+                    .GroupBy(x => x.Article)
+                    .Select(g => new
+                    {
+                        Article = g.Key,
+                        TotalQty = g.Sum(x => x.Qty)
+                    })
+                    .Where(x => x.TotalQty > 0) // Hide items with 0 sales
+                    .ToDictionary(x => x.Article, x => (decimal)x.TotalQty);
+
+                // ====================================================
+                // 3️⃣ OPEN GRAPH WINDOW
+                // ====================================================
+
+                // We reuse your existing BuyerGraphWindow since it accepts a Dictionary
+                var graphWin = new BuyerGraphWindow(
+                    graphData,
+                    "Sales Analysis (Qty)", // Window Title
+                    "Articles",             // X-Axis Label
+                    true                    // isQuantity = true (Orange Color)
+                );
+
+                graphWin.Owner = Window.GetWindow(this);
+                graphWin.ShowDialog();
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error: " + ex.Message);
+                MessageBox.Show("Error generating graph: " + ex.Message);
             }
         }
 
-        private void cmbYearFilter_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (cmbYearFilter.SelectedItem == null) return;
 
-            string selected = cmbYearFilter.SelectedItem.ToString();
-
-            if (selected == "All")
-            {
-                LoadSalesTillNow();
-                return;
-            }
-
-            int year = int.Parse(selected);
-
-            var start = new DateTime(year, 1, 1);
-            var end = new DateTime(year, 12, 31);
-
-            LoadSalesTillNow(start, end);
-        }
-
-       
-
-       
-
-        private void MonthFilter_Changed(object sender, SelectionChangedEventArgs e)
-        {
-            if (cmbMonthFilter.SelectedItem == null) return;
-
-            string selected = ((ComboBoxItem)cmbMonthFilter.SelectedItem).Content.ToString();
-
-            if (selected == "All")
-            {
-                LoadSalesTillNow();
-                return;
-            }
-
-            int monthNumber = DateTime.ParseExact(selected, "MMMM", CultureInfo.InvariantCulture).Month;
-
-            var start = new DateTime(DateTime.Today.Year, monthNumber, 1);
-            var end = start.AddMonths(1).AddDays(-1);
-
-            LoadSalesTillNow(start, end);
-        }
 
 
         private void Filter_Click(object sender, RoutedEventArgs e)
@@ -819,10 +978,51 @@ new Setter(
             LoadArticleReportByRange(dpFrom.SelectedDate.Value, dpTo.SelectedDate.Value);
             FilterPanel.Visibility = Visibility.Collapsed;
         }
+        private void FilterReset_Click(object sender, RoutedEventArgs e)
+        {
+            cmbFilterCategory.SelectedIndex = 0;  // All
+            dpFrom.SelectedDate = null;
+            dpTo.SelectedDate = null;
+
+            _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
+            txtTitle.Text = _currentMonth.ToString("MMMM yyyy");
+            LoadArticleReport(_currentMonth);
+
+            FilterPanel.Visibility = Visibility.Collapsed;
+        }
 
         private void dgArticles_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
 
         }
+        private void ViewGraph_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Get Rows
+            var rows = dgArticles.ItemsSource as List<ArticleSaleRow>;
+            if (rows == null || !rows.Any()) { MessageBox.Show("No data"); return; }
+
+            // 2. Find Total Row
+            var totalRow = rows.FirstOrDefault(r => r.IsTotalRow);
+            if (totalRow == null) { MessageBox.Show("No totals found"); return; }
+
+            // 3. Prepare Data
+            var graphData = new Dictionary<string, decimal>();
+            foreach (var kvp in totalRow.ArticleValues)
+            {
+                // Parse the Qty string to decimal
+                if (decimal.TryParse(kvp.Value, out decimal qty) && qty > 0)
+                {
+                    graphData[kvp.Key] = qty;
+                }
+            }
+
+            if (graphData.Count == 0) { MessageBox.Show("Total quantity is zero."); return; }
+
+            var graphWin = new BuyerGraphWindow(graphData, $"Article Qty: {txtTitle.Text}", "Articles", true);
+
+            graphWin.Owner = Window.GetWindow(this);
+            graphWin.ShowDialog();
+        }
+
     }
 }

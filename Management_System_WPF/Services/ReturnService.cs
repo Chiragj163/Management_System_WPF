@@ -81,5 +81,58 @@ namespace Management_System_WPF.Services
             }
             return list;
         }
+        // 1. GET LIST
+        public static List<ReturnModel> GetDetailedReturns(int buyerId, int year, int month)
+        {
+            var list = new List<ReturnModel>();
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+            string ym = $"{year}-{month:D2}";
+
+            string sql = @"SELECT r.return_id, r.item_id, r.qty, i.item_name 
+                   FROM returns r
+                   JOIN items i ON r.item_id = i.item_id
+                   WHERE r.buyer_id = @b AND r.return_month = @ym";
+
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@b", buyerId);
+            cmd.Parameters.AddWithValue("@ym", ym);
+
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                list.Add(new ReturnModel
+                {
+                    ReturnId = Convert.ToInt32(reader["return_id"]),
+                    ItemId = Convert.ToInt32(reader["item_id"]),
+                    ItemName = reader["item_name"].ToString(),
+                    Qty = Convert.ToInt32(reader["qty"])
+                });
+            }
+            return list;
+        }
+
+        // 2. UPDATE
+        public static void UpdateReturn(int returnId, int newItemId, int newQty)
+        {
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+            string sql = "UPDATE returns SET item_id = @iid, qty = @q WHERE return_id = @rid";
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@iid", newItemId);
+            cmd.Parameters.AddWithValue("@q", newQty);
+            cmd.Parameters.AddWithValue("@rid", returnId);
+            cmd.ExecuteNonQuery();
+        }
+
+        // 3. DELETE
+        public static void DeleteReturn(int returnId)
+        {
+            using var conn = new SQLiteConnection(connectionString);
+            conn.Open();
+            using var cmd = new SQLiteCommand("DELETE FROM returns WHERE return_id = @id", conn);
+            cmd.Parameters.AddWithValue("@id", returnId);
+            cmd.ExecuteNonQuery();
+        }
     }
 }

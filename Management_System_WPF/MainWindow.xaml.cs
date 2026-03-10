@@ -8,10 +8,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Media.Media3D;
 using System.Windows.Navigation;
 using System.Windows.Shell;
 using System.Windows.Threading;
+using System.IO;
 
 namespace Management_System_WPF
 {
@@ -20,6 +22,17 @@ namespace Management_System_WPF
         public MainWindow()
         {
             InitializeComponent();
+            string savedPath = Properties.Settings.Default.BackgroundImagePath;
+
+            if (!string.IsNullOrWhiteSpace(savedPath) && File.Exists(savedPath))
+            {
+                RootGrid.Background = new ImageBrush
+                {
+                    ImageSource = new BitmapImage(new Uri(savedPath)),
+                    Stretch = Stretch.UniformToFill
+                };
+            }
+
             Height = SystemParameters.PrimaryScreenHeight;
             Width = SystemParameters.PrimaryScreenWidth;
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -186,7 +199,72 @@ namespace Management_System_WPF
             Topmost = false;   // allows taskbar
         }
 
+        private void ChangeBackground_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            dlg.Filter = "Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg";
 
+            if (dlg.ShowDialog() == true)
+            {
+                string path = dlg.FileName;
 
+                // Change background
+                RootGrid.Background = new ImageBrush
+                {
+                    ImageSource = new BitmapImage(new Uri(path)),
+                    Stretch = Stretch.UniformToFill
+                };
+                Properties.Settings.Default.BackgroundImagePath = path;
+                Properties.Settings.Default.Save();
+
+            }
+        }
+
+        private void Logout_Click(object sender, RoutedEventArgs e)
+        {
+            // Hide current window
+            this.Hide();
+
+            // Show Login Window again
+            LoginWindow login = new LoginWindow();
+            if (login.ShowDialog() == true)
+            {
+                // If they log in again, show this window
+                this.Show();
+                // Optional: Reset layout to home
+                RestoreHomeLayout();
+            }
+            else
+            {
+                // If they close the login window, kill the app
+                Application.Current.Shutdown();
+            }
+        }
+        // Add this inside your MainWindow class
+        private void Reset_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Create the Change Password Window
+            // Ensure you have 'using Management_System_WPF.Views;' at the top
+            ChangePasswordWindow resetWin = new ChangePasswordWindow();
+
+            // 2. Set the owner so it centers over the Main Window
+            resetWin.Owner = this;
+
+            // 3. Show the window
+            resetWin.ShowDialog();
+        }
+        private void Settings_Click(object sender, RoutedEventArgs e)
+        {
+            Button btn = sender as Button;
+            if (btn != null && btn.ContextMenu != null)
+            {
+                // 1. Position the menu nicely under the button
+                btn.ContextMenu.PlacementTarget = btn;
+                btn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+
+                // 2. Open it programmatically
+                btn.ContextMenu.IsOpen = true;
+            }
+        }
     }
 }

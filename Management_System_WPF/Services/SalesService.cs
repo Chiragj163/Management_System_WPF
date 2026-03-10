@@ -1,10 +1,13 @@
 ﻿using Management_System_WPF.Models;
+using PdfSharp.Quality;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
 using System.Linq;
 using System.Windows;
+
+
 
 
 namespace Management_System_WPF.Services
@@ -1020,6 +1023,91 @@ ORDER BY s.sale_date;
 
             var result = cmd.ExecuteScalar();
             return result == null ? 0 : Convert.ToDecimal(result);
+        }
+        public static List<Item> GetItemsBoughtByBuyer(int buyerId)
+        {
+            var items = new List<Item>();
+
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+
+                string query = @"
+            SELECT DISTINCT 
+                i.item_id,
+                i.item_name
+            FROM sales s
+            JOIN sale_items si ON si.sale_id = s.sale_id
+            JOIN items i ON i.item_id = si.item_id
+            WHERE s.buyer_id = @buyerId
+            ORDER BY i.item_name;
+        ";
+
+                using (var cmd = new SQLiteCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@buyerId", buyerId);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            items.Add(new Item
+                            {
+                                Id = Convert.ToInt32(reader["item_id"]),
+                                Name = reader["item_name"].ToString()
+                            });
+                        }
+                    }
+                }
+            }
+
+            return items;
+        }
+
+        public static void UpdatePastSalePrices(int buyerId, int itemId, decimal newPrice)
+        {
+            using var conn = GetConnection();
+            conn.Open();
+            using var tx = conn.BeginTransaction();
+
+            try
+            {
+                // 1. Update the price for the specific item in all past sales for this buyer
+                string updateItemsQuery = @"
+            UPDATE sale_items 
+            SET price = @newPrice
+            WHERE item_id = @itemId 
+            AND sale_id IN (SELECT sale_id FROM sales WHERE buyer_id = @buyerId)";
+
+                using var cmd1 = new SQLiteCommand(updateItemsQuery, conn, tx);
+                cmd1.Parameters.AddWithValue("@newPrice", newPrice);
+                cmd1.Parameters.AddWithValue("@itemId", itemId);
+                cmd1.Parameters.AddWithValue("@buyerId", buyerId);
+                cmd1.ExecuteNonQuery();
+
+                // 2. Update the total_amount in the sales header table so "All Sales" lists stay correct
+                string updateHeaderQuery = @"
+            UPDATE sales 
+            SET total_amount = (
+                SELECT SUM(qty * price) 
+                FROM sale_items 
+                WHERE sale_items.sale_id = sales.sale_id
+            )
+            WHERE buyer_id = @buyerId 
+            AND sale_id IN (SELECT DISTINCT sale_id FROM sale_items WHERE item_id = @itemId)";
+
+                using var cmd2 = new SQLiteCommand(updateHeaderQuery, conn, tx);
+                cmd2.Parameters.AddWithValue("@buyerId", buyerId);
+                cmd2.Parameters.AddWithValue("@itemId", itemId);
+                cmd2.ExecuteNonQuery();
+
+                tx.Commit();
+            }
+            catch
+            {
+                tx.Rollback();
+                throw;
+            }
         }
 
 

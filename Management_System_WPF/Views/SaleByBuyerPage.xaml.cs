@@ -1,4 +1,4 @@
-﻿using Management_System.Models;
+﻿
 using Management_System_WPF.Helpers;
 using Management_System_WPF.Models;
 using Management_System_WPF.Services;
@@ -13,6 +13,8 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using System.Windows.Media;
 
 
 namespace Management_System_WPF.Views
@@ -24,7 +26,7 @@ namespace Management_System_WPF.Views
         private bool _isRangeFilter = false;
         private Dictionary<string, string> _articleCategoryMap = new();
         private DateTime _currentMonth;
-
+        private List<SaleRecord> _cachedRawSales = new();
         public SaleByBuyerPage()
         {
             InitializeComponent();
@@ -80,7 +82,7 @@ namespace Management_System_WPF.Views
         {
             if (!sales.Any())
             {
-                MessageBox.Show("No records found");
+               // MessageBox.Show("No records found");
                 dgBuyerSales.ItemsSource = null;
                 dgBuyerSales.Columns.Clear();
                 txtTitle.Text = title;
@@ -124,19 +126,39 @@ namespace Management_System_WPF.Views
                 }
 
                 row.Total = rowTotal > 0 ? rowTotal : null;
-                rows.Add(row);
+                if (rowTotal > 0)
+                {
+                    row.Total = rowTotal;
+                    rows.Add(row);
+                }
+
             }
 
-            // TOTAL ROW
-            var totalRow = new SaleByBuyerRow { Date = DateTime.MinValue };
-            decimal grandTotal = 0m;
+            // ==========================================
+            // ✅ CALCULATE TOTALS AND SORT BUYERS
+            // ==========================================
 
+            // 1. Calculate the total for each buyer
+            var buyerTotals = new Dictionary<string, decimal>();
             foreach (var buyer in buyers)
             {
                 decimal colTotal = rows
                     .Where(r => r.BuyerValues.ContainsKey(buyer) && r.BuyerValues[buyer].HasValue)
                     .Sum(r => r.BuyerValues[buyer]!.Value);
 
+                buyerTotals[buyer] = colTotal;
+            }
+
+            // 2. Sort the buyers list based on their totals (Highest to Lowest)
+            var sortedBuyers = buyers.OrderByDescending(b => buyerTotals[b]).ToList();
+
+            // 3. Build the Total Row using the calculated totals
+            var totalRow = new SaleByBuyerRow { Date = DateTime.MinValue };
+            decimal grandTotal = 0m;
+
+            foreach (var buyer in sortedBuyers)
+            {
+                decimal colTotal = buyerTotals[buyer];
                 totalRow.BuyerValues[buyer] = colTotal > 0 ? colTotal : null;
                 grandTotal += colTotal;
             }
@@ -144,9 +166,15 @@ namespace Management_System_WPF.Views
             totalRow.Total = grandTotal;
             rows.Add(totalRow);
 
+            // ==========================================
+            // BIND TO GRID
+            // ==========================================
             dgBuyerSales.ItemsSource = null;
             dgBuyerSales.Columns.Clear();
-            BuildDynamicColumns(buyers);
+
+            // 4. Pass the SORTED buyers to build the columns in the correct visual order
+            BuildDynamicColumns(sortedBuyers);
+
             dgBuyerSales.ItemsSource = rows;
         }
 
@@ -161,6 +189,7 @@ namespace Management_System_WPF.Views
                 .Where(s => s.SaleDate.Month == month.Month &&
                             s.SaleDate.Year == month.Year)
                 .ToList();
+            _cachedRawSales = ApplyCategoryFilter(sales);
             sales = ApplyCategoryFilter(sales);
             BuildBuyerReport(sales, month.ToString("MMMM yyyy"));
             UpdateMonthButtons();
@@ -224,54 +253,152 @@ namespace Management_System_WPF.Views
                 ? Visibility.Collapsed
                 : Visibility.Visible;
         }
+        private void ResetFilters_Click(object sender, RoutedEventArgs e)
+        {
+            // 1️⃣ Reset flags
+            _isRangeFilter = false;
+
+            // 2️⃣ Reset month to current
+            var now = DateTime.Now;
+            _currentMonth = new DateTime(now.Year, now.Month, 1);
+
+            // 3️⃣ Reset category
+            cmbCategory.SelectedIndex = 0;
+
+            // 4️⃣ Clear date pickers
+            dpFrom.SelectedDate = null;
+            dpTo.SelectedDate = null;
+
+            // 5️⃣ Load default month report
+            LoadReport(_currentMonth);
+
+            // 6️⃣ Hide panel
+            FilterPanel.Visibility = Visibility.Collapsed;
+
+            // 7️⃣ Enable month navigation
+            btnPrevMonth.IsEnabled = true;
+            btnNextMonth.IsEnabled = true;
+            btnPrevMonth.Opacity = 1;
+            btnNextMonth.Opacity = 1;
+        }
 
 
         // BUILD TABLE COLUMNS
 
+        // 1. Paste this method inside SaleByBuyerPage class
         private void BuildDynamicColumns(List<string> buyers)
         {
             dgBuyerSales.Columns.Clear();
 
             // ================= DATE COLUMN =================
-            dgBuyerSales.Columns.Add(new DataGridTextColumn
+            var dateCol = new DataGridTextColumn
             {
                 Header = "Dates",
-                Binding = new Binding("Date")
-                {
-                    Converter = new DateOrTotalConverter()
-                },
+                Binding = new Binding("Date") { Converter = new DateOrTotalConverter() },
                 Width = 150,
                 IsReadOnly = true
-            });
+            };
 
-            // ================= BUYER COLUMNS =================
+            // ✅ Fix 1: Safely find the style. If missing, it won't crash.
+            dateCol.CellStyle = dgBuyerSales.TryFindResource("StandardCellStyle") as Style;
+
+            dgBuyerSales.Columns.Add(dateCol);
+            // --- Buyer Columns (Dynamic) ---
             foreach (var buyer in buyers)
             {
-                dgBuyerSales.Columns.Add(new DataGridTextColumn
+                // Define the column variable properly
+                var col = new DataGridTextColumn
                 {
                     Header = buyer,
-                    Binding = new Binding($"BuyerValues[{buyer}]")
-                    {
-                        StringFormat = "0.##"
-                    },
+                    Binding = new Binding($"BuyerValues[{buyer}]") { StringFormat = "0.##" },
                     Width = 120,
                     IsReadOnly = true
-                });
+                };
+
+                // ✅ USE THE STYLE FROM XAML (ClickableCellStyle)
+                // This ensures the EventSetter (Click) works AND the design stays beautiful
+                col.CellStyle = dgBuyerSales.Resources["ClickableCellStyle"] as Style;
+
+                dgBuyerSales.Columns.Add(col);
             }
 
-            // ================= TOTAL COLUMN (ONLY ONCE) =================
+            // --- Total Column ---
             dgBuyerSales.Columns.Add(new DataGridTextColumn
             {
                 Header = "Total",
-                Binding = new Binding("Total")
-                {
-                    StringFormat = "0.##"
-                },
+                Binding = new Binding("Total") { StringFormat = "0.##" },
                 Width = 140,
-                IsReadOnly = true
+                IsReadOnly = true,
+               CellStyle = new Style(typeof(DataGridCell))
+        {
+            Setters =
+            {
+                new Setter(DataGridCell.BackgroundProperty, Brushes.LightGreen),
+                new Setter(DataGridCell.FontWeightProperty, FontWeights.Bold),
+                new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center),
+                new Setter(DataGridCell.BorderThicknessProperty, new Thickness(1)),
+                new Setter(DataGridCell.BorderBrushProperty, Brushes.Gray),
+                new Setter(DataGridCell.MarginProperty, new Thickness(1.5))
+            }
+        }
             });
         }
 
+        // 2. Helper Method to get data
+        private List<SaleDetailItem> GetDetailsForCell(DataGridCell cell)
+        {
+            if (cell.DataContext is not SaleByBuyerRow rowData) return null;
+
+            // Use 'as' safely
+            var col = cell.Column as DataGridTextColumn;
+            if (col == null) return null;
+
+            string buyerName = col.Header.ToString();
+
+            if (buyerName == "Dates" || buyerName == "Total") return null;
+
+            // Filter using cached raw data
+            var relevantSales = _cachedRawSales
+                .Where(s =>
+                    s.SaleDate.Date == rowData.Date &&
+                    (s.BuyerName ?? "").Trim().Equals(buyerName.Trim(), StringComparison.OrdinalIgnoreCase)
+                )
+                .Select(s => new SaleDetailItem
+                {
+                    Article = s.ItemName,
+                    Qty = s.Qty,
+                    Price = s.Price
+                })
+                .ToList();
+
+            return relevantSales;
+        }
+
+        // 3. Click Event Handler
+        private void OnCellDoubleClicked(object sender, MouseButtonEventArgs e)
+        {
+            var cell = sender as DataGridCell;
+            if (cell == null) return;
+
+            List<SaleDetailItem> details = GetDetailsForCell(cell);
+
+            if (details != null && details.Count > 0)
+            {
+                // Get Title Info safely
+                string buyerName = cell.Column.Header.ToString();
+                string dateStr = "";
+
+                if (cell.DataContext is SaleByBuyerRow row)
+                {
+                    dateStr = row.Date == DateTime.MinValue ? "Total" : row.Date.ToString("dd MMM yyyy");
+                }
+
+                // Open the ItemDetailsWindow
+                var popup = new ItemDetailsWindow(buyerName, dateStr, details);
+                popup.Owner = Window.GetWindow(this);
+                popup.ShowDialog();
+            }
+        }
 
         public class DateOrTotalConverter : IValueConverter
         {
@@ -525,7 +652,52 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
             btnPrevMonth.Opacity = btnPrevMonth.IsEnabled ? 1.0 : 0.4;
             btnNextMonth.Opacity = btnNextMonth.IsEnabled ? 1.0 : 0.4;
         }
+        private void ViewGraph_Click(object sender, RoutedEventArgs e)
+        {
+            // 1. Get the current data from the DataGrid
+            var rows = dgBuyerSales.ItemsSource as List<SaleByBuyerRow>;
 
+            if (rows == null || !rows.Any())
+            {
+                MessageBox.Show("No data available to graph.");
+                return;
+            }
+
+            // 2. Find the "Grand Total" row (It has Date = DateTime.MinValue)
+            var totalRow = rows.FirstOrDefault(r => r.Date == DateTime.MinValue);
+
+            if (totalRow == null || totalRow.BuyerValues == null || !totalRow.BuyerValues.Any())
+            {
+                MessageBox.Show("No totals found.");
+                return;
+            }
+
+            // 3. Convert to Dictionary<string, decimal> for the window
+            // Only take buyers with > 0 sales
+            var graphData = new Dictionary<string, decimal>();
+
+            foreach (var kvp in totalRow.BuyerValues)
+            {
+                if (kvp.Value.HasValue && kvp.Value.Value > 0)
+                {
+                    graphData[kvp.Key] = kvp.Value.Value;
+                }
+            }
+
+            if (graphData.Count == 0)
+            {
+                MessageBox.Show("Total sales are zero.");
+                return;
+            }
+
+            // 4. Open the Graph Window
+           
+            var graphWin = new BuyerGraphWindow(graphData, $"Sales Analysis: {txtTitle.Text}", "Buyers", false);
+
+            graphWin.Owner = Window.GetWindow(this);
+            graphWin.ShowDialog();
+        }
 
     }
+   
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Management_System_WPF.Views
 {
@@ -17,6 +18,14 @@ namespace Management_System_WPF.Views
                 Qty = x.Qty,
                 BuyerName = x.Buyer
             });
+            this.PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter || e.Key == Key.Escape)
+                {
+                    this.Close();
+                    e.Handled = true; // Marks the key press as handled
+                }
+            };
         }
     }
 }

@@ -80,17 +80,7 @@ namespace Management_System_WPF.Views
             menu.IsOpen = true;
         }
 
-        // ------------------- EDIT BUYER -------------------
-        private void EditBuyer(Buyer buyer)
-        {
-            if (buyer == null)
-                return;
 
-            selectedBuyer = buyer;
-
-            txtBuyerName.Text = buyer.Name;
-            btnSave.Content = "Update Buyer";
-        }
 
         // ------------------- DELETE BUYER -------------------
         private void DeleteBuyer(Buyer buyer)
@@ -128,6 +118,7 @@ namespace Management_System_WPF.Views
                 {
                     Name = name
                 });
+                MessageBox.Show("Buyer Name Added Successfully!");
             }
             else
             {
@@ -163,24 +154,35 @@ namespace Management_System_WPF.Views
         }
         private void txtSearchBuyer_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Get the default view of the DataGrid data
+            // 1. Get the view
             var view = CollectionViewSource.GetDefaultView(dgBuyers.ItemsSource);
 
-            if (view != null)
+            // 2. Guard clause: If the view is null, stop immediately
+            if (view == null) return;
+
+            // 3. Optimize: Grab the search text once to avoid accessing the UI property repeatedly
+            string searchText = txtSearchBuyer.Text;
+
+            view.Filter = item =>
             {
-                // Apply Filter
-                view.Filter = item =>
+                // Show all if search is empty
+                if (string.IsNullOrEmpty(searchText))
+                    return true;
+
+                // Safe cast
+                if (item is Buyer buyer)
                 {
-                    if (string.IsNullOrEmpty(txtSearchBuyer.Text))
-                        return true; // Show all if search is empty
+                    // CRITICAL FIX: Check if buyer.Name is null before calling IndexOf
+                    return !string.IsNullOrEmpty(buyer.Name) &&
+                           buyer.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                }
 
-                    // Assuming your Buyer model has a 'Name' property
-                    var buyer = item as Buyer; // Replace 'Buyer' with your actual class name
+                return false; // Hide items that aren't Buyers
+            };
 
-                    return buyer != null &&
-                           buyer.Name.IndexOf(txtSearchBuyer.Text, StringComparison.OrdinalIgnoreCase) >= 0;
-                };
-            }
+            // Optional: Refresh isn't usually needed as setting Filter triggers it, 
+            // but sometimes required if the view state gets stale.
+            // view.Refresh(); 
         }
     }
 }

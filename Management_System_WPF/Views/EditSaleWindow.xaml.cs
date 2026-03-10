@@ -12,7 +12,7 @@ namespace Management_System_WPF.Views
         public EditSaleWindow(SaleRecord sale)
         {
             InitializeComponent();
-
+            this.MouseLeftButtonDown += (s, e) => this.DragMove();
             _sale = sale;
 
             txtBuyer.Text = sale.BuyerName;

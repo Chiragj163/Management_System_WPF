@@ -14,7 +14,7 @@
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
         <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
-        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
         <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
 
         <Style TargetType="{x:Type Control}" x:Key="InputStyle">
@@ -26,7 +26,21 @@
             <Setter Property="BorderBrush" Value="#CFD8DC"/>
             <Setter Property="BorderThickness" Value="1"/>
         </Style>
+        <Style TargetType="TextBox" x:Key="RoundedInputStyle" BasedOn="{StaticResource InputStyle}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="10">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="5,0"/>
 
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="Button" x:Key="PrimaryButton">
             <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
@@ -37,7 +51,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
@@ -129,13 +143,13 @@ HorizontalAlignment="Right"
                     <StackPanel Grid.Column="0">
 
 
-                        <TextBlock Text="Buyer Name" FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtBuyerName"  Height="30" Background="White"  ToolTip="Add Buyer Name" Style="{StaticResource InputStyle}"/>
+                        <TextBlock Text="Buyer Name" FontWeight="Bold"  FontSize="16" Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
+                        <TextBox x:Name="txtBuyerName"   Height="30" Background="White"   ToolTip="Add Buyer Name" Style="{StaticResource RoundedInputStyle}" Text=""/>
 
                         <Button x:Name="btnSave"
                                 Content="Save Buyer"
                                 Style="{StaticResource PrimaryButton}"
-                                Height="45"
+                                Height="45"  IsDefault="True"
                                 Margin="0,10,0,0"
                                 Click="SaveBuyer_Click"/>
 
@@ -170,31 +184,55 @@ HorizontalAlignment="Right"
                 Width="200"
                 BorderBrush="#B2DFDB"
                 BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                            </Grid.ColumnDefinitions>
 
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                </Grid.ColumnDefinitions>
+                                            <!-- 🔍 Icon -->
+                                            <Path Data="M15.5,14L14.71,13.21C15.5,12 16,10.5 16,9C16,5.13 12.87,2 9,2C5.13,2 2,5.13 2,9C2,12.87 5.13,16 9,16C10.5,16 12,15.5 13.21,14.71L14,15.5V16L19,21L21,19L16,14M9,14C6.24,14 4,11.76 4,9C4,6.24 6.24,4 9,4C11.76,4 14,6.24 14,9C14,11.76 11.76,14 9,14Z"
+          Fill="{StaticResource TextLight}"
+          Width="16" Height="16"
+          Stretch="Uniform"
+          Margin="0,0,8,0"/>
 
-                                                <Path Data="M15.5,14L14.71,13.21C15.5,12 16,10.5 16,9C16,5.13 12.87,2 9,2C5.13,2 2,5.13 2,9C2,12.87 5.13,16 9,16C10.5,16 12,15.5 13.21,14.71L14,15.5V16L19,21L21,19L16,14M9,14C6.24,14 4,11.76 4,9C4,6.24 6.24,4 9,4C11.76,4 14,6.24 14,9C14,11.76 11.76,14 9,14Z" 
-                      Fill="{StaticResource TextLight}"
-                      Width="16" Height="16"
-                      Stretch="Uniform"
-                      Margin="0,0,8,0"/>
+                                            <!-- TextBox -->
+                                            <Grid Grid.Column="1">
+                                               
+                                                    <!-- TextBox -->
+                                                    <TextBox x:Name="txtSearchBuyer"
+             BorderThickness="0"
+             Background="White"
+             VerticalContentAlignment="Center"
+             FontSize="14"
+             Foreground="{StaticResource TextDark}"
+             CaretBrush="Black"
+             ToolTip="Search Name"
+             TextChanged="txtSearchBuyer_TextChanged"/>
 
-                                                <TextBox x:Name="txtSearchBuyer"
-                         Grid.Column="1"
-                         BorderThickness="0"
-                                               ToolTip="Search Name"          
-                         Background="Transparent"
-                         VerticalContentAlignment="Center"
-                         FontSize="14"
-                         Foreground="{StaticResource TextDark}"
-                         Tag="Search..."
-                         TextChanged="txtSearchBuyer_TextChanged"/>
+                                                    <!-- Placeholder -->
+                                                    <TextBlock Text="Search..."
+               Margin="6,0,0,0"
+               VerticalAlignment="Center"
+               Foreground="{StaticResource TextLight}"
+               IsHitTestVisible="False">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Text, ElementName=txtSearchBuyer}" Value="">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+
                                             </Grid>
-                                        </Border>
+
+                                    </Border>
                                     </Grid>
                                
                             </Border>

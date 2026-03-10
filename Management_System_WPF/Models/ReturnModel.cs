@@ -6,14 +6,11 @@ using System.Threading.Tasks;
 
 namespace Management_System_WPF.Models
 {
-    public class SpecialPriceVM
+    public class ReturnModel
     {
+        public int ReturnId { get; set; }
         public int ItemId { get; set; }
         public string ItemName { get; set; }
-        public decimal OriginalPrice { get; set; }
-        public decimal? SpecialPrice { get; set; }
-        public decimal DisplayPrice => SpecialPrice ?? OriginalPrice;
-
-
+        public int Qty { get; set; }
     }
 }

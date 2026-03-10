@@ -12,8 +12,8 @@
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
-        <SolidColorBrush x:Key="TextDark" Color="#37474F"/>
-        <SolidColorBrush x:Key="TextLight" Color="#78909C"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
+        <SolidColorBrush x:Key="TextLight" Color="#454545"/>
 
         <Style TargetType="Button" x:Key="CloseButtonStyle">
             <Setter Property="Background" Value="Transparent"/>

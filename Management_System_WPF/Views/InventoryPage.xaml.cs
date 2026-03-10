@@ -23,7 +23,7 @@ namespace Management_System_WPF.Views
 
         private void LoadCategories()
         {
-            var categories = new List<string> { "Double Station", "Vertical", "Rotary" };
+            var categories = new List<string> { "Double Station", "Vertical", "Rotary" ,"NEW" };
 
             // Input ComboBox
             cmbCategory.ItemsSource = categories;
@@ -37,11 +37,11 @@ namespace Management_System_WPF.Views
 
         private void LoadItems()
         {
-            _allItems = ItemsService.GetAllItems();
-            dgItems.ItemsSource = _allItems;
+            _allItems = ItemsService  .GetAllItems() .OrderBy(i => i.Name, StringComparer.OrdinalIgnoreCase) .ToList();
 
-            // Apply filtering immediately after loading (in case inputs are pre-filled)
+            dgItems.ItemsSource = _allItems;
             ApplyFilters();
+
         }
 
         // ============================================
@@ -124,11 +124,27 @@ namespace Management_System_WPF.Views
                     MessageBox.Show("An article with this name already exists!", "Duplicate Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
+                decimal oldPrice = selectedItem.Price;
 
-                selectedItem.Name = itemName;
+                if (oldPrice != price)
+                {
+                    ItemPriceHistoryService.AddHistory(new ItemPriceHistory
+                    {
+                        ItemId = selectedItem.Id,
+                        OldPrice = oldPrice,
+                        NewPrice = price,
+                        ChangedOn = DateTime.Now
+                    });
+                }
+
                 selectedItem.Price = price;
                 selectedItem.Category = category;
+                selectedItem.Name = itemName;
+
                 ItemsService.UpdateItem(selectedItem);
+
+                
+               
                 MessageBox.Show("Item Updated!");
                 selectedItem = null;
                 btnSave.Content = "Save Article";
@@ -144,7 +160,7 @@ namespace Management_System_WPF.Views
 
                 var item = new Item { Name = itemName, Price = price, Category = category };
                 ItemsService.AddItem(item);
-                MessageBox.Show("Item Added!");
+                MessageBox.Show("Item Added Successfully!");
             }
 
             // Reload and Re-apply filters
@@ -158,6 +174,8 @@ namespace Management_System_WPF.Views
         private void EditItem(Item item)
         {
             if (item == null) return;
+
+            // DIRECTLY ENTER EDIT MODE WITHOUT PASSWORD
             selectedItem = item;
             txtItemName.Text = item.Name;
             txtItemPrice.Text = item.Price.ToString();
@@ -165,42 +183,69 @@ namespace Management_System_WPF.Views
             btnSave.Content = "Update Article";
         }
 
-        private void EditItem_Click(object sender, RoutedEventArgs e)
-        {
-            var item = (sender as Button).DataContext as Item;
-            if (item != null) EditItem(item);
-        }
+
 
         private void DeleteItem(Item item)
         {
             if (item == null) return;
             if (MessageBox.Show("Delete this article?", "Confirm", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
+                
                 ItemsService.DeleteItem(item.Id);
 
-                // Refresh list and keep filters active
+               
                 _allItems = ItemsService.GetAllItems();
                 dgItems.ItemsSource = _allItems;
                 ApplyFilters();
+
+                if (selectedItem == item)
+                    ClearInputs();
             }
         }
-
+        private void ClearInputs()
+        {
+            txtItemName.Text = "";
+            txtItemPrice.Text = "";
+            cmbCategory.SelectedIndex = -1;
+            selectedItem = null;
+            btnSave.Content = "Add Article"; // Reset button text
+        }
         private void Options_Click(object sender, RoutedEventArgs e)
         {
             Button button = sender as Button;
             Item item = button.DataContext as Item;
+            if (item == null) return;
             ContextMenu menu = new ContextMenu();
 
             MenuItem edit = new MenuItem { Header = "Edit Article ✏" };
             edit.Click += (s, ev) => EditItem(item);
 
+            MenuItem history = new MenuItem { Header = "View Price History 📊" };
+            history.Click += (s, ev) => ViewPriceHistory(item); // ✅
+
             MenuItem delete = new MenuItem { Header = "Delete Article ❌" };
             delete.Click += (s, ev) => DeleteItem(item);
 
             menu.Items.Add(edit);
+            menu.Items.Add(history);
             menu.Items.Add(delete);
             menu.IsOpen = true;
         }
+        private void ViewPriceHistory(Item item)
+        {
+            var history = ItemPriceHistoryService.GetHistory(item.Id);
+
+            if (history == null || history.Count == 0)
+            {
+                MessageBox.Show("No price history found.");
+                return;
+            }
+
+            var window = new ItemPriceHistoryWindow(history);
+            window.Owner = Window.GetWindow(this);
+            window.ShowDialog();
+        }
+
 
         private void ExitInventoryPage_Click(object sender, RoutedEventArgs e)
         {
@@ -224,6 +269,7 @@ namespace Management_System_WPF.Views
                 txtItemName.SelectAll();
             }), System.Windows.Threading.DispatcherPriority.Input);
         }
+       
 
     }
 }

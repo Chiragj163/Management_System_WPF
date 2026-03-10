@@ -22,5 +22,41 @@ namespace Management_System_WPF.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string BackgroundImagePath {
+            get {
+                return ((string)(this["BackgroundImagePath"]));
+            }
+            set {
+                this["BackgroundImagePath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("admin")]
+        public string AppUsername {
+            get {
+                return ((string)(this["AppUsername"]));
+            }
+            set {
+                this["AppUsername"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1234")]
+        public string AppPassword {
+            get {
+                return ((string)(this["AppPassword"]));
+            }
+            set {
+                this["AppPassword"] = value;
+            }
+        }
     }
 }

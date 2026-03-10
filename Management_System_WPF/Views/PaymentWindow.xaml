@@ -1,24 +1,268 @@
 ﻿<Window x:Class="Management_System_WPF.Views.PaymentWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Record Payment" Height="200" Width="320"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" WindowStyle="None"
-        Background="Transparent" AllowsTransparency="True">
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Record Payment" 
+        Height="600" Width="400"
+        WindowStartupLocation="CenterScreen" 
+        ResizeMode="NoResize" 
+        WindowStyle="None"
+        Background="Transparent" 
+        AllowsTransparency="True">
 
-    <Border Background="White" CornerRadius="10" BorderBrush="#009688" BorderThickness="2" Margin="10">
+    <Window.Resources>
+        <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="SecondaryBg" Color="#F7F9FA"/>
+        <SolidColorBrush x:Key="TextDark" Color="Black"/>
+        <SolidColorBrush x:Key="TextLight" Color="#454545"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#E0E0E0"/>
+
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource PrimaryHover}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="Button" x:Key="SecondaryButton">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="10">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F5F5F5"/>
+                    <Setter Property="Foreground" Value="{StaticResource TextDark}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="RowHeaderWidth" Value="0"/>
+            <Setter Property="GridLinesVisibility" Value="Horizontal"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#F0F0F0"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="CanUserAddRows" Value="False"/>
+            <Setter Property="CanUserResizeColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+        </Style>
+
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="{StaticResource TextLight}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Padding="{TemplateBinding Padding}" Background="Transparent">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Foreground" Value="Black"/>
+                    <Setter Property="Background" Value="{StaticResource SecondaryBg}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Border Background="White" CornerRadius="15" Margin="15">
         <Border.Effect>
-            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3"/>
+            <DropShadowEffect BlurRadius="25" ShadowDepth="5" Opacity="0.3" Color="#202020"/>
         </Border.Effect>
-        <StackPanel Margin="20">
-            <TextBlock Text="Enter Payment Amount" FontWeight="Bold" FontSize="18" Foreground="#009688" Margin="0,0,0,15"/>
 
-            <TextBox x:Name="txtAmount" Height="40" FontSize="18" VerticalContentAlignment="Center" 
-                     Padding="5" BorderBrush="#CFD8DC" BorderThickness="1"/>
+        <Grid Margin="25">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-                <Button Content="Cancel" Click="Cancel_Click" Width="80" Height="35" Background="White" BorderBrush="#CFD8DC" BorderThickness="1" Margin="0,0,10,0"/>
-                <Button Content="Save" Click="Save_Click" Width="80" Height="35" Background="#009688" Foreground="White" FontWeight="Bold" BorderThickness="0"/>
+            <Grid Grid.Row="0" Margin="0,0,0,15">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource SecondaryBg}" Width="40" Height="40" CornerRadius="20" Margin="0,0,15,0">
+                        <Path Data="M21,18V19A2,2 0 0,1 19,21H5C3.89,21 3,20.1 3,19V5A2,2 0 0,1 5,3H19A2,2 0 0,1 21,5V6H12C10.89,6 10,6.9 10,8V16A2,2 0 0,0 12,18M12,16H22V8H12M16,13.5A1.5,1.5 0 0,1 14.5,12A1.5,1.5 0 0,1 16,10.5A1.5,1.5 0 0,1 17.5,12A1.5,1.5 0 0,1 16,13.5Z" 
+                              Fill="{StaticResource PrimaryColor}" 
+                              Width="20" Height="20" Stretch="Uniform"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Record Payment" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
+                        <TextBlock Text="Add payment details" FontSize="12" Foreground="{StaticResource TextLight}"/>
+                    </StackPanel>
+                </StackPanel>
+                <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top"
+                        FontSize="16" Foreground="{StaticResource TextLight}"
+                        Background="Transparent" BorderThickness="0"
+                        Cursor="Hand" IsCancel="True" Click="Cancel_Click"/>
+            </Grid>
+
+            <Separator Grid.Row="0" VerticalAlignment="Bottom" Background="#EEE" Margin="0,10,0,0"/>
+
+            <StackPanel Grid.Row="1" Margin="0,10,0,0">
+                <TextBlock Text="Enter Amount" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,8"/>
+                <Border Background="White" BorderBrush="{StaticResource PrimaryColor}" BorderThickness="1" CornerRadius="10" Height="50" Margin="0,0,0,15">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="{StaticResource SecondaryBg}" CornerRadius="10,0,0,10">
+                            <TextBlock Text="₹" FontSize="20" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource TextDark}"/>
+                        </Border>
+                        <TextBox x:Name="txtAmount" Grid.Column="1" FontSize="20" FontWeight="Bold" VerticalContentAlignment="Center" Padding="10,0" BorderThickness="0" Background="Transparent"/>
+                    </Grid>
+                </Border>
+
+                <TextBlock Text="Payment Date" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,8"/>
+                <Border Background="White" BorderBrush="#E0E0E0" BorderThickness="0" CornerRadius="10" Height="50">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="45"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Background="{StaticResource SecondaryBg}"  BorderBrush="#E0E0E0" BorderThickness="1,1,0,1" CornerRadius="10,0,0,10" Height="45">
+                            <Path Data="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z" 
+                                  Fill="{StaticResource TextDark}" Width="18" Height="18" Stretch="Uniform"/>
+                        </Border>
+                        <Border Background="#80F5F5F5"  Grid.Column="1" BorderBrush="#D0D0D0" BorderThickness="0,1,1,1" CornerRadius="0,10,10,0" Height="45">
+
+                            <DatePicker x:Name="dpPaymentDate" Grid.Column="1"                 SelectedDateFormat="Short" 
+                 FontSize="15"  BorderThickness="0"
+                  VerticalContentAlignment="Center" Height="45"
+                                   Background="Transparent" >
+
+                                <DatePicker.Resources>
+                                    <Style TargetType="DatePickerTextBox">
+                                        <Setter Property="Background" Value="Transparent"/>
+                                        <Setter Property="BorderThickness" Value="0"/>
+                                        <Setter Property="Padding" Value="5,0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="DatePickerTextBox">
+                                                    <Grid>
+                                                        <ScrollViewer x:Name="PART_ContentHost"/>
+                                                        <TextBlock Text="Select Date" 
+    Foreground="#999" 
+    IsHitTestVisible="False"
+    Margin="5,0,0,0"
+    VerticalAlignment="Center">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource AncestorType=DatePickerTextBox}}" Value="">
+                                                                            <Setter Property="Visibility" Value="Visible"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </DatePicker.Resources>
+                            </DatePicker>
+                        </Border>
+                    </Grid>
+                </Border>
             </StackPanel>
-        </StackPanel>
+
+            <Grid Grid.Row="3" Margin="0,10,0,10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Text="Recent History" FontSize="12" FontWeight="SemiBold" Foreground="{StaticResource TextDark}" Margin="0,0,0,8"/>
+
+                <Border Grid.Row="1" BorderBrush="#EEE" BorderThickness="1" CornerRadius="8" Background="White" ClipToBounds="True">
+                    <DataGrid x:Name="dgHistory" ItemsSource="{Binding}" 
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat=dd MMM yyyy}" Width="*" />
+                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount, StringFormat='₹ {0:N2}'}" Width="Auto" FontWeight="Bold"/>
+                            <DataGridTemplateColumn Width="80">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                            <Button Content="✎" 
+                            Click="EditRow_Click"
+                            Margin="0,0,5,0"
+                            ToolTip="Edit"
+                            Background="Transparent" BorderThickness="0" Foreground="Gray" Cursor="Hand"/>
+
+                                            <Button Content="🗑" 
+                            Click="DeleteRow_Click"
+                            ToolTip="Delete"
+                            Background="Transparent" BorderThickness="0" Foreground="#E53935" Cursor="Hand"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <Grid Grid.Row="2" VerticalAlignment="Bottom" Margin="1,20,1,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="15"/>
+                    <ColumnDefinition Width="1.5*"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Content="Cancel" Style="{StaticResource SecondaryButton}" Height="45" Click="Cancel_Click" IsCancel="True"/>
+                <Button x:Name="btnSave" Grid.Column="2" Content="Save Payment" Style="{StaticResource PrimaryButton}" Height="45" Click="Save_Click" IsDefault="True"/>
+            </Grid>
+
+        </Grid>
     </Border>
 </Window>
