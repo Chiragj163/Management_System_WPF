@@ -16,7 +16,10 @@ namespace Management_System_WPF.Views
     {
         private readonly List<CartItem> cart = new();
         private decimal currentItemPrice = 0;
-
+        private char _lastCharPressed = '\0';
+        private DateTime _lastCharTime = DateTime.MinValue;
+        private int _charCycleIndex = -1;
+        private const int CycleTimeoutSeconds = 5;
         public SalesPage()
         {
             InitializeComponent();
@@ -34,42 +37,113 @@ namespace Management_System_WPF.Views
 
             dpSaleDate.SelectedDate = DateTime.Now;
         }
-       
+        private List<object> GetItemsStartingWith(ComboBox cb, char letter)
+        {
+            var items = new List<object>();
+
+            foreach (var item in cb.ItemsSource.Cast<object>())
+            {
+                string value = GetDisplayValue(item, cb.DisplayMemberPath);
+
+                if (!string.IsNullOrEmpty(value) &&
+                    value.StartsWith(letter.ToString(), StringComparison.OrdinalIgnoreCase))
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
+        }
         private void SearchableComboBox_KeyUp(object sender, KeyEventArgs e)
         {
             var cb = sender as ComboBox;
             if (cb == null || cb.ItemsSource == null) return;
 
-           
             if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Enter ||
-                e.Key == Key.Tab || e.Key == Key.Escape || e.SystemKey == Key.Down)
-            {
+                e.Key == Key.Tab || e.Key == Key.Escape)
                 return;
-            }
 
             var textBox = e.OriginalSource as TextBox;
             if (textBox == null) return;
 
             string searchText = textBox.Text;
 
-           
+            // BACKSPACE resets cycling
+            if (e.Key == Key.Back)
+            {
+                _lastCharPressed = '\0';
+                _charCycleIndex = -1;
+            }
+
+            // -------- ALPHABET CYCLING --------
+            if (e.Key >= Key.A && e.Key <= Key.Z)
+            {
+                char pressedChar = (char)('A' + (e.Key - Key.A));
+                DateTime now = DateTime.Now;
+
+                bool sameKey = _lastCharPressed == pressedChar;
+                bool withinTime = (now - _lastCharTime).TotalSeconds <= CycleTimeoutSeconds;
+
+                // Only cycle if SAME key pressed again within time
+                if (sameKey && withinTime)
+                {
+                    var matches = GetItemsStartingWith(cb, pressedChar);
+
+                    if (matches.Count > 0)
+                    {
+                        _charCycleIndex++;
+
+                        if (_charCycleIndex >= matches.Count)
+                            _charCycleIndex = 0;
+
+                        cb.SelectedItem = matches[_charCycleIndex];
+
+                        cb.UpdateLayout();
+
+                        var container = cb.ItemContainerGenerator
+                            .ContainerFromItem(matches[_charCycleIndex]) as ComboBoxItem;
+
+                        container?.BringIntoView();
+
+                        textBox.SelectAll();
+                    }
+
+                    _lastCharTime = now;
+                    return;
+                }
+
+                // first press
+                _lastCharPressed = pressedChar;
+                _lastCharTime = now;
+                _charCycleIndex = -1;
+            }
+
+            // -------- NORMAL SEARCH FILTER --------
             Dispatcher.BeginInvoke(new Action(() =>
             {
                 var view = CollectionViewSource.GetDefaultView(cb.ItemsSource);
                 if (view == null) return;
 
-                
+                if (string.IsNullOrWhiteSpace(searchText))
+                {
+                    view.Filter = null;
+                    cb.SelectedIndex = -1;
+                    cb.IsDropDownOpen = false;
+
+                    _lastCharPressed = '\0';
+                    _charCycleIndex = -1;
+                    return;
+                }
+
                 view.Filter = item =>
                 {
-                    if (string.IsNullOrWhiteSpace(searchText)) return true;
-
                     string displayValue = GetDisplayValue(item, cb.DisplayMemberPath);
-                    return displayValue.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
+                    return displayValue.IndexOf(searchText,
+                        StringComparison.OrdinalIgnoreCase) >= 0;
                 };
 
-               
-                cb.IsDropDownOpen = !string.IsNullOrWhiteSpace(searchText);
-                textBox.CaretIndex = searchText.Length;
+                cb.IsDropDownOpen = true;
+                textBox.CaretIndex = textBox.Text.Length;
 
             }), System.Windows.Threading.DispatcherPriority.Background);
         }
