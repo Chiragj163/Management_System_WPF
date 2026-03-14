@@ -28,6 +28,7 @@
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="5.8.3" />
     <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3800.47" />
     <PackageReference Include="PdfSharp" Version="6.2.3" />
     <PackageReference Include="PDFsharp-MigraDoc-WPF" Version="6.2.3" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />

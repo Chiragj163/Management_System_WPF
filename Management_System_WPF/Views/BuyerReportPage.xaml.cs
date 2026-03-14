@@ -382,30 +382,30 @@ namespace Management_System_WPF.Views
 
 
 
-      
+
 
         private void Print_Click(object sender, RoutedEventArgs e)
         {
-            try
+            if (dgBuyerReport.ItemsSource is not DataView dv)
             {
-
-
-               
-                double pageWidth = 780;
-                double pageHeight = 1120;
-
-               
-                FlowDocument doc = BuildInvoiceDocumentForPrint(pageWidth, pageHeight);
-
-                var preview = new PrintPreviewWindow(doc);
-                preview.Owner = Window.GetWindow(this);
-                preview.ShowDialog();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error generating preview: {ex.Message}");
+                MessageBox.Show("No data to print.");
+                return;
             }
 
+            DataTable table = dv.ToTable();
+
+            string html = DataGridHtmlExporter.ConvertToHtml(
+                table,
+                txtBuyerName.Text,
+                txtMonthName.Text,
+                txtTotalSales.Text,
+                txtPayment.Text,
+                txtBalance.Text
+            );
+
+            var preview = new HtmlPreviewWindow(html);
+            preview.Owner = Window.GetWindow(this);
+            preview.ShowDialog();
         }
         private string FormatDecimal(decimal value)
         {
