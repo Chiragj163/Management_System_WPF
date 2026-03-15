@@ -13,13 +13,13 @@ public static class DataGridHtmlExporter
     <style>
         @page {
             /* Sets the outer white margin of the paper and hides default browser headers */
-            margin: 15mm; 
+            margin: 5mm; 
         }
-
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 15px; /* Keeps your text safely inside the new black border */
+            margin: 0; 
+            /* 15px top, 0px right, 0px bottom, 0px left */
+            padding: 15px 0px 0px 0px; 
         }
 
         /* --- THE MAGIC OUTLINE --- */
@@ -29,15 +29,17 @@ public static class DataGridHtmlExporter
             bottom: 0;
             left: 0;
             right: 0;
-            border: 2px solid black; /* Adjust thickness here */
+            border: 1px solid black; /* Adjust thickness here */
             z-index: -1;
             pointer-events: none;
         }
 
         table {
-            border-collapse: collapse;
+            /* CHANGE THIS to 'separate' */
+            border-collapse: separate; 
+            
             width: 100%;
-            /* Ensures the table doesn't break in the middle of a row */
+            border-spacing: 3px; /* Now this will actually work! */
             page-break-inside: auto;
         }
 
@@ -47,9 +49,12 @@ public static class DataGridHtmlExporter
         }
 
         th, td {
-            border: 1px solid #555;
+            /* 3. Make the border a slightly lighter grey to match your screenshot */
+            border: 1px solid black; 
             padding: 6px;
             text-align: center;
+            /* Optional: uncomment the line below to give the boxes slightly rounded corners */
+            /* border-radius: 2px; */
         }
 
         /* CRITICAL: This makes the header repeat on every page */
@@ -57,11 +62,13 @@ public static class DataGridHtmlExporter
             display: table-header-group;
         }
 
-        th {
-            background: #d0f0f0 !important;
-            -webkit-print-color-adjust: exact; /* Ensures color shows in print */
+       th {
+            /* White background with Teal text to match the screenshot */
+            background: #ffffff !important;
+            color: solid balck; /* Teal color */
+            font-weight: bold;
+            -webkit-print-color-adjust: exact;
         }
-
         .title {
             font-size: 24px;
             font-weight: bold;
@@ -108,23 +115,35 @@ public static class DataGridHtmlExporter
         // 1. Calculate how many columns the value cell needs to span 
         int colSpan = table.Columns.Count > 1 ? table.Columns.Count - 1 : 1;
 
-        // 2. Add the summary section as standard rows INSIDE the tbody (Black and White)
+        // 2. Add the Grand Total row (This always prints)
         html.Append($@"
         <tr style='color:black; font-size:18px;'>
             <td style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>Grand Total</td>
             <td colspan='{colSpan}' style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>{grandTotal}</td>
-        </tr>
-        <tr style='color:black; font-size:18px;'>
-            <td style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>Less Amount</td>
-            <td colspan='{colSpan}' style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>{payment}</td>
-        </tr>
-        <tr style='color:black; font-size:18px;'>
-            <td style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>Due Amount</td>
-            <td colspan='{colSpan}' style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>{balance}</td>
-        </tr>
-        ");
+        </tr>");
 
-        // 3. NOW close the main body and the table
+        // 3. Clean the string! Remove the '₹' symbol and any spaces so C# can read the pure number
+        string cleanPaymentStr = payment.Replace("₹", "").Replace(" ", "").Trim();
+
+        // 4. Safely parse the cleaned string
+        decimal parsedPayment = 0;
+        decimal.TryParse(cleanPaymentStr, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out parsedPayment);
+
+        // 5. Only print Less and Due if the parsed payment is greater than 0
+        if (parsedPayment > 0)
+        {
+            html.Append($@"
+            <tr style='color:black; font-size:18px;'>
+                <td style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>Less Amount</td>
+                <td colspan='{colSpan}' style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>{payment}</td>
+            </tr>
+            <tr style='color:black; font-size:18px;'>
+                <td style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>Due Amount</td>
+                <td colspan='{colSpan}' style='padding:10px; border:1px solid black; font-weight:bold; text-align:center; vertical-align:middle;'>{balance}</td>
+            </tr>");
+        }
+
+        // 6. NOW close the main body and the table
         html.Append("</tbody>");
         html.Append("</table>");
 
