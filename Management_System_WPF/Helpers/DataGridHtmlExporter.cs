@@ -19,7 +19,7 @@ public static class DataGridHtmlExporter
             font-family: Arial, sans-serif;
             margin: 0; 
             /* 15px top, 0px right, 0px bottom, 0px left */
-            padding: 15px 0px 0px 0px; 
+            padding: 0px 0px 0px 0px; 
         }
 
         /* --- THE MAGIC OUTLINE --- */
@@ -53,6 +53,8 @@ public static class DataGridHtmlExporter
             border: 1px solid black; 
             padding: 6px;
             text-align: center;
+            font-weight: bold;
+            white-space: pre-line;
             /* Optional: uncomment the line below to give the boxes slightly rounded corners */
             /* border-radius: 2px; */
         }
@@ -74,6 +76,7 @@ public static class DataGridHtmlExporter
             font-weight: bold;
             text-align: center;
             margin-bottom: 10px;
+text-transform: uppercase;
         }
 
         .summary-table {
@@ -86,17 +89,25 @@ public static class DataGridHtmlExporter
     
     <div class='page-outline'></div>");
 
-        html.Append($"<div class='title'>{buyerName} </div>");
-
+      // Start the table
         html.Append("<table>");
+        html.Append($"<caption style='font-size: 22px; font-weight: bold; color: black; text-transform: uppercase; padding: 12px; letter-spacing: 1px;border: 1px solid black;  margin: 3px;'>");
+        html.Append(buyerName);
+        html.Append("</caption>");
+        html.Append("<thead>");
+        // 1. --- NEW TITLE ROW ---
+        // This creates a single cell that spans across all columns
 
-        // Wrap headers in THEAD for repetition
-        html.Append("<thead><tr>");
+
+        // 2. --- EXISTING COLUMN HEADERS ---
+        html.Append("<tr>");
         foreach (DataColumn col in table.Columns)
         {
             html.Append($"<th>{col.ColumnName}</th>");
         }
-        html.Append("</tr></thead>");
+        html.Append("</tr>");
+        
+        html.Append("</thead>");
 
         // Wrap rows in TBODY
         html.Append("<tbody>");

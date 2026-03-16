@@ -452,75 +452,48 @@ namespace Management_System_WPF.Views
                 int direction = (e.Key == Key.Up) ? 1 : -1;
                 DateTime newDate = current;
 
+                // Variables to store the part we want to re-select after the update
+                int targetStart, targetLen;
+
                 if (selectionStart <= firstSep)
                 {
-             
                     newDate = current.AddDays(direction);
+                    targetStart = 0;
+                    targetLen = firstSep;
                 }
                 else if (selectionStart > firstSep && selectionStart <= secondSep)
                 {
-                  
                     newDate = current.AddMonths(direction);
+                    targetStart = firstSep + 1;
+                    targetLen = secondSep - firstSep - 1;
                 }
-                else if (selectionStart > secondSep)
+                else
                 {
                     newDate = current.AddYears(direction);
+                    targetStart = secondSep + 1;
+                    targetLen = text.Length - secondSep - 1;
                 }
 
                 if (newDate != current)
                 {
                     dpSaleDate.SelectedDate = newDate;
+
+                    // Use Background priority to ensure the text has updated before we select it
                     Dispatcher.BeginInvoke(new Action(() =>
                     {
-                      
                         var tb = dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) as DatePickerTextBox;
-                        tb?.Select(selectionStart, 0);
+                        if (tb != null)
+                        {
+                            // 🔥 THE FIX: Instead of just putting the cursor, 
+                            // we highlight the whole part. Now Tab will know where we are.
+                            tb.Select(targetStart, targetLen);
+                        }
                     }), System.Windows.Threading.DispatcherPriority.Background);
 
                     e.Handled = true;
                 }
             }
         }
-        private void EnsureSelectedDate()
-        {
-            if (dpSaleDate.SelectedDate == null)
-            {
-                dpSaleDate.SelectedDate = DateTime.Today;
-            }
-        }
-
-        private static bool IsEditingKey(Key key) => key switch
-        {
-            Key.Back or Key.Delete => true,
-            >= Key.D0 and <= Key.D9 => true,
-            >= Key.NumPad0 and <= Key.NumPad9 => true,
-            Key.OemQuestion or Key.OemQuotes or Key.OemMinus or Key.Divide => true,
-            _ => false
-        };
-
-        private static bool TryNavigateDatePartWithTab(TextBox textBox)
-        {
-            string text = textBox.Text;
-            int selectionStart = textBox.SelectionStart;
-            int selectionLength = textBox.SelectionLength;
-
-            int firstSlash = text.IndexOf('/');
-            int secondSlash = text.Length > firstSlash + 1 ? text.IndexOf('/', firstSlash + 1) : -1;
-
-            if (firstSlash == -1 || secondSlash == -1) return false;
-
-            if (selectionStart + selectionLength <= firstSlash)
-            {
-                textBox.Select(firstSlash + 1, secondSlash - firstSlash - 1);
-                return true;
-            }
-            else if (selectionStart + selectionLength <= secondSlash)
-            {
-                textBox.Select(secondSlash + 1, text.Length - secondSlash - 1);
-                return true;
-            }
-
-            return false;
-        }
+      
     }
 }

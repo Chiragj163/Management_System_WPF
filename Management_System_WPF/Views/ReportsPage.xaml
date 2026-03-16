@@ -156,11 +156,8 @@
 
 
                             <!-- Card container -->
-                            <Border Height="30" Width="270"  Background="White"  CornerRadius="10">
-                                <Border.Effect>
-                                    <DropShadowEffect Color="#000000" Direction="270" ShadowDepth="3"  BlurRadius="10"   Opacity="0.16"/>
-                                </Border.Effect>
-
+                            <Border Height="30" Width="270" Background="White" CornerRadius="10">
+                               
                                 <Border.Style>
                                     <Style TargetType="Border">
                                         <Setter Property="BorderBrush" Value="Transparent"/>
@@ -173,17 +170,28 @@
                                     </Style>
                                 </Border.Style>
 
-                                <!-- Modern ComboBox -->
-                                <ComboBox x:Name="cmbBuyer"  DisplayMemberPath="Name"  SelectedValuePath="BuyerId" FontSize="14"  FontWeight="SemiBold"  FontFamily="Segoe UI" Foreground="Black"  Padding="12,0,32,0"  Background="Transparent"  BorderThickness="0" VerticalContentAlignment="Center"  >
+                                <ComboBox x:Name="cmbBuyer" 
+              DisplayMemberPath="Name" 
+              SelectedValuePath="BuyerId" 
+              FontSize="14" 
+              FontWeight="SemiBold" 
+              FontFamily="Segoe UI" 
+              Foreground="Black" 
+              Background="Transparent" 
+              BorderThickness="0" 
+              VerticalContentAlignment="Center"
+              IsEditable="True"
+              IsTextSearchEnabled="False"
+              StaysOpenOnEdit="True"
+              KeyUp="SearchableComboBox_KeyUp"
+            >
 
-                                    <!-- Items virtualization (for performance on large lists) -->
                                     <ComboBox.ItemsPanel>
                                         <ItemsPanelTemplate>
                                             <VirtualizingStackPanel/>
                                         </ItemsPanelTemplate>
                                     </ComboBox.ItemsPanel>
 
-                                    <!-- Main template -->
                                     <ComboBox.Template>
                                         <ControlTemplate TargetType="ComboBox">
                                             <Grid>
@@ -192,11 +200,23 @@
                                                     <ColumnDefinition Width="32"/>
                                                 </Grid.ColumnDefinitions>
 
-                                                <!-- Display selected text -->
-                                                <TextBlock Margin="12,0,0,0" VerticalAlignment="Center" Text="{Binding SelectedItem.Name, RelativeSource={RelativeSource TemplatedParent}}" IsHitTestVisible="False"/>
+                                                <TextBox x:Name="PART_EditableTextBox" 
+                             Grid.Column="0"
+                             Margin="12,0,0,0" 
+                             VerticalAlignment="Center" 
+                             Background="Transparent" 
+                             BorderThickness="0" 
+                             FontSize="{TemplateBinding FontSize}" 
+                             FontFamily="{TemplateBinding FontFamily}" 
+                             FontWeight="{TemplateBinding FontWeight}" 
+                             Foreground="{TemplateBinding Foreground}"/>
 
-                                                <!-- Click area -->
-                                                <ToggleButton x:Name="PART_DropDownToggle" Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" Focusable="False" IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                                <ToggleButton x:Name="PART_DropDownToggle" 
+                                  Grid.ColumnSpan="2" 
+                                  Background="Transparent" 
+                                  BorderThickness="0" 
+                                  Focusable="False" 
+                                  IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
                                                     <ToggleButton.Template>
                                                         <ControlTemplate TargetType="ToggleButton">
                                                             <Border Background="Transparent"/>
@@ -204,40 +224,37 @@
                                                     </ToggleButton.Template>
                                                 </ToggleButton>
 
-                                                <!-- Arrow -->
-                                                <Path x:Name="Arrow"  Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2"  HorizontalAlignment="Center" VerticalAlignment="Center"  RenderTransformOrigin="0.5,0.5">
+                                                <Path x:Name="Arrow" Grid.Column="1" Data="M0,0 L5,5 L10,0" Stroke="#3498DB" StrokeThickness="2" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                                     <Path.RenderTransform>
                                                         <RotateTransform Angle="0"/>
                                                     </Path.RenderTransform>
                                                 </Path>
 
-                                                <!-- Drop-down -->
-                                                <Popup x:Name="PART_Popup"   Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
-                                                    <Border Background="White" CornerRadius="8" Margin="0,5,0,0" Padding="4"  SnapsToDevicePixels="True">
+                                                <Popup x:Name="PART_Popup" Placement="Bottom" IsOpen="{TemplateBinding IsDropDownOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Slide">
+                                                    <Border Background="White" CornerRadius="8" Margin="0,5,0,0" Padding="4" SnapsToDevicePixels="True">
                                                         <Border.Effect>
-                                                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA"  Opacity="0.28"/>
+                                                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Color="#AAAAAA" Opacity="0.28"/>
                                                         </Border.Effect>
-                                                        <ScrollViewer>
+                                                        <ScrollViewer MaxHeight="250">
                                                             <ItemsPresenter/>
                                                         </ScrollViewer>
                                                     </Border>
                                                 </Popup>
                                             </Grid>
 
-                                            <!-- Triggers -->
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsDropDownOpen" Value="True">
                                                     <Trigger.EnterActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetName="Arrow"   Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
+                                                                <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="180" Duration="0:0:0.18"/>
                                                             </Storyboard>
                                                         </BeginStoryboard>
                                                     </Trigger.EnterActions>
                                                     <Trigger.ExitActions>
                                                         <BeginStoryboard>
                                                             <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetName="Arrow"    Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
+                                                                <DoubleAnimation Storyboard.TargetName="Arrow" Storyboard.TargetProperty="(UIElement.RenderTransform).(RotateTransform.Angle)" To="0" Duration="0:0:0.18"/>
                                                             </Storyboard>
                                                         </BeginStoryboard>
                                                     </Trigger.ExitActions>
@@ -249,28 +266,26 @@
                                         </ControlTemplate>
                                     </ComboBox.Template>
 
-                                    <!-- Items style -->
-                                   
                                     <ComboBox.ItemContainerStyle>
                                         <Style TargetType="ComboBoxItem">
                                             <Setter Property="Padding" Value="10,6"/>
                                             <Setter Property="Width" Value="220"/>
-                                            
+
                                             <Setter Property="HorizontalContentAlignment" Value="Left"/>
                                             <Setter Property="Template">
                                                 <Setter.Value>
                                                     <ControlTemplate TargetType="ComboBoxItem">
-                                                        <Border x:Name="ItemBorder"   Background="Transparent" CornerRadius="5" Padding="10,6"  Margin="2,1">
+                                                        <Border x:Name="ItemBorder" Background="Transparent" CornerRadius="5" Padding="10,6" Margin="2,1">
                                                             <ContentPresenter/>
                                                         </Border>
                                                         <ControlTemplate.Triggers>
                                                             <Trigger Property="IsMouseOver" Value="True">
-                                                                <Setter TargetName="ItemBorder" Property="Background"  Value="#EBF5FB"/>
+                                                                <Setter TargetName="ItemBorder" Property="Background" Value="#EBF5FB"/>
                                                                 <Setter Property="Foreground" Value="#3498DB"/>
                                                             </Trigger>
                                                             <Trigger Property="IsSelected" Value="True">
-                                                                <Setter TargetName="ItemBorder"   Property="Background"  Value="#3498DB"/>
-                                                                <Setter Property="Foreground"  Value="White"/>
+                                                                <Setter TargetName="ItemBorder" Property="Background" Value="#3498DB"/>
+                                                                <Setter Property="Foreground" Value="White"/>
                                                             </Trigger>
                                                         </ControlTemplate.Triggers>
                                                     </ControlTemplate>
