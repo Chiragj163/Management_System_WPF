@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Management_System_WPF.Views
 {
@@ -20,6 +21,25 @@ namespace Management_System_WPF.Views
             LoadCategories();
 
             LoadSales();
+            this.PreviewKeyDown += (s, e) =>
+            {
+                // Ctrl + F to Open/Toggle
+                if (e.Key == Key.F && (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control)
+                {
+                    ToggleFilter_Click(null, null);
+                    e.Handled = true;
+                }
+                // Escape to Close (only if panel is visible)
+                else if (e.Key == Key.Escape && FilterPanel.Visibility == Visibility.Visible)
+                {
+                    FilterPanel.Visibility = Visibility.Collapsed;
+                    e.Handled = true;
+                }
+            };
+        }
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            this.Focus(); // Force the page to listen to the keyboard
         }
         private void LoadCategories()
         {
@@ -120,7 +140,10 @@ namespace Management_System_WPF.Views
             {
                 var win = new EditSaleWindow(sale);
                 if (win.ShowDialog() == true)
+                {
                     LoadSales();
+                    ApplyFilters();
+                }
             };
 
             MenuItem delete = new MenuItem { Header = "Delete ❌" };
@@ -131,6 +154,7 @@ namespace Management_System_WPF.Views
                 {
                     SalesService.DeleteSale(sale.SaleId);
                     LoadSales();
+                    ApplyFilters();
                 }
             };
 
@@ -142,10 +166,26 @@ namespace Management_System_WPF.Views
         }
         private void ToggleFilter_Click(object sender, RoutedEventArgs e)
         {
-            FilterPanel.Visibility =
-                FilterPanel.Visibility == Visibility.Visible
-                ? Visibility.Collapsed
-                : Visibility.Visible;
+            if (FilterPanel.Visibility == Visibility.Collapsed)
+            {
+                // 1. Show the panel
+                FilterPanel.Visibility = Visibility.Visible;
+
+                // 2. Focus the textbox and start the blinking cursor
+                // We use Focus() to set keyboard focus
+                txtSearch.Focus();
+
+                // 3. Optional: Move cursor to the end if there's existing text
+                txtSearch.CaretIndex = txtSearch.Text.Length;
+            }
+            else
+            {
+                // Hide the panel if it was already open
+                FilterPanel.Visibility = Visibility.Collapsed;
+
+                // Clear search when closing (optional, based on your preference)
+                // txtSearch.Clear(); 
+            }
         }
 
     }

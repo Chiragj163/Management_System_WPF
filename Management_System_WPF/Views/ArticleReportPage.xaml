@@ -8,7 +8,8 @@
       mc:Ignorable="d"
       Title="ArticleReportPage"
       d:DesignHeight="800" d:DesignWidth="1100"
-      Background="Transparent">
+      Background="Transparent" Focusable="True"
+      Loaded="Page_Loaded">
 
     <Page.Resources>
         <local:DateOrTotalConverter x:Key="DateOrTotalConverter"/>

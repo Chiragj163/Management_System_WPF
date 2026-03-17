@@ -564,5 +564,6 @@ namespace Management_System_WPF.Views
             graphWin.Owner = Window.GetWindow(this);
             graphWin.ShowDialog();
         }
+
     }
 }

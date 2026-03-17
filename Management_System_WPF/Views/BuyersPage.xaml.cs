@@ -158,5 +158,21 @@ namespace Management_System_WPF.Views
                 return false;
             };
         }
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Use Dispatcher to ensure the UI has finished rendering before focusing
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                txtBuyerName.Focus();
+
+                // Target the internal TextBox of the Editable ComboBox
+                var textBox = txtBuyerName.Template.FindName("PART_EditableTextBox", txtBuyerName) as TextBox;
+                if (textBox != null)
+                {
+                    textBox.Focus();
+                    textBox.CaretIndex = textBox.Text.Length; // Put cursor at the end
+                }
+            }), System.Windows.Threading.DispatcherPriority.Input);
+        }
     }
 }

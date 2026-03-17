@@ -894,6 +894,56 @@ new Setter(
             graphWin.Owner = Window.GetWindow(this);
             graphWin.ShowDialog();
         }
+        // Inside SaleByBuyerPage class
 
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Force focus to the DataGrid so arrow keys work immediately
+            dgArticles.Focus();
+        }
+
+        // Override the PreviewKeyDown to handle custom scrolling logic
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            var scrollViewer = GetScrollViewer(dgArticles);
+            if (scrollViewer == null) return;
+
+            switch (e.Key)
+            {
+                // Vertical
+                case Key.Up: scrollViewer.LineUp(); break;
+                case Key.Down: scrollViewer.LineDown(); break;
+
+                // Horizontal (Side-wise)
+                case Key.Left:
+                    scrollViewer.LineLeft();
+                    e.Handled = true; // Prevent shifting focus to sidebar
+                    break;
+                case Key.Right:
+                    scrollViewer.LineRight();
+                    e.Handled = true;
+                    break;
+
+                case Key.PageUp: scrollViewer.PageUp(); break;
+                case Key.PageDown: scrollViewer.PageDown(); break;
+            }
+        }
+
+        // Helper method to find the ScrollViewer inside the DataGrid
+        private ScrollViewer GetScrollViewer(UIElement element)
+        {
+            if (element == null) return null;
+            if (element is ScrollViewer viewer) return viewer;
+
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(element); i++)
+            {
+                var child = VisualTreeHelper.GetChild(element, i) as UIElement;
+                var result = GetScrollViewer(child);
+                if (result != null) return result;
+            }
+            return null;
+        }
     }
 }

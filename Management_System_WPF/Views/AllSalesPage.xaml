@@ -6,7 +6,8 @@
       mc:Ignorable="d"
       Title="AllSalesPage"
       d:DesignHeight="1100" d:DesignWidth="1000"
-      Background="Transparent">
+      Background="Transparent" Focusable="True"
+      Loaded="Page_Loaded">
 
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>

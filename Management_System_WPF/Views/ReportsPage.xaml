@@ -6,7 +6,7 @@
       mc:Ignorable="d"
       Title="ReportsPage"
       d:DesignHeight="700" d:DesignWidth="1000"
-      Background="Transparent">
+      Background="Transparent" Loaded="Page_Loaded">
 
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>

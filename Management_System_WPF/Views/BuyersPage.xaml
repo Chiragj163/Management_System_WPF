@@ -7,7 +7,7 @@
       Title="BuyersPage"
        HorizontalAlignment="Center"
       d:DesignHeight="700" d:DesignWidth="1000"
-      Background="Transparent">
+      Background="Transparent" Loaded="Page_Loaded">
 
     <Page.Resources>
         <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
