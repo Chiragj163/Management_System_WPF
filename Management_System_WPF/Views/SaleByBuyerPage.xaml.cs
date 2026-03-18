@@ -31,13 +31,13 @@ namespace Management_System_WPF.Views
         {
             InitializeComponent();
 
-          
+
 
 
 
             _currentMonth = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             LoadCategories();
-            LoadReport(_currentMonth); 
+            LoadReport(_currentMonth);
         }
 
         private void LoadCategories()
@@ -129,7 +129,7 @@ namespace Management_System_WPF.Views
 
             }
 
-          
+
             var buyerTotals = new Dictionary<string, decimal>();
             foreach (var buyer in buyers)
             {
@@ -140,7 +140,7 @@ namespace Management_System_WPF.Views
                 buyerTotals[buyer] = colTotal;
             }
 
-           
+
             var sortedBuyers = buyers.OrderByDescending(b => buyerTotals[b]).ToList();
             var totalRow = new SaleByBuyerRow { Date = DateTime.MinValue };
             decimal grandTotal = 0m;
@@ -161,7 +161,7 @@ namespace Management_System_WPF.Views
 
             dgBuyerSales.ItemsSource = rows;
         }
-        
+
         private void LoadReport(DateTime month)
         {
             _isRangeFilter = false;
@@ -236,10 +236,10 @@ namespace Management_System_WPF.Views
         }
         private void ResetFilters_Click(object sender, RoutedEventArgs e)
         {
-            
+
             _isRangeFilter = false;
 
-            
+
             var now = DateTime.Now;
             _currentMonth = new DateTime(now.Year, now.Month, 1);
 
@@ -290,9 +290,9 @@ namespace Management_System_WPF.Views
                 Binding = new Binding("Total") { StringFormat = "0.##" },
                 Width = 140,
                 IsReadOnly = true,
-               CellStyle = new Style(typeof(DataGridCell))
-        {
-            Setters =
+                CellStyle = new Style(typeof(DataGridCell))
+                {
+                    Setters =
             {
                 new Setter(DataGridCell.BackgroundProperty, Brushes.LightGreen),
                 new Setter(DataGridCell.FontWeightProperty, FontWeights.Bold),
@@ -301,7 +301,7 @@ namespace Management_System_WPF.Views
                 new Setter(DataGridCell.BorderBrushProperty, Brushes.Gray),
                 new Setter(DataGridCell.MarginProperty, new Thickness(1.5))
             }
-        }
+                }
             });
         }
 
@@ -405,7 +405,7 @@ namespace Management_System_WPF.Views
 
         private void ExportExcel_Click(object sender, RoutedEventArgs e)
         {
-           
+
             var rows = dgBuyerSales.ItemsSource as IEnumerable<SaleByBuyerRow>;
             if (rows == null || !rows.Any())
             {
@@ -423,7 +423,7 @@ namespace Management_System_WPF.Views
 
             try
             {
-               
+
                 ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
                 using (var package = new ExcelPackage())
@@ -438,22 +438,22 @@ namespace Management_System_WPF.Views
       .ToList();
 
 
-                 
+
                     ws.Cells[1, 1].Value = "Date";
                     int col = 2;
                     foreach (var buyer in allBuyers)
                     {
                         ws.Cells[1, col++].Value = buyer;
                     }
-                   
+
                     ws.Cells[1, col].Value = "Total";
 
-                  
+
                     var columnTotals = allBuyers.ToDictionary(b => b, b => 0m);
                     decimal grandTotal = 0;
 
 
-                   
+
                     int rowIdx = 2;
                     foreach (var r in rows)
                     {
@@ -478,7 +478,7 @@ namespace Management_System_WPF.Views
                             {
                                 ws.Cells[rowIdx, col].Value = val;
                                 rowSum += val;
-                                columnTotals[buyer] += val; 
+                                columnTotals[buyer] += val;
                             }
                             else
                             {
@@ -488,7 +488,7 @@ namespace Management_System_WPF.Views
                             col++;
                         }
 
-                       
+
                         ws.Cells[rowIdx, col].Value = rowSum;
                         ws.Cells[rowIdx, col].Style.Font.Bold = true;
                         ws.Cells[rowIdx, col].Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -498,7 +498,7 @@ namespace Management_System_WPF.Views
                         rowIdx++;
                     }
 
-                  
+
                     ws.Cells[rowIdx, 1].Value = " TOTAL";
                     ws.Cells[rowIdx, 1].Style.Font.Bold = true;
 
@@ -524,9 +524,9 @@ namespace Management_System_WPF.Views
 
                     var fullRange = ws.Cells[1, 1, rowIdx, col];
                     fullRange.Style.Border.Top.Style = ExcelBorderStyle.Thin;
-fullRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-fullRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
-fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    fullRange.Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                    fullRange.Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                    fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
 
                     ws.Cells.AutoFitColumns();
                     ws.View.FreezePanes(2, 1);
@@ -586,7 +586,7 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
         }
         private void ViewGraph_Click(object sender, RoutedEventArgs e)
         {
-           
+
             var rows = dgBuyerSales.ItemsSource as List<SaleByBuyerRow>;
 
             if (rows == null || !rows.Any())
@@ -595,7 +595,7 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 return;
             }
 
-         
+
             var totalRow = rows.FirstOrDefault(r => r.Date == DateTime.MinValue);
 
             if (totalRow == null || totalRow.BuyerValues == null || !totalRow.BuyerValues.Any())
@@ -620,8 +620,8 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 return;
             }
 
-           
-           
+
+
             var graphWin = new BuyerGraphWindow(graphData, $"Sales Analysis: {txtTitle.Text}", "Buyers", false);
 
             graphWin.Owner = Window.GetWindow(this);
@@ -679,5 +679,5 @@ fullRange.Style.Border.Right.Style = ExcelBorderStyle.Thin;
             return null;
         }
     }
-   
+
 }

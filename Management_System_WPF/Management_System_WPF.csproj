@@ -14,7 +14,6 @@
 
 	<ItemGroup>
     <None Remove="Assets\bg.jpg" />
-    <None Remove="Assets\bg2.jpg" />
     <None Remove="Database\factory.db" />
   </ItemGroup>
 
@@ -36,9 +35,6 @@
 
   <ItemGroup>
     <Resource Include="Assets\bg.jpg">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </Resource>
-    <Resource Include="Assets\bg2.jpg">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

@@ -11,7 +11,7 @@
 
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
-        <SolidColorBrush x:Key="PrimaryHover" Color="#00796B"/>
+        <SolidColorBrush x:Key="PrimaryHover" Color="DarkGreen"/>
         <SolidColorBrush x:Key="SecondaryColor" Color="#E0F2F1"/>
         <SolidColorBrush x:Key="DangerColor" Color="#E53935"/>
         <SolidColorBrush x:Key="TextDark" Color="Black"/>
@@ -49,9 +49,20 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="10">
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryHover}"/>
+                    </Trigger>
+                    
+                    <Trigger Property="IsKeyboardFocused" Value="True">
+                        <Setter TargetName="border" Property="Background" Value="{StaticResource PrimaryHover}"/>
+                        <Setter TargetName="border" Property="BorderBrush" Value="White"/>
+                        <Setter TargetName="border" Property="BorderThickness" Value="1"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -91,7 +102,16 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
+        </Style>
+        <Style x:Key="FocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="-2" StrokeThickness="2" Stroke="{StaticResource PrimaryColor}" StrokeDashArray="1 2"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Page.Resources>
 
     <Grid>
@@ -170,6 +190,11 @@
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="BorderBrush" Value="#3498DB"/>
                                                 </Trigger>
+
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#3498DB"/>
+                                                    <Setter Property="Background" Value="#F4FAFF"/>
+                                                </Trigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -181,7 +206,7 @@
           FontSize="14" ToolTip="Select Buyer Name" TabIndex="1" 
           FontWeight="SemiBold" FontFamily="Segoe UI" Foreground="Black" 
           Background="Transparent" BorderThickness="0" VerticalContentAlignment="Center"
-          
+           FocusVisualStyle="{StaticResource FocusVisual}"
           IsEditable="True" 
           IsTextSearchEnabled="False" 
           StaysOpenOnEdit="True" 
@@ -284,6 +309,7 @@
                                                                     <Setter TargetName="ItemBorder" Property="Background" Value="#EBF5FB"/>
                                                                     <Setter Property="Foreground" Value="#3498DB"/>
                                                                 </Trigger>
+                                                                
                                                                 <Trigger Property="IsSelected" Value="True">
                                                                     <Setter TargetName="ItemBorder" Property="Background" Value="#3498DB"/>
                                                                     <Setter Property="Foreground" Value="White"/>
@@ -315,6 +341,11 @@
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter Property="BorderBrush" Value="#3498DB"/>
                                                 </Trigger>
+
+                                                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                                                    <Setter Property="BorderBrush" Value="#3498DB"/>
+                                                    <Setter Property="Background" Value="#F4FAFF"/>
+                                                </Trigger>
                                             </Style.Triggers>
                                         </Style>
                                     </Border.Style>
@@ -330,7 +361,7 @@
           IsEditable="True" 
           IsTextSearchEnabled="False" 
           StaysOpenOnEdit="True" 
-                                              
+                                      FocusVisualStyle="{StaticResource FocusVisual}"         
                                              KeyUp="SearchableComboBox_KeyUp"
 SelectionChanged="cmbBuyer_SelectionChanged">
 
@@ -452,7 +483,7 @@ SelectionChanged="cmbBuyer_SelectionChanged">
 
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="Quantity" FontWeight="Bold" FontSize="16"  Foreground="{StaticResource TextDark}" Margin="0,0,0,5"/>
-                                    <TextBox x:Name="txtQuantity" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource RoundedInputStyle}" VerticalContentAlignment="Center" Height="30"/>
+                                    <TextBox x:Name="txtQuantity"  FocusVisualStyle="{StaticResource FocusVisual}" Background="White" TabIndex="3"  ToolTip="Add Quantity"  KeyDown="txtQuantity_KeyDown" Style="{StaticResource RoundedInputStyle}" VerticalContentAlignment="Center" Height="30"/>
 
                                 </StackPanel>
 
@@ -462,6 +493,7 @@ SelectionChanged="cmbBuyer_SelectionChanged">
         BorderBrush="#D0D0D0"
         BorderThickness="1"
         CornerRadius="10"
+                                             FocusVisualStyle="{StaticResource FocusVisual}"
         Height="30"
         Margin="0,0,0,15">
 
@@ -536,6 +568,7 @@ SelectionChanged="cmbBuyer_SelectionChanged">
                                             Background="#607D8B"
                                             Width="100" Height="35"
                                             TabIndex="5"
+                                             FocusVisualStyle="{StaticResource FocusVisual}"
                                              ToolTip="Calculate Total"
                                             Click="Calculate_Click"/>
 
@@ -550,18 +583,22 @@ SelectionChanged="cmbBuyer_SelectionChanged">
                                     Style="{StaticResource PrimaryButton}"
                                     Height="45"
                                     Margin="0,0,0,10"
+                                     FocusVisualStyle="{StaticResource FocusVisual}"
                                     TabIndex="6"
                                     Click="AddToCart_Click"/>
 
-                            <Button Content="Save Entire Sale" 
-        Height="40"
-        TabIndex="7"
-        Cursor="Hand"
-        Background="Transparent"
+                            <Button Content="Save Entire Sale"
+                                    x:Name="btnSaveSale"
+                                    Height="40"
+                                    TabIndex="7"
+                                    Cursor="Hand"
+                                    Background="Transparent"
                                     FontWeight="Bold"
                                     FontSize="16"
-        BorderThickness="2"
-        Click="SaveSale_Click">
+                                    BorderThickness="2"
+                                    FocusVisualStyle="{StaticResource FocusVisual}"
+                                    KeyDown="btnSaveSale_KeyDown"
+                                    Click="SaveSale_Click">
 
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
@@ -580,13 +617,19 @@ SelectionChanged="cmbBuyer_SelectionChanged">
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
 
-                                                <Setter TargetName="border" Property="BorderBrush" Value="#607D8B"/>
-                                                <Setter TargetName="border" Property="TextElement.Foreground" Value="#607D8B"/>
+                                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource SecondaryColor}"/>
+                                                <Setter TargetName="border" Property="TextElement.Foreground" Value="{StaticResource SecondaryColor}"/>
 
-                                                <Setter TargetName="border" Property="Background" Value="#FAF9F9"/>
+                                                <Setter TargetName="border" Property="Background" Value="DarkGreen"/>
 
                                             </Trigger>
+                                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                                <Setter TargetName="border" Property="BorderBrush" Value="{StaticResource SecondaryColor}"/>
+                                                <Setter TargetName="border" Property="TextElement.Foreground" Value="{StaticResource SecondaryColor}"/>
+                                                <Setter TargetName="border" Property="Background" Value="DarkGreen"/>
+                                            </Trigger>
                                         </ControlTemplate.Triggers>
+                                        
 
                                     </ControlTemplate>
                                 </Button.Template>

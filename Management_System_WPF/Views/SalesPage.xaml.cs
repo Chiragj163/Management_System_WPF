@@ -23,7 +23,20 @@ namespace Management_System_WPF.Views
         public SalesPage()
         {
             InitializeComponent();
+            this.PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    // If we are on the Save button, let the click happen normally
+                    if (FocusManager.GetFocusedElement(this) is Button btn && btn.Name == "btnSaveSale")
+                        return;
 
+                    // Otherwise, move focus forward
+                    var request = new TraversalRequest(FocusNavigationDirection.Next);
+                    (FocusManager.GetFocusedElement(this) as UIElement)?.MoveFocus(request);
+                    e.Handled = true;
+                }
+            };
             // Load Buyers
             cmbBuyer.ItemsSource = BuyersService
                 .GetAllBuyers()
@@ -54,8 +67,36 @@ namespace Management_System_WPF.Views
 
             return items;
         }
+        private void btnSaveSale_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Shift) == 0)
+            {
+                e.Handled = true; 
+                FocusBuyer();     
+            }
+        }
+        private void FocusBuyer()
+        {
+            cmbBuyer.Focus();
+            var textBox = cmbBuyer.Template.FindName("PART_EditableTextBox", cmbBuyer) as TextBox;
+            if (textBox != null)
+            {
+                textBox.Focus();
+                textBox.CaretIndex = textBox.Text.Length;
+            }
+        }
         private void SearchableComboBox_KeyUp(object sender, KeyEventArgs e)
         {
+            if (e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift)
+            {
+                if (sender == cmbBuyer)
+                {
+                    var saveBtn = this.FindName("btnSaveSale") as Button;
+                    saveBtn?.Focus();
+                    e.Handled = true;
+                    return;
+                }
+            }
             var cb = sender as ComboBox;
             if (cb == null || cb.ItemsSource == null) return;
 

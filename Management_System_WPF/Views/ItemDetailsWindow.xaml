@@ -143,7 +143,7 @@
                         <DataGridTextColumn Header="Price" Binding="{Binding Price, StringFormat=N2}" Width="80" Foreground="#607D8B"/>
 
                         <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat=N2}" Width="90" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
-                    </DataGrid.Columns>z
+                    </DataGrid.Columns>
                 </DataGrid>
             </Border>
 

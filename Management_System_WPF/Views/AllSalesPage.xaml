@@ -565,6 +565,7 @@
                             <DataGridTextColumn Header="Date" 
                      Binding="{Binding SaleDate, StringFormat=dd/MMM/yyyy}" 
                      Width="*"
+                                                
                      ElementStyle="{StaticResource CenteredTextColumn}"
                      FontWeight="Bold"
                     />

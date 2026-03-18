@@ -21,7 +21,7 @@
             <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontSize" Value="12"/>
-           
+
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="15,0"/>
@@ -213,7 +213,7 @@
                 HorizontalAlignment="Stretch"
                 VerticalAlignment="Stretch">
 
-           
+
 
             <Grid>
                 <Grid.RowDefinitions>
@@ -224,16 +224,16 @@
 
                 <Grid Grid.Row="0" Margin="25,20,25,10" HorizontalAlignment="Center">
                     <StackPanel>
-                        
+
                         <TextBlock x:Name="txtTitle"
                                    Text="Month Name" 
                                    FontSize="26" 
                                    FontWeight="Bold" 
                                    Foreground="{StaticResource TextDark}"/>
-                       
+
                     </StackPanel>
 
-                   
+
                 </Grid>
                 <Button Grid.Column="1"
         Style="{StaticResource IconButtonStyle}"
@@ -266,7 +266,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="3" HorizontalAlignment="Right" Margin="0,1,30,1" Orientation="Horizontal">
 
-                   
+
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,15,0">
 
                         <!-- Label -->
@@ -406,9 +406,9 @@
              Height="35" Width="100"
                             Margin="0,0,10,0"
              Click="ExportExcel_Click"/>
-                   
 
-                        <Button Content="📈 Graph"
+
+                    <Button Content="📈 Graph"
             Style="{StaticResource PrimaryButton}"
             Background="#7E57C2" 
             Height="35" Width="100"
@@ -416,7 +416,7 @@
                                
             Click="ViewGraph_Click"/>
 
-                   
+
 
                     <Button x:Name="btnFilter"
         Content="🔍 Filter"
@@ -426,7 +426,7 @@
         Click="Filter_Click"/>
                 </StackPanel>
 
-                
+
                 <Border Grid.Row="2" 
                         Margin="15,0,15,25"
                        
@@ -514,7 +514,7 @@
                                     <MultiDataTrigger>
                                         <MultiDataTrigger.Conditions>
                                             <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True"/>
-                                           
+
                                         </MultiDataTrigger.Conditions>
                                         <Setter Property="Background" Value="#B2DFDB"/>
                                     </MultiDataTrigger>
@@ -550,12 +550,12 @@
                                         <Setter Property="Background" Value="#F1F8E9"/>
                                     </Trigger>
 
-                                   
+
                                     <DataTrigger Binding="{Binding Date}" Value="{x:Static sys:DateTime.MinValue}">
-                                       
+
                                         <Setter Property="Foreground" Value="Black"/>
                                         <Setter Property="FontWeight" Value="ExtraBold"/>
-                                       
+
                                         <Setter Property="FontWeight" Value="Bold"/>
                                     </DataTrigger>
 
@@ -615,9 +615,9 @@ Margin="0,55,25,0">
                                         </Setter>
                                     </Style>
                                 </DatePicker.CalendarStyle>
-                                </DatePicker>
+                            </DatePicker>
 
-                                <DatePicker x:Name="dpTo" Grid.Column="2" Height="35">
+                            <DatePicker x:Name="dpTo" Grid.Column="2" Height="35">
                                 <DatePicker.CalendarStyle>
                                     <Style TargetType="Calendar">
                                         <Setter Property="LayoutTransform">
@@ -627,7 +627,7 @@ Margin="0,55,25,0">
                                         </Setter>
                                     </Style>
                                 </DatePicker.CalendarStyle>
-                                </DatePicker>
+                            </DatePicker>
                         </Grid>
 
                         <Button Content="Apply Filter" Click="FilterCustom_Click" Style="{StaticResource PrimaryButton}" Height="40"/>

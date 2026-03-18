@@ -57,7 +57,9 @@ namespace Management_System_WPF.Views
 
         private void LoadSales()
         {
-            _allSales = SalesService.GetAllSaleRecords();
+            _allSales = SalesService.GetAllSaleRecords()
+                .OrderByDescending(s => s.SaleDate)
+                .ToList();
             dgSales.ItemsSource = _allSales;
         }
 
@@ -112,7 +114,7 @@ namespace Management_System_WPF.Views
                     string.Equals(cat, selectedCategory, StringComparison.OrdinalIgnoreCase));
             }
 
-            dgSales.ItemsSource = filtered.ToList();
+            dgSales.ItemsSource = filtered.OrderByDescending(s => s.SaleDate).ToList();
         }
         private void Options_Click(object sender, RoutedEventArgs e)
         {
