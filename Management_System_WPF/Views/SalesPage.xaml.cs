@@ -23,20 +23,7 @@ namespace Management_System_WPF.Views
         public SalesPage()
         {
             InitializeComponent();
-            this.PreviewKeyDown += (s, e) =>
-            {
-                if (e.Key == Key.Enter)
-                {
-                    // If we are on the Save button, let the click happen normally
-                    if (FocusManager.GetFocusedElement(this) is Button btn && btn.Name == "btnSaveSale")
-                        return;
-
-                    // Otherwise, move focus forward
-                    var request = new TraversalRequest(FocusNavigationDirection.Next);
-                    (FocusManager.GetFocusedElement(this) as UIElement)?.MoveFocus(request);
-                    e.Handled = true;
-                }
-            };
+           
             // Load Buyers
             cmbBuyer.ItemsSource = BuyersService
                 .GetAllBuyers()
@@ -551,6 +538,30 @@ namespace Management_System_WPF.Views
                 }
             }), System.Windows.Threading.DispatcherPriority.Input);
         }
+        private void ComboBox_KeyDown(object sender, KeyEventArgs e)
+        {
+            var cb = sender as ComboBox;
+            if (cb == null) return;
 
+            if (e.Key == Key.Enter)
+            {
+                if (cb.IsDropDownOpen)
+                {
+                    // 🔥 Select current highlighted item
+                    if (cb.SelectedItem == null && cb.Items.Count > 0)
+                    {
+                        cb.SelectedIndex = 0;
+                    }
+
+                    cb.IsDropDownOpen = false;
+
+                    // Move focus next (optional)
+                    var request = new TraversalRequest(FocusNavigationDirection.Next);
+                    cb.MoveFocus(request);
+
+                    e.Handled = true;
+                }
+            }
+        }
     }
 }

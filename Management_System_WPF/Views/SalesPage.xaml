@@ -210,7 +210,7 @@
           IsEditable="True" 
           IsTextSearchEnabled="False" 
           StaysOpenOnEdit="True" 
-                                            KeyUp="SearchableComboBox_KeyUp"
+               KeyDown="ComboBox_KeyDown"                             KeyUp="SearchableComboBox_KeyUp"
          SelectionChanged="cmbBuyer_SelectionChanged">
 
                                         <ComboBox.ItemsPanel>
@@ -359,7 +359,7 @@
           Background="Transparent" BorderThickness="0" VerticalContentAlignment="Center"
           
           IsEditable="True" 
-          IsTextSearchEnabled="False" 
+          IsTextSearchEnabled="False" KeyDown="ComboBox_KeyDown"
           StaysOpenOnEdit="True" 
                                       FocusVisualStyle="{StaticResource FocusVisual}"         
                                              KeyUp="SearchableComboBox_KeyUp"
