@@ -3,12 +3,14 @@ using Management_System_WPF.Models;
 using Management_System_WPF.Services;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Management_System_WPF.Views
 {
@@ -23,19 +25,49 @@ namespace Management_System_WPF.Views
         public SalesPage()
         {
             InitializeComponent();
-           
-            // Load Buyers
-            cmbBuyer.ItemsSource = BuyersService
-                .GetAllBuyers()
-                .OrderBy(b => b.Name)
-                .ToList();
+            this.PreviewKeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    var focusedElement = FocusManager.GetFocusedElement(this);
+
+                    // Check if we are confirms a ComboBox selection
+                    if (Keyboard.FocusedElement is TextBox tb)
+                    {
+                        var parentCombo = FindParent<ComboBox>(tb);
+                        if (parentCombo != null && parentCombo.IsDropDownOpen) return;
+                    }
+
+                    if (focusedElement is Button btn && btn.Name == "btnSaveSale") return;
+
+                    // Move focus to next control
+                    var request = new TraversalRequest(FocusNavigationDirection.Next);
+                    if (focusedElement is UIElement element)
+                    {
+                        element.MoveFocus(request);
+                        e.Handled = true;
+                    }
+                }
+            };
+            // Load Buyers
+            cmbBuyer.ItemsSource = BuyersService
+        .GetAllBuyers()
+        .OrderBy(b => b.Name)
+        .ToList();
             cmbBuyer.DisplayMemberPath = "Name";
 
-            // Load Items
-            cmbItem.ItemsSource = ItemsService.GetAllItems().OrderBy(a => a.Name).ToList();
+            // Load Items
+            cmbItem.ItemsSource = ItemsService.GetAllItems().OrderBy(a => a.Name).ToList();
             cmbItem.DisplayMemberPath = "Name";
 
             dpSaleDate.SelectedDate = DateTime.Now;
+        }
+        private T FindParent<T>(DependencyObject child) where T : DependencyObject
+        {
+            DependencyObject parentObject = VisualTreeHelper.GetParent(child);
+            if (parentObject == null) return null;
+            if (parentObject is T parent) return parent;
+            return FindParent<T>(parentObject);
         }
         private List<object> GetItemsStartingWith(ComboBox cb, char letter)
         {
@@ -46,7 +78,7 @@ namespace Management_System_WPF.Views
                 string value = GetDisplayValue(item, cb.DisplayMemberPath);
 
                 if (!string.IsNullOrEmpty(value) &&
-                    value.StartsWith(letter.ToString(), StringComparison.OrdinalIgnoreCase))
+                  value.StartsWith(letter.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     items.Add(item);
                 }
@@ -58,8 +90,8 @@ namespace Management_System_WPF.Views
         {
             if (e.Key == Key.Tab && (Keyboard.Modifiers & ModifierKeys.Shift) == 0)
             {
-                e.Handled = true; 
-                FocusBuyer();     
+                e.Handled = true;
+                FocusBuyer();
             }
         }
         private void FocusBuyer()
@@ -88,7 +120,7 @@ namespace Management_System_WPF.Views
             if (cb == null || cb.ItemsSource == null) return;
 
             if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Enter ||
-                e.Key == Key.Tab || e.Key == Key.Escape)
+              e.Key == Key.Tab || e.Key == Key.Escape)
                 return;
 
             var textBox = e.OriginalSource as TextBox;
@@ -96,15 +128,15 @@ namespace Management_System_WPF.Views
 
             string searchText = textBox.Text;
 
-            // BACKSPACE resets cycling
-            if (e.Key == Key.Back)
+            // BACKSPACE resets cycling
+            if (e.Key == Key.Back)
             {
                 _lastCharPressed = '\0';
                 _charCycleIndex = -1;
             }
 
-            // -------- ALPHABET CYCLING --------
-            if (e.Key >= Key.A && e.Key <= Key.Z)
+            // -------- ALPHABET CYCLING --------
+            if (e.Key >= Key.A && e.Key <= Key.Z)
             {
                 char pressedChar = (char)('A' + (e.Key - Key.A));
                 DateTime now = DateTime.Now;
@@ -112,8 +144,8 @@ namespace Management_System_WPF.Views
                 bool sameKey = _lastCharPressed == pressedChar;
                 bool withinTime = (now - _lastCharTime).TotalSeconds <= CycleTimeoutSeconds;
 
-                // Only cycle if SAME key pressed again within time
-                if (sameKey && withinTime)
+                // Only cycle if SAME key pressed again within time
+                if (sameKey && withinTime)
                 {
                     var matches = GetItemsStartingWith(cb, pressedChar);
 
@@ -129,7 +161,7 @@ namespace Management_System_WPF.Views
                         cb.UpdateLayout();
 
                         var container = cb.ItemContainerGenerator
-                            .ContainerFromItem(matches[_charCycleIndex]) as ComboBoxItem;
+                          .ContainerFromItem(matches[_charCycleIndex]) as ComboBoxItem;
 
                         container?.BringIntoView();
 
@@ -140,14 +172,14 @@ namespace Management_System_WPF.Views
                     return;
                 }
 
-                // first press
-                _lastCharPressed = pressedChar;
+                // first press
+                _lastCharPressed = pressedChar;
                 _lastCharTime = now;
                 _charCycleIndex = -1;
             }
 
-            // -------- NORMAL SEARCH FILTER --------
-            Dispatcher.BeginInvoke(new Action(() =>
+            // -------- NORMAL SEARCH FILTER --------
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 var view = CollectionViewSource.GetDefaultView(cb.ItemsSource);
                 if (view == null) return;
@@ -167,7 +199,7 @@ namespace Management_System_WPF.Views
                 {
                     string displayValue = GetDisplayValue(item, cb.DisplayMemberPath);
                     return displayValue.IndexOf(searchText,
-                        StringComparison.OrdinalIgnoreCase) >= 0;
+                      StringComparison.OrdinalIgnoreCase) >= 0;
                 };
 
                 cb.IsDropDownOpen = true;
@@ -203,7 +235,7 @@ namespace Management_System_WPF.Views
             CalculateTotal();
         }
 
-      
+
         private void CalculateTotal()
         {
             if (!int.TryParse(txtQuantity.Text, out int qty) || qty <= 0)
@@ -220,7 +252,7 @@ namespace Management_System_WPF.Views
             LoadEffectivePrice();
         }
 
-      
+
         private void cmbBuyer_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             LoadEffectivePrice();
@@ -293,9 +325,9 @@ namespace Management_System_WPF.Views
             DateTime saleDate = dpSaleDate.SelectedDate.Value.Date;
 
             var existing = cart.FirstOrDefault(c =>
-                c.BuyerId == buyer.BuyerId &&
-                c.ItemId == item.Id &&
-                c.SaleDate == saleDate
+              c.BuyerId == buyer.BuyerId &&
+              c.ItemId == item.Id &&
+              c.SaleDate == saleDate
             );
 
             if (existing != null)
@@ -331,9 +363,9 @@ namespace Management_System_WPF.Views
             DateTime saleDate = dpSaleDate.SelectedDate.Value.Date;
 
             bool exists = cart.Any(c =>
-                c.BuyerId == buyer.BuyerId &&
-                c.ItemId == item.Id &&
-                c.SaleDate == saleDate
+              c.BuyerId == buyer.BuyerId &&
+              c.ItemId == item.Id &&
+              c.SaleDate == saleDate
             );
 
             if (!exists)
@@ -404,16 +436,16 @@ namespace Management_System_WPF.Views
 
         private void dpSaleDate_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            
+
             var textBox = dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) as DatePickerTextBox;
             if (textBox == null) return;
 
             string text = textBox.Text;
 
-           
+
             if (e.Key == Key.Tab && !string.IsNullOrWhiteSpace(text))
             {
-              
+
                 char[] separators = { '/', '-', '.' };
                 int firstSep = text.IndexOfAny(separators);
                 int secondSep = firstSep > -1 ? text.IndexOfAny(separators, firstSep + 1) : -1;
@@ -426,40 +458,40 @@ namespace Management_System_WPF.Views
                     int p2Start = firstSep + 1, p2Len = secondSep - firstSep - 1;
                     int p3Start = secondSep + 1, p3Len = text.Length - secondSep - 1;
 
-                  
+
                     if (Keyboard.Modifiers == ModifierKeys.Shift)
                     {
-                        if (selStart == p3Start && selLen == p3Len) 
+                        if (selStart == p3Start && selLen == p3Len)
                         {
                             textBox.Select(p2Start, p2Len);
                             e.Handled = true; return;
                         }
-                        if (selStart == p2Start && selLen == p2Len) 
+                        if (selStart == p2Start && selLen == p2Len)
                         {
                             textBox.Select(p1Start, p1Len);
                             e.Handled = true; return;
                         }
-                        return; 
+                        return;
                     }
 
-                    
+
                     if (selLen == text.Length || selLen == 0)
                     {
                         textBox.Select(p1Start, p1Len);
                         e.Handled = true; return;
                     }
-                    if (selStart == p1Start && selLen == p1Len) 
+                    if (selStart == p1Start && selLen == p1Len)
                     {
                         textBox.Select(p2Start, p2Len);
                         e.Handled = true; return;
                     }
-                    if (selStart == p2Start && selLen == p2Len) 
+                    if (selStart == p2Start && selLen == p2Len)
                     {
                         textBox.Select(p3Start, p3Len);
                         e.Handled = true; return;
                     }
 
-                   
+
                     return;
                 }
             }
@@ -480,8 +512,8 @@ namespace Management_System_WPF.Views
                 int direction = (e.Key == Key.Up) ? 1 : -1;
                 DateTime newDate = current;
 
-                // Variables to store the part we want to re-select after the update
-                int targetStart, targetLen;
+                // Variables to store the part we want to re-select after the update
+                int targetStart, targetLen;
 
                 if (selectionStart <= firstSep)
                 {
@@ -506,15 +538,15 @@ namespace Management_System_WPF.Views
                 {
                     dpSaleDate.SelectedDate = newDate;
 
-                    // Use Background priority to ensure the text has updated before we select it
-                    Dispatcher.BeginInvoke(new Action(() =>
+                    // Use Background priority to ensure the text has updated before we select it
+                    Dispatcher.BeginInvoke(new Action(() =>
                     {
                         var tb = dpSaleDate.Template.FindName("PART_TextBox", dpSaleDate) as DatePickerTextBox;
                         if (tb != null)
                         {
-                            // 🔥 THE FIX: Instead of just putting the cursor, 
-                            // we highlight the whole part. Now Tab will know where we are.
-                            tb.Select(targetStart, targetLen);
+                            // 🔥 THE FIX: Instead of just putting the cursor, 
+                            // we highlight the whole part. Now Tab will know where we are.
+                            tb.Select(targetStart, targetLen);
                         }
                     }), System.Windows.Threading.DispatcherPriority.Background);
 
@@ -524,44 +556,20 @@ namespace Management_System_WPF.Views
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Use Dispatcher to ensure the UI has finished rendering before focusing
-            Dispatcher.BeginInvoke(new Action(() =>
+            // Use Dispatcher to ensure the UI has finished rendering before focusing
+            Dispatcher.BeginInvoke(new Action(() =>
             {
                 cmbBuyer.Focus();
 
-                // Target the internal TextBox of the Editable ComboBox
-                var textBox = cmbBuyer.Template.FindName("PART_EditableTextBox", cmbBuyer) as TextBox;
+                // Target the internal TextBox of the Editable ComboBox
+                var textBox = cmbBuyer.Template.FindName("PART_EditableTextBox", cmbBuyer) as TextBox;
                 if (textBox != null)
                 {
                     textBox.Focus();
                     textBox.CaretIndex = textBox.Text.Length; // Put cursor at the end
-                }
+                }
             }), System.Windows.Threading.DispatcherPriority.Input);
         }
-        private void ComboBox_KeyDown(object sender, KeyEventArgs e)
-        {
-            var cb = sender as ComboBox;
-            if (cb == null) return;
-
-            if (e.Key == Key.Enter)
-            {
-                if (cb.IsDropDownOpen)
-                {
-                    // 🔥 Select current highlighted item
-                    if (cb.SelectedItem == null && cb.Items.Count > 0)
-                    {
-                        cb.SelectedIndex = 0;
-                    }
-
-                    cb.IsDropDownOpen = false;
-
-                    // Move focus next (optional)
-                    var request = new TraversalRequest(FocusNavigationDirection.Next);
-                    cb.MoveFocus(request);
-
-                    e.Handled = true;
-                }
-            }
-        }
+       
     }
 }
