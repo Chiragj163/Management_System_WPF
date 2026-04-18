@@ -31,7 +31,7 @@ namespace Management_System_WPF.Views
                 {
                     var focusedElement = FocusManager.GetFocusedElement(this);
 
-                    // Check if we are confirms a ComboBox selection
+                    
                     if (Keyboard.FocusedElement is TextBox tb)
                     {
                         var parentCombo = FindParent<ComboBox>(tb);
@@ -40,7 +40,7 @@ namespace Management_System_WPF.Views
 
                     if (focusedElement is Button btn && btn.Name == "btnSaveSale") return;
 
-                    // Move focus to next control
+                   
                     var request = new TraversalRequest(FocusNavigationDirection.Next);
                     if (focusedElement is UIElement element)
                     {
@@ -49,14 +49,14 @@ namespace Management_System_WPF.Views
                     }
                 }
             };
-            // Load Buyers
+          
             cmbBuyer.ItemsSource = BuyersService
-        .GetAllBuyers()
-        .OrderBy(b => b.Name)
-        .ToList();
+                .GetAllBuyers()
+                .OrderBy(b => b.Name)
+                .ToList();
             cmbBuyer.DisplayMemberPath = "Name";
 
-            // Load Items
+           
             cmbItem.ItemsSource = ItemsService.GetAllItems().OrderBy(a => a.Name).ToList();
             cmbItem.DisplayMemberPath = "Name";
 

@@ -6,6 +6,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace Management_System_WPF.Views
 {
@@ -143,6 +144,16 @@ namespace Management_System_WPF.Views
             var newList = PaymentService.GetPaymentsList(_buyerId, dpPaymentDate.SelectedDate.Value.Year, dpPaymentDate.SelectedDate.Value.Month);
             _paymentHistory.Clear();
             foreach (var item in newList) _paymentHistory.Add(item);
+        }
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            if (e.Key == Key.Escape)
+            {
+                this.Close();
+                e.Handled = true;
+            }
         }
     }
 }

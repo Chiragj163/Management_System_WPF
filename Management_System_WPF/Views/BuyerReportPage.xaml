@@ -6,7 +6,7 @@
       mc:Ignorable="d"
       Title="BuyerReportPage"
       d:DesignHeight="750" d:DesignWidth="1100"
-      Background="Transparent">
+      Background="Transparent" Focusable="True">
 
     <Page.Resources>
         <SolidColorBrush x:Key="PrimaryColor" Color="#009688"/>
@@ -387,8 +387,8 @@
                                         </Style>
                                         
                                     </DataGrid.ColumnHeaderStyle>
-                                   
 
+                       
                                     <DataGrid.CellStyle>
                                         
                                         <Style TargetType="DataGridCell">
@@ -404,6 +404,7 @@
                                                 <Trigger Property="IsSelected" Value="True">
                                                     <Setter Property="Background" Value="Transparent"/>
                                                 </Trigger>
+
                                                 <DataTrigger Binding="{Binding Date}" Value="Less Return">
                                                     <Setter Property="Background" Value="Red"/>
                                                     <Setter Property="Foreground" Value="White"/>
@@ -538,7 +539,7 @@
                             <TextBlock Text="Filter Sales" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextDark}"/>
                             <Button Content="✖" HorizontalAlignment="Right" Background="Transparent" BorderThickness="0" Foreground="Gray" Click="Filter_Click"/>
                         </Grid>
-
+                        <Button Content="This Week (Mon–Sun)"  Click="FilterThisWeek_Click"  Style="{StaticResource SecondaryButton}"  Height="40"  Margin="0,0,0,10"/>
                         <Button Content="This Month" Click="FilterThisMonth_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
                         <Button Content="Last 6 Months" Click="FilterSixMonths_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,10"/>
                         <Button Content="This Year" Click="FilterYear_Click" Style="{StaticResource SecondaryButton}" Height="40" Margin="0,0,0,15"/>

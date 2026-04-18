@@ -631,7 +631,7 @@ namespace Management_System_WPF.Views
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Force focus to the DataGrid so arrow keys work immediately
+            this.Focus();
             dgBuyerSales.Focus();
         }
 
@@ -639,6 +639,18 @@ namespace Management_System_WPF.Views
         protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             base.OnPreviewKeyDown(e);
+            if (e.Key == Key.Escape)
+            {
+                Back_Click(null, null);
+                e.Handled = true;
+                return;
+            }
+            else if (e.Key == Key.F)
+            {
+                Filter_Click(null, null);
+                e.Handled = true;
+                return;
+            }
 
             var scrollViewer = GetScrollViewer(dgBuyerSales);
             if (scrollViewer == null) return;

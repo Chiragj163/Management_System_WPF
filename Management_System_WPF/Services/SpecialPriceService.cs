@@ -1,4 +1,5 @@
-﻿using Management_System_WPF.Models;
+﻿using Management_System.Services;
+using Management_System_WPF.Models;
 using System;
 using System.Collections.Generic;
 using System.Data.SQLite;
@@ -117,6 +118,26 @@ SELECT COALESCE(
             cmd.Parameters.AddWithValue("@ItemId", itemId);
 
             return Convert.ToDecimal(cmd.ExecuteScalar());
+        }
+        public static decimal? GetSpecialPrice(int buyerId, int itemId)
+        {
+            using var conn = DatabaseService.GetConnection();
+            conn.Open();
+
+            string sql = @"SELECT special_price 
+                   FROM special_prices 
+                   WHERE buyer_id = @b AND item_id = @i";
+
+            using var cmd = new SQLiteCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@b", buyerId);
+            cmd.Parameters.AddWithValue("@i", itemId);
+
+            var result = cmd.ExecuteScalar();
+
+            if (result != null && result != DBNull.Value)
+                return Convert.ToDecimal(result);
+
+            return null;
         }
     }
 }

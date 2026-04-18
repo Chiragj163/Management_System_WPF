@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
 
@@ -23,7 +24,7 @@ namespace Management_System_WPF.Views
         private readonly int buyerId;
         private DateTime _currentMonth;
         private bool _isCustomRange = false;
-
+        private Window _hostWindow;
         private List<SalesRaw> _filteredSales = new();
         private List<SalesRaw> _filteredReturns = new();
         private decimal _currentTotalSales;
@@ -35,7 +36,19 @@ namespace Management_System_WPF.Views
 
         public BuyerReportPage(int id, string buyerName = "")
         {
+            this.Unloaded += BuyerReportPage_Unloaded;
+            _hostWindow = Window.GetWindow(this);
             InitializeComponent();
+            this.Loaded += (s, e) =>
+            {
+                _hostWindow = Window.GetWindow(this);
+
+                if (_hostWindow != null)
+                {
+                    _hostWindow.PreviewKeyDown -= Window_PreviewKeyDown;
+                    _hostWindow.PreviewKeyDown += Window_PreviewKeyDown;
+                }
+            };
             dgBuyerReport.AutoGeneratingColumn += DgBuyerReport_AutoGeneratingColumn;
             buyerId = id;
             if (!string.IsNullOrWhiteSpace(buyerName))
@@ -148,21 +161,9 @@ namespace Management_System_WPF.Views
             
             var allDbItems = ItemsService.GetAllItems();
 
-            decimal totalReturnValue = returnsList.Sum(ret =>
-            {
-                var sale = salesList.FirstOrDefault(s => s.ItemName == ret.ItemName);
-                decimal price = sale?.Price ?? 0;
+            decimal totalReturnValue = returnsList.Sum(r => r.Qty * r.Price);
 
-                if (price == 0)
-                {
-                    var dbItem = allDbItems.FirstOrDefault(i => i.Name == ret.ItemName);
-                    if (dbItem != null) price = dbItem.Price;
-                }
 
-                return ret.Qty * price;
-            });
-
-           
             _currentTotalSales = grossSales - totalReturnValue;
 
            
@@ -229,6 +230,19 @@ namespace Management_System_WPF.Views
                 FilterPanel.Visibility == Visibility.Visible
                     ? Visibility.Collapsed
                     : Visibility.Visible;
+        }
+        private void FilterThisWeek_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime today = DateTime.Today;
+            int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+            DateTime monday = today.AddDays(-diff);
+            DateTime sunday = monday.AddDays(6);
+
+            ApplyDateRangeFilter(
+                monday,
+                sunday,
+                $"Week ({monday:dd MMM} - {sunday:dd MMM})"
+            );
         }
 
         private void FilterThisMonth_Click(object sender, RoutedEventArgs e)
@@ -564,6 +578,73 @@ namespace Management_System_WPF.Views
             graphWin.Owner = Window.GetWindow(this);
             graphWin.ShowDialog();
         }
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            // ENTER → Apply Filter
+            if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                Filter_Click(null,null);
+                e.Handled = true;
+            }
 
+            // Ctrl + E → Export
+            else if (e.Key == Key.E && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ExportExcel_Click(null, null);
+                e.Handled = true;
+            }
+
+            // Ctrl + P → Print
+            else if (e.Key == Key.P && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                Print_Click(null, null);
+                e.Handled = true;
+            }
+
+            // Ctrl + M → Toggle Menu
+            else if (e.Key == Key.M && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                ToggleMenu_Click(null, null);
+                e.Handled = true;
+            }
+
+            // ESC → Smart Back
+            else if (e.Key == Key.Escape)
+            {
+                // 1. Close Menu first (TOP priority inside page)
+                if (ActionButtonsPanel.Visibility == Visibility.Visible)
+                {
+                    ActionButtonsPanel.Visibility = Visibility.Collapsed;
+                    btnMenu.Content = "☰ Menu";
+                }
+                // 2. Then Filter
+                else if (FilterPanel.Visibility == Visibility.Visible)
+                {
+                    FilterPanel.Visibility = Visibility.Collapsed;
+                }
+                // 3. Then Back
+                else
+                {
+                    Back_Click(null, null);
+                }
+
+                e.Handled = true;
+            }
+        }
+        private void Page_Loaded(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(new Action(() =>
+            {
+                Keyboard.Focus(this);
+            }), System.Windows.Threading.DispatcherPriority.Input);
+        }
+        private void BuyerReportPage_Unloaded(object sender, RoutedEventArgs e)
+        {
+            if (_hostWindow != null)
+            {
+                _hostWindow.PreviewKeyDown -= Window_PreviewKeyDown;
+                _hostWindow = null;
+            }
+        }
     }
 }

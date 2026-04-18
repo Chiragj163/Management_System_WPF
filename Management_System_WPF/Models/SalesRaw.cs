@@ -10,6 +10,7 @@ namespace Management_System_WPF.Models
         public string ItemName { get; set; }
         public int Qty { get; set; }
         public decimal Price { get; set; }
+        public decimal Amount { get; set; }
     }
 }
 

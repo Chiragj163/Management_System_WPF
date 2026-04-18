@@ -1,5 +1,6 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Management_System_WPF.Views
 {
@@ -26,5 +27,16 @@ namespace Management_System_WPF.Views
         {
             this.Close();
         }
+        protected override void OnPreviewKeyDown(KeyEventArgs e)
+        {
+            base.OnPreviewKeyDown(e);
+
+            if (e.Key == Key.Escape)
+            {
+                this.Close();
+                e.Handled = true;
+            }
+        }
+
     }
 }

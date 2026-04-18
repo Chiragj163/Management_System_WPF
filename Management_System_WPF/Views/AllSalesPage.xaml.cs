@@ -29,17 +29,27 @@ namespace Management_System_WPF.Views
                     ToggleFilter_Click(null, null);
                     e.Handled = true;
                 }
-                // Escape to Close (only if panel is visible)
-                else if (e.Key == Key.Escape && FilterPanel.Visibility == Visibility.Visible)
+                else if (e.Key == Key.Escape)
                 {
-                    FilterPanel.Visibility = Visibility.Collapsed;
+                    if (FilterPanel.Visibility == Visibility.Visible)
+                    {
+                        // Close filter first
+                        FilterPanel.Visibility = Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        // Go back if filter already closed
+                        Back_Click(null, null);
+                    }
+
                     e.Handled = true;
                 }
             };
         }
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            this.Focus(); // Force the page to listen to the keyboard
+            this.Focus();
+            Keyboard.Focus(this);
         }
         private void LoadCategories()
         {

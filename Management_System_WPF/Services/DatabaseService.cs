@@ -11,7 +11,7 @@ namespace Management_System.Services
         public static SQLiteConnection GetConnection()
         {
             string dbPath = Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
+                 Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.Parent.FullName,
                 "Database",
                 "factory.db");
 

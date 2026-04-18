@@ -25,22 +25,23 @@ namespace Management_System_WPF.Services
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.ExecuteNonQuery();
         }
-        public static void AddReturn(int buyerId, int itemId, int year, int month, int qty)
+        public static void AddReturn(int buyerId, int itemId, int year, int month, int qty, decimal price)
         {
             using var conn = new SQLiteConnection(connectionString);
             conn.Open();
             string ym = $"{year}-{month:D2}";
-            string sql = @"INSERT INTO returns (buyer_id, item_id, return_month, qty) 
-                           VALUES (@b, @i, @ym, @q)
-                           ON CONFLICT(return_id) DO UPDATE SET qty = qty + @q; -- Simplification
+            string sql = @"INSERT INTO returns (buyer_id, item_id, return_month, qty, price) 
+                           VALUES (@b, @i, @ym, @q, @p)
+                           
                            ";
-            sql = "INSERT INTO returns (buyer_id, item_id, return_month, qty) VALUES (@b, @i, @ym, @q)";
+            //sql = "INSERT INTO returns (buyer_id, item_id, return_month, qty) VALUES (@b, @i, @ym, @q)";
 
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.Parameters.AddWithValue("@b", buyerId);
             cmd.Parameters.AddWithValue("@i", itemId);
             cmd.Parameters.AddWithValue("@ym", ym);
             cmd.Parameters.AddWithValue("@q", qty);
+            cmd.Parameters.AddWithValue("@p", price);
             cmd.ExecuteNonQuery();
         }
         public static List<SalesRaw> GetReturnsForPivot(int buyerId, int year, int month)
@@ -52,9 +53,9 @@ namespace Management_System_WPF.Services
 
             string sql = @"SELECT r.item_id, i.item_name, SUM(r.qty) as qty
                            FROM returns r
-                           JOIN items i ON r.item_id = i.item_id
-                           WHERE r.buyer_id = @b AND r.return_month = @ym
-                           GROUP BY r.item_id, i.item_name";
+JOIN items i ON r.item_id = i.item_id
+WHERE r.buyer_id = @b AND r.return_month = @ym
+GROUP BY r.item_id, i.item_name";
 
             using var cmd = new SQLiteCommand(sql, conn);
             cmd.Parameters.AddWithValue("@b", buyerId);
@@ -63,11 +64,17 @@ namespace Management_System_WPF.Services
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
+                int itemId = Convert.ToInt32(reader["item_id"]);
+                int qty = Convert.ToInt32(reader["qty"]);
+
+                decimal price = SpecialPriceService.GetEffectivePrice(buyerId, itemId);
+
                 list.Add(new SalesRaw
                 {
                     ItemName = reader["item_name"].ToString(),
-                    Qty = Convert.ToInt32(reader["qty"]),
-                    Date = "Return" 
+                    Qty = qty,
+                    Price = price, // ✅ ALWAYS latest price
+                    Date = "Less Return"
                 });
             }
             return list;

@@ -110,7 +110,7 @@ namespace Management_System_WPF.Views
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
 
             var articles = articleTotals
-                .OrderByDescending(kvp => kvp.Value)
+                .OrderBy(kvp => kvp.Key)
                 .Select(kvp => kvp.Key)
                 .ToList();
 
@@ -224,7 +224,7 @@ namespace Management_System_WPF.Views
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.Qty));
 
             var articles = articleTotals
-                .OrderByDescending(kvp => kvp.Value)
+                .OrderBy(kvp => kvp.Key)
                 .Select(kvp => kvp.Key)
                 .ToList();
 
@@ -898,7 +898,7 @@ new Setter(
 
         private void Page_Loaded(object sender, RoutedEventArgs e)
         {
-            // Force focus to the DataGrid so arrow keys work immediately
+            this.Focus();
             dgArticles.Focus();
         }
 
@@ -906,6 +906,18 @@ new Setter(
         protected override void OnPreviewKeyDown(KeyEventArgs e)
         {
             base.OnPreviewKeyDown(e);
+            if (e.Key == Key.Escape)
+            {
+                Back_Click(null, null); // call your existing back method
+                e.Handled = true;
+                return;
+            }
+            else if (e.Key == Key.F)
+            {
+                Filter_Click(null, null);
+                e.Handled = true;
+                return;
+            }
 
             var scrollViewer = GetScrollViewer(dgArticles);
             if (scrollViewer == null) return;

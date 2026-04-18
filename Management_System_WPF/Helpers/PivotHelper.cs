@@ -97,6 +97,7 @@ namespace Management_System_WPF.Helpers
             {
                 decimal price =
                     sales.FirstOrDefault(s => s.ItemName == item)?.Price ??
+                    returns.FirstOrDefault(r => r.ItemName == item)?.Price ??
                     dbItems.FirstOrDefault(d => d.Name == item)?.Price ?? 0;
 
                 unitPrices[item] = price;
@@ -108,15 +109,21 @@ namespace Management_System_WPF.Helpers
             DataRow totalPriceRow = dt.NewRow();
             totalPriceRow["Date"] = "Total Price";
 
-            foreach (var item in items)
+            foreach (var item in items) // ✅ IMPORTANT
             {
-                int qty = netQtys[item];
-                decimal price = unitPrices[item];
+                decimal salesAmount = sales
+                    .Where(s => s.ItemName == item)
+                    .Sum(s => s.Qty * s.Price);
 
-                if (qty != 0 && price > 0)
-                    totalPriceRow[item] = (qty * price).ToString("₹ 0.##");
-                else
-                    totalPriceRow[item] = "";
+                decimal returnAmount = returns
+                    .Where(r => r.ItemName == item)
+                    .Sum(r => r.Qty * r.Price);
+
+                decimal netAmount = salesAmount - returnAmount;
+
+                totalPriceRow[item] = netAmount != 0
+                    ? netAmount.ToString("₹ 0.##")
+                    : "";
             }
 
             dt.Rows.Add(totalPriceRow);
