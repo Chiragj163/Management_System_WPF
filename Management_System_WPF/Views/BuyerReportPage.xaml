@@ -345,8 +345,7 @@
 
                 <Border Grid.Row="2"  Margin="15,0,15,25" BorderThickness="0">
 
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
                         <StackPanel VerticalAlignment="Top">
 
                             <Border CornerRadius="10,10,0,0" 
