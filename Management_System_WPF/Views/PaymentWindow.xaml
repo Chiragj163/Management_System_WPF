@@ -109,6 +109,10 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        
+        
+        
+        
     </Window.Resources>
 
     <Border Background="White" CornerRadius="15" Margin="15">
